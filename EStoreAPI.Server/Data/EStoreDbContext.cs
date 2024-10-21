@@ -5,7 +5,7 @@ namespace EStoreAPI.Server.Data
 {
     public class EStoreDbContext : DbContext
     {
-        protected readonly IConfiguration Configuration;
+        protected readonly IConfiguration _Configuration;
 
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Device> Devices { get; set; }
@@ -14,13 +14,13 @@ namespace EStoreAPI.Server.Data
 
         public EStoreDbContext(IConfiguration configuration)
         {
-            Configuration = configuration;
+            _Configuration = configuration;
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             // connection string from appsettings.json
-            optionsBuilder.UseNpgsql(Configuration.GetConnectionString("WebAPIDatabase"));
+            optionsBuilder.UseNpgsql(_Configuration.GetConnectionString("WebAPIDatabase"));
         }
     }
 }
