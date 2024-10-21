@@ -130,6 +130,7 @@ namespace EStoreAPI.Server.Data
                 .SetProperty(j => j.Problems, job.Problems)
                 .SetProperty(j => j.EstimatedPrice, job.EstimatedPrice)
                 .SetProperty(j => j.CollectedPrice, job.CollectedPrice)
+                .SetProperty(j => j.IsFinished, job.IsFinished)
             );
         }
     }
