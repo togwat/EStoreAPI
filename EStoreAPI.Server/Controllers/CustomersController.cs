@@ -64,5 +64,26 @@ namespace EStoreAPI.Server.Controllers
 
             return CreatedAtAction(nameof(GetCustomerByIdAsync), new { id = newCustomer.CustomerId }, newCustomer);
         }
+
+
+        // PUT: api/customers/update/{id}
+        [HttpPut("update/{id}")]
+        public async Task<ActionResult> UpdateCustomerAsync(int id, Customer customer)
+        {
+            if (id != customer.CustomerId)
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                await _Repo.UpdateCustomerAsync(customer);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+        }
     }
 }

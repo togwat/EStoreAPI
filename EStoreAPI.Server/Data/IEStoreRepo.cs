@@ -20,7 +20,7 @@ namespace EStoreAPI.Server.Data
         Task UpdateDeviceAsync(Device device);
 
         // problem operations
-        Task<Problem?> GetProblemById(int id);
+        Task<Problem?> GetProblemByIdAsync(int id);
         Task<ICollection<Problem>> GetProblemsOfDeviceAsync(Device device);
         Task<Problem> AddProblemAsync(Problem problem);
         Task UpdateProblemAsync(Problem problem);

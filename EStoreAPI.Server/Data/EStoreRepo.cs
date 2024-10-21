@@ -46,12 +46,21 @@ namespace EStoreAPI.Server.Data
 
         public async Task UpdateCustomerAsync(Customer customer)
         {
-            await _dbContext.Customers.Where(c => c.CustomerId == customer.CustomerId).ExecuteUpdateAsync(setters => setters
-                .SetProperty(c => c.CustomerName, customer.CustomerName)
-                .SetProperty(c => c.PhoneNumbers, customer.PhoneNumbers)
-                .SetProperty(c => c.Email, customer.Email)
-                .SetProperty(c => c.Address, customer.Address)
-            );
+            Customer? customerToChange = await GetCustomerByIdAsync(customer.CustomerId);
+
+            if (customerToChange != null)
+            {
+                customerToChange.CustomerName = customer.CustomerName;
+                customerToChange.PhoneNumbers = customer.PhoneNumbers;
+                customerToChange.Email = customer.Email;
+                customerToChange.Address = customer.Address;
+
+                await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                throw new KeyNotFoundException("Customer not found.");
+            }
         }
 
         // device operations
@@ -122,7 +131,7 @@ namespace EStoreAPI.Server.Data
         // job operations
         public async Task<Job?> GetJobByIdAsync(int id)
         {
-            Job? job = await _dbContext.Job.FirstOrDefaultAsync(j => j.JobId == id);
+            Job? job = await _dbContext.Jobs.FirstOrDefaultAsync(j => j.JobId == id);
             return job;
         }
 
