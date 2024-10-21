@@ -30,6 +30,8 @@ namespace EStoreAPI.Server.Models
 
         public Decimal? CollectedPrice { get; set; }
 
+        public bool IsFinished { get; set; } = false;
+
         public Job() {}
 
         public Job(Customer customer, Device device, DateTime receiveTime, DateTime pickupTime, DateTime estimatedPickupTime, string note, ICollection<Problem> problems, Decimal estimatedPrice, Decimal collectedPrice) 
