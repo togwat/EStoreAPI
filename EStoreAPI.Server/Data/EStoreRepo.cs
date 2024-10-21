@@ -14,6 +14,12 @@ namespace EStoreAPI.Server.Data
         }
 
         // customer operations
+        public async Task<Customer?> GetCustomerByIdAsync(int id)
+        {
+            Customer? customer = await _dbContext.Customers.FirstOrDefaultAsync(c => c.CustomerId == id);
+            return customer;
+        }
+
         public async Task<ICollection<Customer>> GetCustomersAsync()
         {
             ICollection<Customer> customers = await _dbContext.Customers.ToListAsync();
@@ -49,6 +55,12 @@ namespace EStoreAPI.Server.Data
         }
 
         // device operations
+        public async Task<Device?> GetDeviceByIdAsync(int id)
+        {
+            Device? device = await _dbContext.Devices.FirstOrDefaultAsync(d => d.DeviceId == id);
+            return device;
+        }
+
         public async Task<Device?> GetDeviceByNameAsync(string name)
         {
             Device? device = await _dbContext.Devices.FirstOrDefaultAsync(d => d.deviceName == name);
@@ -78,6 +90,12 @@ namespace EStoreAPI.Server.Data
         }
 
         // problem operations
+        public async Task<Problem?> GetProblemByIdAsync(int id)
+        {
+            Problem? problem = await _dbContext.Problems.FirstOrDefaultAsync(p => p.ProblemId == id);
+            return problem;
+        }
+
         public async Task<ICollection<Problem>> GetProblemsOfDeviceAsync(Device device)
         {
             ICollection<Problem> problems = await _dbContext.Problems.Where(p => p.Device == device).ToListAsync();
@@ -102,6 +120,12 @@ namespace EStoreAPI.Server.Data
         }
 
         // job operations
+        public async Task<Job?> GetJobByIdAsync(int id)
+        {
+            Job? job = await _dbContext.Job.FirstOrDefaultAsync(j => j.JobId == id);
+            return job;
+        }
+
         public async Task<ICollection<Job>> GetJobsAsync()
         {
             ICollection<Job> jobs = await _dbContext.Jobs.ToListAsync();
