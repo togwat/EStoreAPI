@@ -24,5 +24,45 @@ namespace EStoreAPI.Server.Controllers
             ICollection<Customer> customers = await _Repo.GetCustomersAsync();
             return Ok(customers);
         }
+
+        // GET: api/Customers/{id}
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Customer>> GetCustomerByIdAsync(int id)
+        {
+            Customer? customer = await _Repo.GetCustomerByIdAsync(id);
+
+            if (customer == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return Ok(customer);
+            }
+        }
+
+        // GET: api/Customers/search
+        [HttpGet("search")]
+        public async Task<ActionResult<ICollection<Customer>>> GetCustomersByQueryAsync([FromQuery] string? query)
+        {
+            if (query == null)
+            {
+                return await GetCustomersAsync();
+            }
+            else
+            {
+                ICollection<Customer> customers = await _Repo.GetCustomersByQueryAsync(query);
+                return Ok(customers);
+            }
+        }
+
+        // POST: api/customers/add
+        [HttpPost("add")]
+        public async Task<ActionResult<Customer>> AddCustomerAsync(Customer customer)
+        {
+            Customer newCustomer = await _Repo.AddCustomerAsync(customer);
+
+            return CreatedAtAction(nameof(GetCustomerByIdAsync), new { id = newCustomer.CustomerId }, newCustomer);
+        }
     }
 }
