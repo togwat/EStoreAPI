@@ -19,7 +19,7 @@ namespace EStoreAPI.Server.Controllers
 
         // GET: api/Customers
         [HttpGet]
-        public async Task<ActionResult<ICollection<Customer>>> GetCustomersAsync()
+        public async Task<ActionResult<ICollection<Customer>>> GetAllCustomersAsync()
         {
             ICollection<Customer> customers = await _Repo.GetCustomersAsync();
             return Ok(customers);
@@ -27,7 +27,7 @@ namespace EStoreAPI.Server.Controllers
 
         // GET: api/Customers/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Customer>> GetCustomerByIdAsync(int id)
+        public async Task<ActionResult<Customer>> GetCustomerAsync(int id)
         {
             Customer? customer = await _Repo.GetCustomerByIdAsync(id);
 
@@ -43,11 +43,11 @@ namespace EStoreAPI.Server.Controllers
 
         // GET: api/Customers/search
         [HttpGet("search")]
-        public async Task<ActionResult<ICollection<Customer>>> GetCustomersByQueryAsync([FromQuery] string? query)
+        public async Task<ActionResult<ICollection<Customer>>> SearchCustomersAsync([FromQuery] string? query)
         {
             if (query == null)
             {
-                return await GetCustomersAsync();
+                return await GetAllCustomersAsync();
             }
             else
             {
@@ -56,19 +56,19 @@ namespace EStoreAPI.Server.Controllers
             }
         }
 
-        // POST: api/customers/add
-        [HttpPost("add")]
-        public async Task<ActionResult<Customer>> AddCustomerAsync(Customer customer)
+        // POST: api/Customers/create
+        [HttpPost("create")]
+        public async Task<ActionResult<Customer>> CreateCustomerAsync(Customer customer)
         {
             Customer newCustomer = await _Repo.AddCustomerAsync(customer);
 
-            return CreatedAtAction(nameof(GetCustomerByIdAsync), new { id = newCustomer.CustomerId }, newCustomer);
+            return CreatedAtAction(nameof(GetCustomerAsync), new { id = newCustomer.CustomerId }, newCustomer);
         }
 
 
-        // PUT: api/customers/update/{id}
+        // PUT: api/Customers/update/{id}
         [HttpPut("update/{id}")]
-        public async Task<ActionResult> UpdateCustomerAsync(int id, Customer customer)
+        public async Task<ActionResult> UpdateCustomerWithIdAsync(int id, Customer customer)
         {
             if (id != customer.CustomerId)
             {
