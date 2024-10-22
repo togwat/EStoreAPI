@@ -180,15 +180,24 @@ namespace EStoreAPI.Server.Data
 
         public async Task UpdateJobAsync(Job job)
         {
-            await _dbContext.Jobs.Where(j => j.JobId == job.JobId).ExecuteUpdateAsync(setters => setters
-                .SetProperty(j => j.PickupTime, job.PickupTime)
-                .SetProperty(j => j.EstimatedPickupTime, job.EstimatedPickupTime)
-                .SetProperty(j => j.Note, job.Note)
-                .SetProperty(j => j.Problems, job.Problems)
-                .SetProperty(j => j.EstimatedPrice, job.EstimatedPrice)
-                .SetProperty(j => j.CollectedPrice, job.CollectedPrice)
-                .SetProperty(j => j.IsFinished, job.IsFinished)
-            );
+            Job? jobToChange = await GetJobByIdAsync(job.JobId);
+
+            if (jobToChange != null)
+            {
+                jobToChange.PickupTime = job.PickupTime;
+                jobToChange.EstimatedPickupTime = job.EstimatedPickupTime;
+                jobToChange.Note = job.Note;
+                jobToChange.Problems = job.Problems;
+                jobToChange.EstimatedPrice = job.EstimatedPrice;
+                jobToChange.CollectedPrice = job.CollectedPrice;
+                jobToChange.IsFinished = job.IsFinished;
+
+                await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                throw new KeyNotFoundException("Job not found.");
+            }
         }
     }
 }
