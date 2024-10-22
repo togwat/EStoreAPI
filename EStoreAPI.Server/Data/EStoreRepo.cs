@@ -136,11 +136,20 @@ namespace EStoreAPI.Server.Data
 
         public async Task UpdateProblemAsync(Problem problem)
         {
-            await _dbContext.Problems.Where(p => p.ProblemId == problem.ProblemId).ExecuteUpdateAsync(setters => setters
-                .SetProperty(p => p.ProblemName, problem.ProblemName)
-                .SetProperty(p => p.Device, problem.Device)
-                .SetProperty(p => p.Price, problem.Price)
-            );
+            Problem? problemToChange = await GetProblemByIdAsync(problem.ProblemId);
+
+            if (problemToChange != null)
+            {
+                problemToChange.ProblemName = problem.ProblemName;
+                problemToChange.Device = problem.Device;
+                problemToChange.Price = problem.Price;
+
+                await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                throw new KeyNotFoundException("Problem not found.");
+            }
         }
 
         // job operations
