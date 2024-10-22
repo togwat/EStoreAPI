@@ -41,7 +41,7 @@ namespace EStoreAPI.Server.Controllers
             }
         }
 
-        // GET: api/Customers/search
+        // GET: api/Customers/search?query=
         [HttpGet("search")]
         public async Task<ActionResult<ICollection<Customer>>> SearchCustomersAsync([FromQuery] string? query)
         {

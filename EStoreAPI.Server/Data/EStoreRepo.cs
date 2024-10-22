@@ -70,10 +70,16 @@ namespace EStoreAPI.Server.Data
             return device;
         }
 
-        public async Task<Device?> GetDeviceByNameAsync(string name)
+        public async Task<ICollection<Device>> GetDevicesAsync()
         {
-            Device? device = await _dbContext.Devices.FirstOrDefaultAsync(d => d.deviceName == name);
-            return device;
+            ICollection<Device> devices = await _dbContext.Devices.ToListAsync();
+            return devices;
+        }
+
+        public async Task<ICollection<Device>> GetDevicesByNameAsync(string name)
+        {
+            ICollection<Device> devices = await _dbContext.Devices.Where(d => d.deviceName.Contains(name)).ToListAsync();
+            return devices;
         }
 
         public async Task<ICollection<Device>> GetDevicesByTypeAsync(string type)
@@ -92,10 +98,19 @@ namespace EStoreAPI.Server.Data
 
         public async Task UpdateDeviceAsync(Device device)
         {
-            await _dbContext.Devices.Where(d => d.DeviceId == device.DeviceId).ExecuteUpdateAsync(setters => setters
-                .SetProperty(d => d.deviceName, device.deviceName)
-                .SetProperty(d => d.deviceType, device.deviceType)
-            );
+            Device? deviceToChange = await GetDeviceByIdAsync(device.DeviceId);
+
+            if (deviceToChange != null)
+            {
+                deviceToChange.deviceName = device.deviceName;
+                deviceToChange.deviceType = device.deviceType;
+
+                await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                throw new KeyNotFoundException("Device not found.");
+            }
         }
 
         // problem operations
