@@ -218,5 +218,48 @@ namespace EStoreAPI.Tests.APITests
             var customersResult = Assert.IsAssignableFrom<ICollection<Customer>>(okResult.Value);   // return type ICollection<Customer>
             Assert.Equal(5, customersResult.Count);   // returns 5 customers
         }
+
+        // POST: api/Customers/create
+        [Theory]
+        [InlineData("a", new string[] { "123" })]   // valid customer
+        [InlineData(null, new string[] { "123" })]  // invalid name, valid phone
+        [InlineData("b", new string[] { })]     // valid name, invalid phone
+        [InlineData(null, new string[] { })]    // invalid name, invalid phone
+        [InlineData(null, null)]                // invalid name, invalid phone
+        public async Task TestCreateCustomerValid(string name, string[] phones)
+        {
+            // arrange
+            var newCustomer = _fixture.Build<Customer>()
+                                    .Without(c => c.CustomerId)
+                                    .With(c => c.CustomerName, name)
+                                    .With(c => c.PhoneNumbers, phones)
+                                    .Create();
+            _repo.Setup(r => r.AddCustomerAsync(newCustomer))
+                .ReturnsAsync((Customer c) =>
+                {
+                    c.CustomerId = 1; // EF auto-increments id
+                    return c;
+                });
+
+            // act
+            var reuslt = await _controller.CreateCustomerAsync(newCustomer);
+
+            // assert
+            // valid customer
+            if (name == "a" && Enumerable.SequenceEqual(phones, ["123"]))
+            {
+                var createdResult = Assert.IsType<CreatedAtActionResult>(reuslt.Result);
+                var createdCustomer = Assert.IsAssignableFrom<Customer>(createdResult.Value);
+
+                Assert.Equal(newCustomer.CustomerName, createdCustomer.CustomerName);
+                Assert.Equal(newCustomer.PhoneNumbers, createdCustomer.PhoneNumbers);
+                Assert.Equal(newCustomer.Email, createdCustomer.Email);
+            }
+            // invalid customer
+            else
+            {
+                var createdResult = Assert.IsType<BadRequestResult>(reuslt.Result);
+            }
+        }
     }
 }
