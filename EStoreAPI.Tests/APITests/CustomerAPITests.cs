@@ -54,48 +54,33 @@ namespace EStoreAPI.Tests.APITests
         }
 
         // GET: api/Customers/{id}
-        [Fact]
-        public async Task TestGetCustomersByValidId()
+        [Theory]
+        [InlineData(1)]     // valid id
+        [InlineData(-1)]    // invalid id
+        [InlineData(2)]     // invalid id
+        public async Task TestGetCustomerById(int id)
         {
-            var customers = _fixture.CreateMany<Customer>(5);
-            foreach(var customer in customers)
-            {
-                _repo.Setup(r => r.GetCustomerByIdAsync(customer.CustomerId)).ReturnsAsync(customer);
-            }
+            // arrange
+            Customer customer = _fixture.Build<Customer>()
+                                        .With(c => c.CustomerId, 1)
+                                        .Create();
+            _repo.Setup(r => r.GetCustomerByIdAsync(1)).ReturnsAsync(customer);
 
             // act
-            foreach (var customer in customers)
-            {
-                var result = await _controller.GetCustomerAsync(customer.CustomerId);
+            var result = await _controller.GetCustomerAsync(id);
 
-                // assert
+            // assert
+            // valid id
+            if (id == 1)
+            {
                 var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 Ok
                 var customerResult = Assert.IsAssignableFrom<Customer>(okResult.Value); // return type Customer
                 Assert.Equal(customer.CustomerId, customerResult.CustomerId);   // matching id        
             }
-        }
-
-        [Fact]
-        public async Task TestGetCustomersByInvalidId()
-        {
-            // arrange
-            var customers = _fixture.CreateMany<Customer>(5);
-            foreach (var customer in customers)
+            // invalid id
+            else
             {
-                _repo.Setup(r => r.GetCustomerByIdAsync(customer.CustomerId)).ReturnsAsync(customer);
-            }
-
-            int validId = customers.Max(x => x.CustomerId);
-
-            IEnumerable<int> invalidIds = new List<int> { -1, validId + 1 };
-
-            foreach (int id in invalidIds)
-            {
-                // act
-                var invalidResult = await _controller.GetCustomerAsync(id);
-
-                // assert
-                var notFoundResult = Assert.IsType<NotFoundObjectResult>(invalidResult.Result); // returns 404 Not found
+                Assert.IsType<NotFoundObjectResult>(result.Result); // returns 404 Not found
             }
         }
 
@@ -104,7 +89,7 @@ namespace EStoreAPI.Tests.APITests
         [InlineData("name")]
         [InlineData("na")]
         [InlineData("notname")]
-        public async Task TestSearchCustomersWithValidName(string name)
+        public async Task TestSearchCustomersName(string name)
         {
             // arrange
             var customers = _fixture.Build<Customer>()
@@ -142,7 +127,7 @@ namespace EStoreAPI.Tests.APITests
         [InlineData("12345")]
         [InlineData("45678")]
         [InlineData("123")]
-        public async Task TestSearchCustomersWithValidPhone(string phone)
+        public async Task TestSearchCustomersPhone(string phone)
         {
             // arrange
             var customer = _fixture.Build<Customer>()
@@ -226,7 +211,7 @@ namespace EStoreAPI.Tests.APITests
         [InlineData("b", new string[] { })]     // valid name, invalid phone
         [InlineData(null, new string[] { })]    // invalid name, invalid phone
         [InlineData(null, null)]                // invalid name, invalid phone
-        public async Task TestCreateCustomerValid(string name, string[] phones)
+        public async Task TestCreateCustomer(string name, string[] phones)
         {
             // arrange
             var newCustomer = _fixture.Build<Customer>()
@@ -258,7 +243,7 @@ namespace EStoreAPI.Tests.APITests
             // invalid customer
             else
             {
-                var createdResult = Assert.IsType<BadRequestResult>(reuslt.Result);
+                Assert.IsType<BadRequestResult>(reuslt.Result);
             }
         }
     }
