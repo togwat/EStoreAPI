@@ -14,13 +14,14 @@ namespace EStoreAPI.Server.Data
 
         // device operations
         Task<Device?> GetDeviceByIdAsync(int id);
-        Task<Device?> GetDeviceByNameAsync(string name);
+        Task<ICollection<Device>> GetDevicesAsync();
+        Task<ICollection<Device>> GetDevicesByNameAsync(string name);
         Task<ICollection<Device>> GetDevicesByTypeAsync(string type);
         Task<Device> AddDeviceAsync(Device device);
         Task UpdateDeviceAsync(Device device);
 
         // problem operations
-        Task<Problem?> GetProblemById(int id);
+        Task<Problem?> GetProblemByIdAsync(int id);
         Task<ICollection<Problem>> GetProblemsOfDeviceAsync(Device device);
         Task<Problem> AddProblemAsync(Problem problem);
         Task UpdateProblemAsync(Problem problem);

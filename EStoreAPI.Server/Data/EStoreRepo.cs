@@ -46,12 +46,21 @@ namespace EStoreAPI.Server.Data
 
         public async Task UpdateCustomerAsync(Customer customer)
         {
-            await _dbContext.Customers.Where(c => c.CustomerId == customer.CustomerId).ExecuteUpdateAsync(setters => setters
-                .SetProperty(c => c.CustomerName, customer.CustomerName)
-                .SetProperty(c => c.PhoneNumbers, customer.PhoneNumbers)
-                .SetProperty(c => c.Email, customer.Email)
-                .SetProperty(c => c.Address, customer.Address)
-            );
+            Customer? customerToChange = await GetCustomerByIdAsync(customer.CustomerId);
+
+            if (customerToChange != null)
+            {
+                customerToChange.CustomerName = customer.CustomerName;
+                customerToChange.PhoneNumbers = customer.PhoneNumbers;
+                customerToChange.Email = customer.Email;
+                customerToChange.Address = customer.Address;
+
+                await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                throw new KeyNotFoundException("Customer not found.");
+            }
         }
 
         // device operations
@@ -61,10 +70,16 @@ namespace EStoreAPI.Server.Data
             return device;
         }
 
-        public async Task<Device?> GetDeviceByNameAsync(string name)
+        public async Task<ICollection<Device>> GetDevicesAsync()
         {
-            Device? device = await _dbContext.Devices.FirstOrDefaultAsync(d => d.deviceName == name);
-            return device;
+            ICollection<Device> devices = await _dbContext.Devices.ToListAsync();
+            return devices;
+        }
+
+        public async Task<ICollection<Device>> GetDevicesByNameAsync(string name)
+        {
+            ICollection<Device> devices = await _dbContext.Devices.Where(d => d.deviceName.Contains(name)).ToListAsync();
+            return devices;
         }
 
         public async Task<ICollection<Device>> GetDevicesByTypeAsync(string type)
@@ -83,10 +98,19 @@ namespace EStoreAPI.Server.Data
 
         public async Task UpdateDeviceAsync(Device device)
         {
-            await _dbContext.Devices.Where(d => d.DeviceId == device.DeviceId).ExecuteUpdateAsync(setters => setters
-                .SetProperty(d => d.deviceName, device.deviceName)
-                .SetProperty(d => d.deviceType, device.deviceType)
-            );
+            Device? deviceToChange = await GetDeviceByIdAsync(device.DeviceId);
+
+            if (deviceToChange != null)
+            {
+                deviceToChange.deviceName = device.deviceName;
+                deviceToChange.deviceType = device.deviceType;
+
+                await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                throw new KeyNotFoundException("Device not found.");
+            }
         }
 
         // problem operations
@@ -112,17 +136,26 @@ namespace EStoreAPI.Server.Data
 
         public async Task UpdateProblemAsync(Problem problem)
         {
-            await _dbContext.Problems.Where(p => p.ProblemId == problem.ProblemId).ExecuteUpdateAsync(setters => setters
-                .SetProperty(p => p.ProblemName, problem.ProblemName)
-                .SetProperty(p => p.Device, problem.Device)
-                .SetProperty(p => p.Price, problem.Price)
-            );
+            Problem? problemToChange = await GetProblemByIdAsync(problem.ProblemId);
+
+            if (problemToChange != null)
+            {
+                problemToChange.ProblemName = problem.ProblemName;
+                problemToChange.Device = problem.Device;
+                problemToChange.Price = problem.Price;
+
+                await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                throw new KeyNotFoundException("Problem not found.");
+            }
         }
 
         // job operations
         public async Task<Job?> GetJobByIdAsync(int id)
         {
-            Job? job = await _dbContext.Job.FirstOrDefaultAsync(j => j.JobId == id);
+            Job? job = await _dbContext.Jobs.FirstOrDefaultAsync(j => j.JobId == id);
             return job;
         }
 
@@ -147,15 +180,24 @@ namespace EStoreAPI.Server.Data
 
         public async Task UpdateJobAsync(Job job)
         {
-            await _dbContext.Jobs.Where(j => j.JobId == job.JobId).ExecuteUpdateAsync(setters => setters
-                .SetProperty(j => j.PickupTime, job.PickupTime)
-                .SetProperty(j => j.EstimatedPickupTime, job.EstimatedPickupTime)
-                .SetProperty(j => j.Note, job.Note)
-                .SetProperty(j => j.Problems, job.Problems)
-                .SetProperty(j => j.EstimatedPrice, job.EstimatedPrice)
-                .SetProperty(j => j.CollectedPrice, job.CollectedPrice)
-                .SetProperty(j => j.IsFinished, job.IsFinished)
-            );
+            Job? jobToChange = await GetJobByIdAsync(job.JobId);
+
+            if (jobToChange != null)
+            {
+                jobToChange.PickupTime = job.PickupTime;
+                jobToChange.EstimatedPickupTime = job.EstimatedPickupTime;
+                jobToChange.Note = job.Note;
+                jobToChange.Problems = job.Problems;
+                jobToChange.EstimatedPrice = job.EstimatedPrice;
+                jobToChange.CollectedPrice = job.CollectedPrice;
+                jobToChange.IsFinished = job.IsFinished;
+
+                await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                throw new KeyNotFoundException("Job not found.");
+            }
         }
     }
 }
