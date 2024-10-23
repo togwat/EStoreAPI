@@ -184,7 +184,7 @@ namespace EStoreAPI.Tests.APITests
             else
             {
                 Assert.Empty(customersResult);   // returns no customer
-            } 
+            }
         }
 
         [Fact]
@@ -244,6 +244,60 @@ namespace EStoreAPI.Tests.APITests
             else
             {
                 Assert.IsType<BadRequestResult>(reuslt.Result);
+            }
+        }
+
+        // PUT: api/Customers/update/{id}
+        [Theory]
+        [InlineData(1, "newname", new string[] { "123" })]     // valid id, valid data
+        [InlineData(1, null, null)]    // valid id, invalid data
+        [InlineData(2, "newname", new string[] { "123" })]     // invalid id, valid data
+        [InlineData(2, null, null)]    // invalid id, invalid data
+        public async Task TestUpdateCustomer(int id, string name, string[] phones)
+        {
+            // arrange
+            Customer oldCustomer = _fixture.Build<Customer>()
+                                        .With(c => c.CustomerId, 1)
+                                        .Create();
+            Customer newCustomer = _fixture.Build<Customer>()
+                                        .With(c => c.CustomerId, 1)     // supplied customer will have same id as oldCustomer
+                                        .With(c => c.CustomerName, name)
+                                        .With(c => c.PhoneNumbers, phones)
+                                        .Create();
+            // valid id
+            if (id == 1)
+            {
+                _repo.Setup(r => r.UpdateCustomerAsync(newCustomer)).Returns(Task.CompletedTask);
+            }
+            // not found id
+            else
+            {
+                _repo.Setup(r => r.UpdateCustomerAsync(newCustomer)).ThrowsAsync(new KeyNotFoundException("Customer not found."));
+            }
+
+            // act
+            var result = await _controller.UpdateCustomerWithIdAsync(id, newCustomer);
+
+            // assert
+            // valid id
+            if (id == 1)
+            {
+                // valid data
+                if (name == "newname" && Enumerable.SequenceEqual(phones, ["123"]))
+                {
+                    Assert.IsType<NoContentResult>(result); // returns 204 no content
+                }
+                // invalid data
+                else
+                {
+                    var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);   // returns 404 not found
+                    Assert.Equal("Customer not found.", notFoundResult.Value);  // matching error message
+                }
+            }
+            // invalid id
+            else
+            {
+                Assert.IsType<BadRequestResult>(result);    // returns 400 bad request
             }
         }
     }
