@@ -233,9 +233,10 @@ namespace EStoreAPI.Tests.APITests
             // valid customer
             if (name == "a" && Enumerable.SequenceEqual(phones, ["123"]))
             {
-                var createdResult = Assert.IsType<CreatedAtActionResult>(reuslt.Result);
-                var createdCustomer = Assert.IsAssignableFrom<Customer>(createdResult.Value);
+                var createdResult = Assert.IsType<CreatedAtActionResult>(reuslt.Result);    // returns 201 created
+                var createdCustomer = Assert.IsAssignableFrom<Customer>(createdResult.Value);   // return type Customer
 
+                // returned customer should match the sent customer
                 Assert.Equal(newCustomer.CustomerName, createdCustomer.CustomerName);
                 Assert.Equal(newCustomer.PhoneNumbers, createdCustomer.PhoneNumbers);
                 Assert.Equal(newCustomer.Email, createdCustomer.Email);
@@ -243,7 +244,7 @@ namespace EStoreAPI.Tests.APITests
             // invalid customer
             else
             {
-                Assert.IsType<BadRequestResult>(reuslt.Result);
+                Assert.IsType<BadRequestResult>(reuslt.Result); // returns 400 bad request
             }
         }
 
