@@ -1,26 +1,13 @@
 using AutoFixture;
 using Moq;
-using AutoFixture.AutoMoq;
 using EStoreAPI.Server.Controllers;
-using EStoreAPI.Server.Data;
 using EStoreAPI.Server.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EStoreAPI.Tests.APITests
 {
-    public class CustomerAPITests
+    public class CustomerAPITests : APITests<CustomersController>
     {
-        private readonly CustomersController _controller;
-        private readonly Mock<IEStoreRepo> _repo;
-        private readonly IFixture _fixture;
-
-        public CustomerAPITests()
-        {
-            _fixture = new Fixture().Customize(new AutoMoqCustomization());
-            _repo = _fixture.Freeze<Mock<IEStoreRepo>>();
-            _controller = new CustomersController(_repo.Object);
-        }
-
         // GET: api/Customers
         [Fact]
         public async Task TestGetCustomers()
