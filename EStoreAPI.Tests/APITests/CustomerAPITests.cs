@@ -73,9 +73,9 @@ namespace EStoreAPI.Tests.APITests
 
         // GET: api/Customers/search?query=
         [Theory]
-        [InlineData("name")]
-        [InlineData("na")]
-        [InlineData("notname")]
+        [InlineData("name")]    // valid name
+        [InlineData("na")]      // partial name, valid
+        [InlineData("notname")] // invalid name
         public async Task TestSearchCustomersName(string name)
         {
             // arrange
@@ -111,9 +111,9 @@ namespace EStoreAPI.Tests.APITests
         }
 
         [Theory]
-        [InlineData("12345")]
-        [InlineData("45678")]
-        [InlineData("123")]
+        [InlineData("12345")]   // valid
+        [InlineData("45678")]   // invalid
+        [InlineData("123")]     // invalid
         public async Task TestSearchCustomersPhone(string phone)
         {
             // arrange
