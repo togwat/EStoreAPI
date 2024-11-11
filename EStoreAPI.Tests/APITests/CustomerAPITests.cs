@@ -95,13 +95,13 @@ namespace EStoreAPI.Tests.APITests
             if (name == "name")
             {
                 Assert.Equal(customers.Count, customersResult.Count);   // returns 2 customers
-                Assert.Contains(customersResult, c => c.CustomerName.Contains("name")); // all returned customer contain name "name"
+                Assert.All(customersResult, c => Assert.Contains("name", c.CustomerName)); // all returned customer contain name "name"
             }
             // partial name
             else if (name == "na")
             {
                 Assert.Equal(customers.Count, customersResult.Count);   // returns 2 customers
-                Assert.Contains(customersResult, c => c.CustomerName.Contains("na")); // all returned customer contain name "na"
+                Assert.All(customersResult, c => Assert.Contains("na", c.CustomerName)); // all returned customer contain name "na"
             }
             // invalid name
             else
@@ -133,7 +133,7 @@ namespace EStoreAPI.Tests.APITests
             if (phone == "12345")
             {
                 Assert.Single(customersResult);   // returns 1 customer
-                Assert.Contains(customersResult, c => c.PhoneNumbers.Contains("12345")); // customer should have phone number
+                Assert.All(customersResult, c => Assert.Contains("12345", c.PhoneNumbers)); // customer should have phone number
             }
             // invalid phone
             else
@@ -165,7 +165,7 @@ namespace EStoreAPI.Tests.APITests
             if (email == "test@email" || email == "test")
             {
                 Assert.Single(customersResult);   // returns 1 customer
-                Assert.Contains(customersResult, c => c.Email.Contains("test@email")); // customer should have email
+                Assert.All(customersResult, c => Assert.Contains("test@email", c.Email)); // customer should have email
             }
             // invalid email
             else
