@@ -70,5 +70,39 @@ namespace EStoreAPI.Tests.APITests
                 Assert.IsType<NotFoundObjectResult>(result.Result); // returns 404 not found
             }
         }
+
+        // GET: api/Devices/searchName?name=
+        [Theory]
+        [InlineData("phone")]   // valid
+        [InlineData("pho")]     // partial, valid
+        [InlineData("abc")]     // invalid
+        [InlineData("phone1")]  // invalid
+        public async Task TestSearchDevicesName(string name)
+        {
+            // arrange
+            var device = _fixture.Build<Device>()
+                                    .With(d => d.deviceName, "phone")
+                                    .Create();
+            _repo.Setup(r => r.GetDevicesByNameAsync(It.Is<string>(s => "phone".Contains(s)))).ReturnsAsync([device]);
+
+            // act
+            var result = await _controller.SearchDevicesNameAsync(name);
+
+            // assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
+            var devicesResult = Assert.IsAssignableFrom<ICollection<Device>>(okResult.Value);   // return type ICollection<Device>
+
+            // valid name
+            if (name == "phone" || name == "pho")
+            {
+                Assert.Single(devicesResult);   // returns 1 device
+                Assert.Contains(devicesResult, d => d.deviceName.Contains("phone"));
+            }
+            // invalid name
+            else
+            {
+                Assert.Empty(devicesResult); // returns no device
+            }
+        }
     }
 }
