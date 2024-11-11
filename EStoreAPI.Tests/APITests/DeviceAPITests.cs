@@ -104,5 +104,38 @@ namespace EStoreAPI.Tests.APITests
                 Assert.Empty(devicesResult); // returns no device
             }
         }
+
+        // GET: api/Devices/searchType?type=
+        [Theory]
+        [InlineData("phone")]   // valid
+        [InlineData("pho")]     // partial, invalid
+        [InlineData("tablet")]  // invalid
+        public async Task TestSearchDeviceType(string type)
+        {
+            // arrange
+            var devices = _fixture.Build<Device>()
+                                    .With(d => d.deviceType, "phone")
+                                    .CreateMany(5).ToList();
+            _repo.Setup(r => r.GetDevicesByTypeAsync("phone")).ReturnsAsync(devices);
+
+            // act
+            var result = await _controller.SearchDevicesTypeAsync(type);
+
+            // assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
+            var devicesResult = Assert.IsAssignableFrom<ICollection<Device>>(okResult.Value);   // return type ICollection<Device>
+            
+            // valid type
+            if (type == "phone")
+            {
+                Assert.Equal(devices.Count, devicesResult.Count);   // returns 5 devices
+                Assert.All(devicesResult, d => Assert.Equal("phone", d.deviceType));    // all devices have type phone
+            }
+            // invalid type
+            else
+            {
+                Assert.Empty(devicesResult);    //returns no device
+            }
+        }
     }
 }
