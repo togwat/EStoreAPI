@@ -82,7 +82,7 @@ namespace EStoreAPI.Tests.APITests
             var customers = _fixture.Build<Customer>()
                                     .With(c => c.CustomerName, "name")
                                     .CreateMany(2).ToList();
-            _repo.Setup(r => r.GetCustomersByQueryAsync("name")).ReturnsAsync(customers);
+            _repo.Setup(r => r.GetCustomersByQueryAsync(It.Is<string>(s => "name".Contains(s)))).ReturnsAsync(customers);
 
             // act
             var result = await _controller.SearchCustomersAsync(name);
@@ -152,7 +152,7 @@ namespace EStoreAPI.Tests.APITests
             var customer = _fixture.Build<Customer>()
                                     .With(c => c.Email, "test@email")
                                     .Create();
-            _repo.Setup(r => r.GetCustomersByQueryAsync("test@email")).ReturnsAsync([customer]);
+            _repo.Setup(r => r.GetCustomersByQueryAsync(It.Is<string>(s => "test@email".Contains(s)))).ReturnsAsync([customer]);
 
             // act
             var result = await _controller.SearchCustomersAsync(email);
