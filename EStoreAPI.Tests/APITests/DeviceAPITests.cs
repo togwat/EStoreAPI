@@ -137,5 +137,46 @@ namespace EStoreAPI.Tests.APITests
                 Assert.Empty(devicesResult);    //returns no device
             }
         }
+
+        // POST: api/Devices/create
+        [Theory]
+        [InlineData("name", "type")]    // valid device
+        [InlineData("", "type")]    // invalid
+        [InlineData("name", "")]    // invalid
+        [InlineData("", "")]        // invalid
+        public async Task TestCreateDevice(string name, string type)
+        {
+            // arrange
+            var newDevice = _fixture.Build<Device>()
+                                    .Without(d => d.DeviceId)
+                                    .With(d => d.deviceName, name)
+                                    .With(d => d.deviceType, type)
+                                    .Create();
+            _repo.Setup(r => r.AddDeviceAsync(newDevice))
+                .ReturnsAsync((Device d) =>
+                {
+                    d.DeviceId = 1; // EF auto-increments id
+                    return d;
+                });
+
+            // act
+            var result = await _controller.CreateDeviceAsync(newDevice);
+
+            // assert
+            // valid device
+            if (name == "name" && type == "type")
+            {
+                var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
+                var createdDevice = Assert.IsAssignableFrom<Device>(createdResult.Value);   // return type device
+
+                Assert.Equal(newDevice.deviceName, createdDevice.deviceName);
+                Assert.Equal(newDevice.deviceType, createdDevice.deviceType);
+            }
+            // invalid
+            else
+            {   
+                Assert.IsType<BadRequestResult>(result.Result);
+            }
+        }
     }
 }
