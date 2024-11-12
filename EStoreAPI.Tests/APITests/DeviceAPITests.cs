@@ -178,5 +178,63 @@ namespace EStoreAPI.Tests.APITests
                 Assert.IsType<BadRequestResult>(result.Result);
             }
         }
+
+        // PUT: api/Devices/update/{id}
+        [Theory]
+        [InlineData(1, "newname", "newtype")]   // valid id, valid data
+        [InlineData(1, "", "")]     // valid id, invalid data
+        [InlineData(1, "newname", "")]     // valid id, invalid data
+        [InlineData(1, "", "newtype")]     // valid id, invalid data
+        [InlineData(2, "newname", "newtype")]   // invalid id, valid data
+        [InlineData(2, "", "")]     // invalid id, invalid data
+        [InlineData(2, "newname", "")]     // invalid id, invalid data
+        [InlineData(2, "", "newtype")]     // invalid id, invalid data
+        public async Task TestUpdateDevice(int id, string name, string type)
+        {
+            // arrange
+            Device oldDevice = _fixture.Build<Device>()
+                                        .With(d => d.DeviceId, 1)
+                                        .Create();
+            Device newDevice = _fixture.Build<Device>()
+                                        .With(d => d.DeviceId, 1)
+                                        .With(d => d.deviceName, name)
+                                        .With(d => d.deviceType, type)
+                                        .Create();
+            // valid id
+            if (id == 1)
+            {
+                _repo.Setup(r => r.UpdateDeviceAsync(newDevice)).Returns(Task.CompletedTask);
+            }
+            // invalid id
+            else
+            {
+                _repo.Setup(r => r.UpdateDeviceAsync(newDevice)).ThrowsAsync(new KeyNotFoundException("Device not found."));
+            }
+
+            // act
+            var result = await _controller.UpdateDeviceByIdAsync(id, newDevice);
+
+            // assert
+            // valid id
+            if (id == 1)
+            {
+                // valid data
+                if (name == "newname" && type == "newtype")
+                {
+                    Assert.IsType<NoContentResult>(result); // returns 204 no content
+                }
+                // invalid data
+                else
+                {
+                    var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);   // returns 404 not found
+                    Assert.Equal("Device not found.", notFoundResult.Value);    // matching error message
+                }
+            }
+            // invalid id
+            else
+            {
+                Assert.IsType<BadRequestResult>(result);    // returns 400 bad request
+            }
+        }
     }
 }
