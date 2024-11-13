@@ -214,13 +214,13 @@ namespace EStoreAPI.Tests.APITests
                 });
 
             // act
-            var reuslt = await _controller.CreateCustomerAsync(newCustomer);
+            var result = await _controller.CreateCustomerAsync(newCustomer);
 
             // assert
             // valid customer
             if (name == "a" && Enumerable.SequenceEqual(phones, ["123"]))
             {
-                var createdResult = Assert.IsType<CreatedAtActionResult>(reuslt.Result);    // returns 201 created
+                var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
                 var createdCustomer = Assert.IsAssignableFrom<Customer>(createdResult.Value);   // return type Customer
 
                 // returned customer should match the sent customer
@@ -231,7 +231,7 @@ namespace EStoreAPI.Tests.APITests
             // invalid customer
             else
             {
-                Assert.IsType<BadRequestResult>(reuslt.Result); // returns 400 bad request
+                Assert.IsType<BadRequestResult>(result.Result); // returns 400 bad request
             }
         }
 
