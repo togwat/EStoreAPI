@@ -77,11 +77,7 @@ namespace EStoreAPI.Tests.APITests
 
         // POST: api/Problems/create
         [Theory]
-        [InlineData("name", 1, 100.00)] // valid
-        [InlineData(null, 1, 100.00)]   // invalid name
-        [InlineData("name", 2, 100.00)] // invalid device
-        [InlineData("name", 1, null)]   // invalid price
-        [InlineData(null, -1, null)]    // invalid everything
+        [MemberData(nameof(CreateProblemData))]
         public async Task TestCreateProblem(string name, int deviceId, decimal? price)
         {
             // arrange
@@ -126,6 +122,15 @@ namespace EStoreAPI.Tests.APITests
                 Assert.IsType<BadRequestResult>(result.Result); // returns 400 bad request
             }
         }
+
+        public static IEnumerable<object[]> CreateProblemData =>
+            [
+                ["name", 1, 100.00m],   // valid
+                [null, 1, 100.00m],     // invalid name
+                ["name", 2, 100.00m],   // invalid device
+                ["name", 1, null],      // invalid price
+                [null, -1, null]        // invalid everything 
+            ];
 
         // PUT: api/Problems/update/{id}
         [Theory]
