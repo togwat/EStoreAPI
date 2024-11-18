@@ -126,5 +126,70 @@ namespace EStoreAPI.Tests.APITests
                 Assert.IsType<BadRequestResult>(result.Result); // returns 400 bad request
             }
         }
+
+        // PUT: api/Problems/update/{id}
+        [Theory]
+        [MemberData(nameof(UpdateProblemData))]
+        public async Task TestUpdateProblem(int id, string name, int deviceId, decimal price)
+        {
+            // arrange
+            Problem oldProblem = _fixture.Build<Problem>()
+                                        .With(p => p.ProblemId, 1)
+                                        .Create();
+            Problem newProblem = _fixture.Build<Problem>()
+                                        .With(p => p.ProblemId, 1)
+                                        .With(p => p.ProblemName, name)
+                                        .With(p => p.DeviceId, deviceId)
+                                        .With(p => p.Price, price)
+                                        .Create();
+            // valid id
+            if (id == 1)
+            {
+                _repo.Setup(r => r.UpdateProblemAsync(newProblem)).Returns(Task.CompletedTask);
+            }
+            // not found id
+            else
+            {
+                _repo.Setup(r => r.UpdateProblemAsync(newProblem)).ThrowsAsync(new KeyNotFoundException("Problem not found."));
+            }
+            // act
+            var result = await _controller.UpdateProblemWithIdAsync(id, newProblem);
+
+            // assert
+            // valid id
+            if (id == 1)
+            {
+                // valid data
+                if (name == "newname" && deviceId == 1 && price == 99.99m)
+                {
+                    Assert.IsType<NoContentResult>(result); // returns 204 no content
+                }
+                // invalid data
+                else
+                {
+                    var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);   // returns 404 not found
+                    Assert.Equal("Problem not found.", notFoundResult.Value);   // matching error message
+                }
+            }
+            // invalid id
+            else
+            {
+                Assert.IsType<BadRequestResult>(result);    // returns 400 bad request
+            }
+        }
+
+        public static IEnumerable<object[]> UpdateProblemData =>
+            [
+                [1, "newname", 1, 99.99m],   // valid
+                [2, "newname", 1, 99.99m],   // invalid id, valid data
+                [1, null, 1, 99.99m],        // valid id, invalid data
+                [1, "newname", 2, 99.99m],   // valid id, invalid data
+                [1, "newname", 1, null],     // valid id, invalid data
+                [1, null, 2, null],          // valid id, invalid data
+                [2, null, 1, 99.99m],        // invalid id, invalid data
+                [2, "newname", 2, 99.99m],   // invalid id, invalid data
+                [2, "newname", 1, null],     // invalid id, invalid data
+                [2, null, 2, null]           // invalid id, invalid data
+            ];
     }
 }
