@@ -74,5 +74,57 @@ namespace EStoreAPI.Tests.APITests
                 Assert.IsType<BadRequestResult>(result.Result); // returns 400 bad request
             }
         }
+
+        // POST: api/Problems/create
+        [Theory]
+        [InlineData("name", 1, 100.00)] // valid
+        [InlineData(null, 1, 100.00)]   // invalid name
+        [InlineData("name", 2, 100.00)] // invalid device
+        [InlineData("name", 1, null)]   // invalid price
+        [InlineData(null, -1, null)]    // invalid everything
+        public async Task TestCreateProblem(string name, int deviceId, decimal? price)
+        {
+            // arrange
+            var validDevice = _fixture.Build<Device>()
+                                    .With(d => d.DeviceId, 1)
+                                    .Create();
+            var givenDevice = _fixture.Build<Device>()
+                                    .With(d => d.DeviceId, deviceId)
+                                    .Create();
+
+            var newProblem = _fixture.Build<Problem>()
+                                    .Without(p => p.ProblemId)
+                                    .With(p => p.ProblemName, name)
+                                    .With(p => p.Price, price)
+                                    .With(p => p.Device, givenDevice)
+                                    .Create();
+            _repo.Setup(r => r.AddProblemAsync(newProblem))
+                .ReturnsAsync((Problem p) =>
+                {
+                    p.ProblemId = 1;    // auto incremented id
+                    return p;
+                });
+
+            // act
+            var result = await _controller.CreateProblemAsync(newProblem);
+
+            // assert
+            // valid problem
+            if (name == "name" && deviceId == 1 && price == 100.00m)
+            {
+                var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
+                var createdProblem = Assert.IsAssignableFrom<Problem>(createdResult.Value);     // return type problem
+
+                // returned problem should match the sent problem
+                Assert.Equal(newProblem.ProblemName, createdProblem.ProblemName);
+                Assert.Equal(newProblem.Price, createdProblem.Price);
+                Assert.Equal(newProblem.Device.DeviceId, createdProblem.Device.DeviceId);
+            }
+            // invalid problem
+            else
+            {
+                Assert.IsType<BadRequestResult>(result.Result); // returns 400 bad request
+            }
+        }
     }
 }
