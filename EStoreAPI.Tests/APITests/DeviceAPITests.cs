@@ -81,7 +81,7 @@ namespace EStoreAPI.Tests.APITests
         {
             // arrange
             var device = _fixture.Build<Device>()
-                                    .With(d => d.deviceName, "phone")
+                                    .With(d => d.DeviceName, "phone")
                                     .Create();
             _repo.Setup(r => r.GetDevicesByNameAsync(It.Is<string>(s => "phone".Contains(s)))).ReturnsAsync([device]);
 
@@ -96,7 +96,7 @@ namespace EStoreAPI.Tests.APITests
             if (name == "phone" || name == "pho")
             {
                 Assert.Single(devicesResult);   // returns 1 device
-                Assert.Contains(devicesResult, d => d.deviceName.Contains("phone"));
+                Assert.Contains(devicesResult, d => d.DeviceName.Contains("phone"));
             }
             // invalid name
             else
@@ -114,7 +114,7 @@ namespace EStoreAPI.Tests.APITests
         {
             // arrange
             var devices = _fixture.Build<Device>()
-                                    .With(d => d.deviceType, "phone")
+                                    .With(d => d.DeviceType, "phone")
                                     .CreateMany(5).ToList();
             _repo.Setup(r => r.GetDevicesByTypeAsync("phone")).ReturnsAsync(devices);
 
@@ -129,7 +129,7 @@ namespace EStoreAPI.Tests.APITests
             if (type == "phone")
             {
                 Assert.Equal(devices.Count, devicesResult.Count);   // returns 5 devices
-                Assert.All(devicesResult, d => Assert.Equal("phone", d.deviceType));    // all devices have type phone
+                Assert.All(devicesResult, d => Assert.Equal("phone", d.DeviceType));    // all devices have type phone
             }
             // invalid type
             else
@@ -149,8 +149,8 @@ namespace EStoreAPI.Tests.APITests
             // arrange
             var newDevice = _fixture.Build<Device>()
                                     .Without(d => d.DeviceId)
-                                    .With(d => d.deviceName, name)
-                                    .With(d => d.deviceType, type)
+                                    .With(d => d.DeviceName, name)
+                                    .With(d => d.DeviceType, type)
                                     .Create();
             _repo.Setup(r => r.AddDeviceAsync(newDevice))
                 .ReturnsAsync((Device d) =>
@@ -169,8 +169,8 @@ namespace EStoreAPI.Tests.APITests
                 var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
                 var createdDevice = Assert.IsAssignableFrom<Device>(createdResult.Value);   // return type device
 
-                Assert.Equal(newDevice.deviceName, createdDevice.deviceName);
-                Assert.Equal(newDevice.deviceType, createdDevice.deviceType);
+                Assert.Equal(newDevice.DeviceName, createdDevice.DeviceName);
+                Assert.Equal(newDevice.DeviceType, createdDevice.DeviceType);
             }
             // invalid
             else
@@ -197,8 +197,8 @@ namespace EStoreAPI.Tests.APITests
                                         .Create();
             Device newDevice = _fixture.Build<Device>()
                                         .With(d => d.DeviceId, 1)
-                                        .With(d => d.deviceName, name)
-                                        .With(d => d.deviceType, type)
+                                        .With(d => d.DeviceName, name)
+                                        .With(d => d.DeviceType, type)
                                         .Create();
             // valid id
             if (id == 1)

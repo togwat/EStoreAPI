@@ -8,10 +8,12 @@ namespace EStoreAPI.Server.Models
         public int JobId { get; set; }
 
         [Required]
-        public Customer Customer { get; set; }
+        public int CustomerId { get; set; }
+        public virtual Customer Customer { get; set; }
 
         [Required]
-        public Device Device { get; set; }
+        public int DeviceId { get; set; }
+        public virtual Device Device { get; set; }
 
         [Required]
         public DateTime ReceiveTime { get; set; }
@@ -24,7 +26,7 @@ namespace EStoreAPI.Server.Models
 
         [Required]
         [MinLength(1)]
-        public ICollection<Problem> Problems { get; set; }
+        public virtual ICollection<Problem> Problems { get; set; }
 
         public Decimal? EstimatedPrice { get; set; }
 

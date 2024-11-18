@@ -78,13 +78,13 @@ namespace EStoreAPI.Server.Data
 
         public async Task<ICollection<Device>> GetDevicesByNameAsync(string name)
         {
-            ICollection<Device> devices = await _dbContext.Devices.Where(d => d.deviceName.Contains(name)).ToListAsync();
+            ICollection<Device> devices = await _dbContext.Devices.Where(d => d.DeviceName.Contains(name)).ToListAsync();
             return devices;
         }
 
         public async Task<ICollection<Device>> GetDevicesByTypeAsync(string type)
         {
-            ICollection<Device> devices = await _dbContext.Devices.Where(d => d.deviceType == type).ToListAsync();
+            ICollection<Device> devices = await _dbContext.Devices.Where(d => d.DeviceType == type).ToListAsync();
             return devices;
         }
 
@@ -102,8 +102,8 @@ namespace EStoreAPI.Server.Data
 
             if (deviceToChange != null)
             {
-                deviceToChange.deviceName = device.deviceName;
-                deviceToChange.deviceType = device.deviceType;
+                deviceToChange.DeviceName = device.DeviceName;
+                deviceToChange.DeviceType = device.DeviceType;
 
                 await _dbContext.SaveChangesAsync();
             }

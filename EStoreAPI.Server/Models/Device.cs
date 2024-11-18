@@ -8,17 +8,19 @@ namespace EStoreAPI.Server.Models
         public int DeviceId { get; set; }
 
         [Required]
-        public string deviceName { get; set; }
+        public string DeviceName { get; set; }
 
         [Required]
-        public string deviceType { get; set; }
+        public string DeviceType { get; set; }
+
+        public virtual ICollection<Problem> Problems { get; set; }
 
         public Device() {}
 
         public Device(string name, string type)
         {
-            deviceName = name;
-            deviceType = type;
+            DeviceName = name;
+            DeviceType = type;
         }
     }
 }
