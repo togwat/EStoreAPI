@@ -55,5 +55,57 @@ namespace EStoreAPI.Tests.APITests
                 Assert.IsType<NotFoundObjectResult>(result.Result); // returns 404 not found
             }
         }
+
+        // POST: api/Jobs/create
+        [Theory]
+        [MemberData(nameof(CreateJobData))]
+        public async Task TestCreateJob(int customerId, int deviceId, DateTime receiveTime, ICollection<Problem> problems)
+        {
+            // arrange
+            var newJob = _fixture.Build<Job>()
+                                .Without(j => j.JobId)
+                                .With(j => j.CustomerId, customerId)
+                                .With(j => j.DeviceId, deviceId)
+                                .With(j => j.ReceiveTime, receiveTime)
+                                .With(j => j.Problems, problems)
+                                .Create();
+            _repo.Setup(r => r.AddJobAsync(newJob))
+                .ReturnsAsync((Job j) =>
+                {
+                    j.JobId = 1;
+                    return j;
+                });
+
+            // act
+            var result = await _controller.CreateJobAsync(newJob);
+
+            // assert
+            // valid job
+            if (customerId == 1 && deviceId == 1 && problems.Count >= 1)
+            {
+                var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
+                var createdJob = Assert.IsAssignableFrom<Job>(createdResult.Value);     // return type Job
+
+                // returned job should match the sent job
+                Assert.Equal(newJob.CustomerId, createdJob.CustomerId);
+                Assert.Equal(newJob.DeviceId, deviceId);
+                Assert.Equal(newJob.ReceiveTime, createdJob.ReceiveTime);
+                Assert.Equal(newJob.Problems, createdJob.Problems);
+            }
+            // invalid job
+            else
+            {
+                Assert.IsType<BadRequestResult>(result.Result); // returns 400 bad request
+            }
+        }
+
+        public static IEnumerable<object[]> CreateJobData =>
+            [
+                [1, 1, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem> { new() }],    // valid (datetime can be whatever)
+                [-1, 1, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem> { new() }],   // invalid customer
+                [1, -1, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem> { new() }],   // invalid device
+                [1, 1, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem>()],    // invalid problems
+                [-1, -1, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem>()],  // invalid combined
+            ];
     }
 }
