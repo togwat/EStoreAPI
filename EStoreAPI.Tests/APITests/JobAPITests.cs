@@ -25,6 +25,21 @@ namespace EStoreAPI.Tests.APITests
             Assert.Equal(5, jobsResult.Count);  // returns 5 jobs
         }
 
+        [Fact]
+        public async Task TestGetEmptyJobs()
+        {
+            // arrange
+            _repo.Setup(r => r.GetJobsAsync()).ReturnsAsync(new List<Job>());
+
+            // act
+            var result = await _controller.GetAllJobsAsync();
+
+            // assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
+            var jobResult = Assert.IsAssignableFrom<ICollection<Job>>(okResult.Value);  // return type ICollection<Job>
+            Assert.Empty(jobResult);    // returns empty list
+        }
+
         // GET: api/Jobs/{id}
         [Theory]
         [InlineData(1)]     // valid id
