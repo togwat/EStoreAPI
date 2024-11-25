@@ -22,12 +22,10 @@ namespace EStoreAPI.Server.Models
 
         public Customer() { }
         
-        public Customer(string name, string[] phoneNumbers, string email, string address)
+        public Customer(string name, string[] phoneNumbers)
         {
             CustomerName = name;
             PhoneNumbers = phoneNumbers;
-            Email = email;
-            Address = address;
         }
     }
 
