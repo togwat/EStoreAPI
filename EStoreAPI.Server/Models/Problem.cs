@@ -11,17 +11,18 @@ namespace EStoreAPI.Server.Models
         public string ProblemName { get; set; }
 
         [Required]
-        public Device Device { get; set; }
+        public int DeviceId { get; set; }
+        public virtual Device Device { get; set; }
 
         [Required]
         public decimal Price { get; set; }
 
         public Problem() {}
 
-        public Problem(string name, Device device, decimal price)
+        public Problem(string name, int deviceId, decimal price)
         {
             ProblemName = name;
-            Device = device;
+            DeviceId = deviceId;
             Price = price;
         }
     }
