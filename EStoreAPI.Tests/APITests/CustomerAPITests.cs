@@ -117,7 +117,7 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestSearchCustomersPhone(string phone)
         {
             // arrange
-            var customer = _fixture.Build<Customer>()
+            Customer customer = _fixture.Build<Customer>()
                                     .With(c => c.PhoneNumbers, ["12345", "67890"])
                                     .Create();
             _repo.Setup(r => r.GetCustomersByQueryAsync("12345")).ReturnsAsync([customer]);
@@ -149,7 +149,7 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestSearchCustomersEmail(string email)
         {
             // arrange
-            var customer = _fixture.Build<Customer>()
+            Customer customer = _fixture.Build<Customer>()
                                     .With(c => c.Email, "test@email")
                                     .Create();
             _repo.Setup(r => r.GetCustomersByQueryAsync(It.Is<string>(s => "test@email".Contains(s)))).ReturnsAsync([customer]);
@@ -201,7 +201,7 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestCreateCustomer(string name, string[] phones)
         {
             // arrange
-            var newCustomer = _fixture.Build<Customer>()
+            Customer newCustomer = _fixture.Build<Customer>()
                                     .Without(c => c.CustomerId)
                                     .With(c => c.CustomerName, name)
                                     .With(c => c.PhoneNumbers, phones)

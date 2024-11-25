@@ -47,7 +47,7 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestGetProblemByDeviceId(int id)
         {
             // arrange
-            var device = _fixture.Build<Device>()
+            Device device = _fixture.Build<Device>()
                                 .With(d => d.DeviceId, 1)
                                 .Create();
             var problems = _fixture.Build<Problem>()
@@ -81,14 +81,14 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestCreateProblem(string name, int deviceId, decimal? price)
         {
             // arrange
-            var validDevice = _fixture.Build<Device>()
+            Device validDevice = _fixture.Build<Device>()
                                     .With(d => d.DeviceId, 1)
                                     .Create();
-            var givenDevice = _fixture.Build<Device>()
+            Device givenDevice = _fixture.Build<Device>()
                                     .With(d => d.DeviceId, deviceId)
                                     .Create();
 
-            var newProblem = _fixture.Build<Problem>()
+            Problem newProblem = _fixture.Build<Problem>()
                                     .Without(p => p.ProblemId)
                                     .With(p => p.ProblemName, name)
                                     .With(p => p.Price, price)

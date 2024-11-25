@@ -77,7 +77,7 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestCreateJob(int customerId, int deviceId, DateTime receiveTime, ICollection<Problem> problems)
         {
             // arrange
-            var newJob = _fixture.Build<Job>()
+            Job newJob = _fixture.Build<Job>()
                                 .Without(j => j.JobId)
                                 .With(j => j.CustomerId, customerId)
                                 .With(j => j.DeviceId, deviceId)

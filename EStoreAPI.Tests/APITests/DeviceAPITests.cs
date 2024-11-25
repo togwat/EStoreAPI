@@ -80,7 +80,7 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestSearchDevicesName(string name)
         {
             // arrange
-            var device = _fixture.Build<Device>()
+            Device device = _fixture.Build<Device>()
                                     .With(d => d.DeviceName, "phone")
                                     .Create();
             _repo.Setup(r => r.GetDevicesByNameAsync(It.Is<string>(s => "phone".Contains(s)))).ReturnsAsync([device]);
@@ -147,7 +147,7 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestCreateDevice(string name, string type)
         {
             // arrange
-            var newDevice = _fixture.Build<Device>()
+            Device newDevice = _fixture.Build<Device>()
                                     .Without(d => d.DeviceId)
                                     .With(d => d.DeviceName, name)
                                     .With(d => d.DeviceType, type)
