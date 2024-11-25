@@ -36,17 +36,12 @@ namespace EStoreAPI.Server.Models
 
         public Job() {}
 
-        public Job(Customer customer, Device device, DateTime receiveTime, DateTime pickupTime, DateTime estimatedPickupTime, string note, ICollection<Problem> problems, Decimal estimatedPrice, Decimal collectedPrice) 
+        public Job(int customerId, int deviceId, DateTime receiveTime, ICollection<Problem> problems) 
         { 
-            Customer = customer;
-            Device = device;
+            CustomerId = customerId;
+            DeviceId = deviceId;
             ReceiveTime = receiveTime;
-            PickupTime = pickupTime;
-            EstimatedPickupTime = estimatedPickupTime;
-            Note = note;
             Problems = problems;
-            EstimatedPrice = estimatedPrice;
-            CollectedPrice = collectedPrice;
         }
     }
 }

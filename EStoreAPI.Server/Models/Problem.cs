@@ -19,10 +19,10 @@ namespace EStoreAPI.Server.Models
 
         public Problem() {}
 
-        public Problem(string name, Device device, decimal price)
+        public Problem(string name, int deviceId, decimal price)
         {
             ProblemName = name;
-            Device = device;
+            DeviceId = deviceId;
             Price = price;
         }
     }
