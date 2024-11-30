@@ -20,6 +20,7 @@ namespace EStoreAPI.Tests.APITests
                                     .With(p => p.ProblemId, 1)
                                     .Create();
             _repo.Setup(r => r.GetProblemByIdAsync(1)).ReturnsAsync(problem);
+            _repo.Setup(r => r.GetProblemByIdAsync(It.Is<int>(i => i != 1))).ReturnsAsync(null as Problem); // return null for invalid ids
 
             // act
             var result = await _controller.GetProblemAsync(id);
