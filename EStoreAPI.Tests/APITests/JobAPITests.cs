@@ -67,7 +67,7 @@ namespace EStoreAPI.Tests.APITests
             // invalid id
             else
             {
-                Assert.IsType<NotFoundObjectResult>(result.Result); // returns 404 not found
+                Assert.IsType<NotFoundResult>(result.Result); // returns 404 not found
             }
         }
 
