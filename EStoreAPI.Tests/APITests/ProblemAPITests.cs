@@ -3,6 +3,7 @@ using Moq;
 using EStoreAPI.Server.Controllers;
 using EStoreAPI.Server.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Tests.APITests
 {
@@ -148,10 +149,23 @@ namespace EStoreAPI.Tests.APITests
                                         .With(p => p.DeviceId, deviceId)
                                         .With(p => p.Price, price)
                                         .Create();
+            Device device = _fixture.Build<Device>()
+                                        .With(d => d.DeviceId, 1)
+                                        .Create();
+            _repo.Setup(r => r.GetDeviceByIdAsync(1)).ReturnsAsync(device);
+            _repo.Setup(r => r.GetDeviceByIdAsync(It.Is<int>(i => i != 1))).ReturnsAsync(null as Device);
             // valid id
             if (id == 1)
             {
-                _repo.Setup(r => r.UpdateProblemAsync(newProblem)).Returns(Task.CompletedTask);
+                // valid data
+                if (name == "newname" && deviceId == 1 && price == 99.99m)
+                {
+                    _repo.Setup(r => r.UpdateProblemAsync(newProblem)).Returns(Task.CompletedTask);
+                }
+                else
+                {
+                    _repo.Setup(r => r.UpdateProblemAsync(newProblem)).ThrowsAsync(new ValidationException());
+                }
             }
             // not found id
             else

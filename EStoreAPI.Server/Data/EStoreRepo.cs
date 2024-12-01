@@ -1,6 +1,7 @@
 ﻿using EStoreAPI.Server.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Server.Data
 {
@@ -141,8 +142,19 @@ namespace EStoreAPI.Server.Data
             if (problemToChange != null)
             {
                 problemToChange.ProblemName = problem.ProblemName;
-                problemToChange.Device = problem.Device;
                 problemToChange.Price = problem.Price;
+
+                // check device id
+                Device? device = await GetDeviceByIdAsync(problem.DeviceId);
+                if (device != null)
+                {
+                    problemToChange.DeviceId = problem.DeviceId;
+                    problemToChange.Device = device;
+                }
+                else
+                {
+                    throw new ValidationException();
+                }
 
                 await _dbContext.SaveChangesAsync();
             }

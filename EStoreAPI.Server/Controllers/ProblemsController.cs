@@ -2,6 +2,7 @@
 using EStoreAPI.Server.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Server.Controllers
 {
@@ -63,19 +64,22 @@ namespace EStoreAPI.Server.Controllers
         [HttpPut("update/{id}")]
         public async Task<ActionResult> UpdateProblemWithIdAsync(int id, Problem problem)
         {
-            if (id != problem.ProblemId)
-            {
-                return BadRequest();
-            }
-
+            // set new problem
+            problem.ProblemId = id;
             try
             {
                 await _Repo.UpdateProblemAsync(problem);
                 return NoContent();
             }
+            // problem not found
             catch (KeyNotFoundException ex)
             {
                 return NotFound(ex.Message);
+            }
+            // device not found
+            catch (ValidationException)
+            {
+                return BadRequest();
             }
         }
     }
