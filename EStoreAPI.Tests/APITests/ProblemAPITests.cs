@@ -173,14 +173,14 @@ namespace EStoreAPI.Tests.APITests
                 // invalid data
                 else
                 {
-                    var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);   // returns 404 not found
-                    Assert.Equal("Problem not found.", notFoundResult.Value);   // matching error message
+                    Assert.IsType<BadRequestResult>(result);   // returns 400 bad request
                 }
             }
             // invalid id
             else
             {
-                Assert.IsType<BadRequestResult>(result);    // returns 400 bad request
+                var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);   // returns 404 not found
+                Assert.Equal("Problem not found.", notFoundResult.Value);   // matching error message
             }
         }
 
