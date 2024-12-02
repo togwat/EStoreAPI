@@ -121,9 +121,9 @@ namespace EStoreAPI.Server.Data
             return problem;
         }
 
-        public async Task<ICollection<Problem>> GetProblemsOfDeviceAsync(Device device)
+        public async Task<ICollection<Problem>> GetProblemsOfDeviceAsync(int deviceId)
         {
-            ICollection<Problem> problems = await _dbContext.Problems.Where(p => p.Device == device).ToListAsync();
+            ICollection<Problem> problems = await _dbContext.Problems.Where(p => p.DeviceId == deviceId).ToListAsync();
             return problems;
         }
 

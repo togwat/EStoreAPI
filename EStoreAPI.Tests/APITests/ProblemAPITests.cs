@@ -53,12 +53,14 @@ namespace EStoreAPI.Tests.APITests
                                 .With(d => d.DeviceId, 1)
                                 .Create();
             var problems = _fixture.Build<Problem>()
-                                .With(p => p.Device, device)
+                                .With(p => p.DeviceId, id)
                                 .CreateMany(5).ToList();
-            _repo.Setup(r => r.GetProblemsOfDeviceAsync(device)).ReturnsAsync(problems);
+            _repo.Setup(r => r.GetProblemsOfDeviceAsync(1)).ReturnsAsync(problems);
+            _repo.Setup(r => r.GetDeviceByIdAsync(1)).ReturnsAsync(device);
+            _repo.Setup(r => r.GetDeviceByIdAsync(It.Is<int>(i => i != 1))).ReturnsAsync(null as Device);
 
             // act
-            var result = await _controller.GetDeviceProblemsAsync(device.DeviceId);
+            var result = await _controller.GetDeviceProblemsAsync(id);
 
             // assert
             // valid device
@@ -68,7 +70,7 @@ namespace EStoreAPI.Tests.APITests
                 var problemsResult = Assert.IsAssignableFrom<ICollection<Problem>>(okResult.Value); // return type ICollection<Problem>
 
                 Assert.Equal(problems.Count, problemsResult.Count); // returns 5 problems
-                Assert.All(problemsResult, p => Assert.Equal(device, p.Device));    // all returned problems should contain device
+                Assert.All(problemsResult, p => Assert.Equal(id, p.DeviceId));    // all returned problems should contain device
             }
             // invalid device
             else

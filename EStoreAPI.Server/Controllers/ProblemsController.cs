@@ -46,7 +46,7 @@ namespace EStoreAPI.Server.Controllers
             }
             else
             {
-                ICollection<Problem> problems = await _Repo.GetProblemsOfDeviceAsync(device);
+                ICollection<Problem> problems = await _Repo.GetProblemsOfDeviceAsync(deviceId);
                 return Ok(problems);
             }
         }
