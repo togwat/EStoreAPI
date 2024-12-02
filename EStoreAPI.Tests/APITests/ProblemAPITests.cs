@@ -98,13 +98,21 @@ namespace EStoreAPI.Tests.APITests
                                     .With(p => p.Price, price)
                                     .With(p => p.Device, givenDevice)
                                     .Create();
-            _repo.Setup(r => r.AddProblemAsync(newProblem))
+            // valid data
+            if (name == "name" && deviceId == 1 && price == 100.00m)
+            {
+                _repo.Setup(r => r.AddProblemAsync(newProblem))
                 .ReturnsAsync((Problem p) =>
                 {
                     p.ProblemId = 1;    // auto incremented id
                     return p;
                 });
-
+            }
+            else
+            {
+                _repo.Setup(r => r.AddProblemAsync(newProblem)).ThrowsAsync(new ValidationException());
+            }
+            
             // act
             var result = await _controller.CreateProblemAsync(newProblem);
 

@@ -129,10 +129,19 @@ namespace EStoreAPI.Server.Data
 
         public async Task<Problem> AddProblemAsync(Problem problem)
         {
-            EntityEntry<Problem> e = await _dbContext.Problems.AddAsync(problem);
-            Problem p = e.Entity;
-            await _dbContext.SaveChangesAsync();
-            return p;
+            // check if device exists
+            Device? device = await GetDeviceByIdAsync(problem.DeviceId);
+            if (device != null)
+            {
+                EntityEntry<Problem> e = await _dbContext.Problems.AddAsync(problem);
+                Problem p = e.Entity;
+                await _dbContext.SaveChangesAsync();
+                return p;
+            }
+            else
+            {
+                throw new ValidationException();
+            }
         }
 
         public async Task UpdateProblemAsync(Problem problem)

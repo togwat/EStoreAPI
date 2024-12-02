@@ -55,9 +55,16 @@ namespace EStoreAPI.Server.Controllers
         [HttpPost("create")]
         public async Task<ActionResult<Problem>> CreateProblemAsync(Problem problem)
         {
-            Problem newProblem = await _Repo.AddProblemAsync(problem);
+            try
+            {
+                Problem newProblem = await _Repo.AddProblemAsync(problem);
+                return CreatedAtAction(nameof(GetProblemAsync), new { id = newProblem.ProblemId }, newProblem);
 
-            return CreatedAtAction(nameof(GetProblemAsync), new { id = newProblem.ProblemId }, newProblem);
+            }
+            catch (ValidationException)
+            {
+                return BadRequest();
+            }
         }
 
         // PUT: api/Problems/update/{id}
