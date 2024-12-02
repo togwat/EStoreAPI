@@ -159,11 +159,6 @@ namespace EStoreAPI.Tests.APITests
                                         .With(p => p.DeviceId, deviceId)
                                         .With(p => p.Price, price)
                                         .Create();
-            Device device = _fixture.Build<Device>()
-                                        .With(d => d.DeviceId, 1)
-                                        .Create();
-            _repo.Setup(r => r.GetDeviceByIdAsync(1)).ReturnsAsync(device);
-            _repo.Setup(r => r.GetDeviceByIdAsync(It.Is<int>(i => i != 1))).ReturnsAsync(null as Device);
             // valid id
             if (id == 1)
             {
