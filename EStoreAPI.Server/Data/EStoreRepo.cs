@@ -208,7 +208,16 @@ namespace EStoreAPI.Server.Data
                 jobToChange.PickupTime = job.PickupTime;
                 jobToChange.EstimatedPickupTime = job.EstimatedPickupTime;
                 jobToChange.Note = job.Note;
-                jobToChange.Problems = job.Problems;
+                // check number of problems
+                if (job.Problems.Count >= 1)
+                {
+                    jobToChange.Problems = job.Problems;
+                }
+                else
+                {
+                    throw new ValidationException();
+                }
+
                 jobToChange.EstimatedPrice = job.EstimatedPrice;
                 jobToChange.CollectedPrice = job.CollectedPrice;
                 jobToChange.IsFinished = job.IsFinished;
