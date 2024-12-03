@@ -193,10 +193,20 @@ namespace EStoreAPI.Server.Data
 
         public async Task<Job> AddJobAsync(Job job)
         {
-            EntityEntry<Job> e = await _dbContext.Jobs.AddAsync(job);
-            Job j = e.Entity;
-            await _dbContext.SaveChangesAsync();
-            return j;
+            // check if required attributes are entered
+            Customer? customer = await GetCustomerByIdAsync(job.CustomerId);
+            Device? device = await GetDeviceByIdAsync(job.DeviceId);
+            if (customer != null && device != null && job.Problems.Count >= 1)
+            {
+                EntityEntry<Job> e = await _dbContext.Jobs.AddAsync(job);
+                Job j = e.Entity;
+                await _dbContext.SaveChangesAsync();
+                return j;
+            }
+            else
+            {
+                throw new ValidationException();
+            }
         }
 
         public async Task UpdateJobAsync(Job job)

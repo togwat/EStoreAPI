@@ -45,9 +45,15 @@ namespace EStoreAPI.Server.Controllers
         [HttpPost("create")]
         public async Task<ActionResult<Job>> CreateJobAsync(Job job)
         {
-            Job newJob = await _Repo.AddJobAsync(job);
-
-            return CreatedAtAction(nameof(GetJobAsync), new { id = newJob.JobId }, newJob);
+            try
+            {
+                Job newJob = await _Repo.AddJobAsync(job);
+                return CreatedAtAction(nameof(GetJobAsync), new { id = newJob.JobId }, newJob);
+            }
+            catch (ValidationException)
+            {
+                return BadRequest();
+            }
         }
 
         // PUT: api/Jobs/update/{id}

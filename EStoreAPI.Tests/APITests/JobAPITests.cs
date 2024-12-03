@@ -85,12 +85,20 @@ namespace EStoreAPI.Tests.APITests
                                 .With(j => j.ReceiveTime, receiveTime)
                                 .With(j => j.Problems, problems)
                                 .Create();
-            _repo.Setup(r => r.AddJobAsync(newJob))
+            // valid data
+            if (customerId == 1 && deviceId == 1 && problems.Count >= 1)
+            {
+                _repo.Setup(r => r.AddJobAsync(newJob))
                 .ReturnsAsync((Job j) =>
                 {
                     j.JobId = 1;
                     return j;
                 });
+            }
+            else
+            {
+                _repo.Setup(r => r.AddJobAsync(newJob)).ThrowsAsync(new ValidationException());
+            }
 
             // act
             var result = await _controller.CreateJobAsync(newJob);
