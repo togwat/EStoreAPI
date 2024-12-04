@@ -53,6 +53,7 @@ namespace EStoreAPI.Tests.APITests
                                 .With(j => j.JobId, 1)
                                 .Create();
             _repo.Setup(r => r.GetJobByIdAsync(1)).ReturnsAsync(job);
+            _repo.Setup(r => r.GetJobByIdAsync(It.Is<int>(i => i != 1))).ReturnsAsync(null as Job);
 
             // act
             var result = await _controller.GetJobAsync(id);

@@ -52,6 +52,7 @@ namespace EStoreAPI.Tests.APITests
                                         .With(c => c.CustomerId, 1)
                                         .Create();
             _repo.Setup(r => r.GetCustomerByIdAsync(1)).ReturnsAsync(customer);
+            _repo.Setup(r => r.GetCustomerByIdAsync(It.Is<int>(i => i != 1))).ReturnsAsync(null as Customer);
 
             // act
             var result = await _controller.GetCustomerAsync(id);

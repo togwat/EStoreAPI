@@ -52,6 +52,7 @@ namespace EStoreAPI.Tests.APITests
                                     .With(d => d.DeviceId, 1)
                                     .Create();
             _repo.Setup(r => r.GetDeviceByIdAsync(1)).ReturnsAsync(device);
+            _repo.Setup(r => r.GetDeviceByIdAsync(It.Is<int>(i => i != 1))).ReturnsAsync(null as Device);
 
             // act
             var result = await _controller.GetDeviceAsync(id);
