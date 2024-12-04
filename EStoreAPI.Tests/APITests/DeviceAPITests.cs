@@ -3,6 +3,7 @@ using Moq;
 using EStoreAPI.Server.Controllers;
 using EStoreAPI.Server.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Tests.APITests
 {
@@ -204,7 +205,15 @@ namespace EStoreAPI.Tests.APITests
             // valid id
             if (id == 1)
             {
-                _repo.Setup(r => r.UpdateDeviceAsync(newDevice)).Returns(Task.CompletedTask);
+                // valid data
+                if (name == "newname" && type == "newtype")
+                {
+                    _repo.Setup(r => r.UpdateDeviceAsync(newDevice)).Returns(Task.CompletedTask);
+                }
+                else
+                {
+                    _repo.Setup(r => r.UpdateDeviceAsync(newDevice)).ThrowsAsync(new ValidationException());
+                }
             }
             // invalid id
             else
@@ -227,14 +236,14 @@ namespace EStoreAPI.Tests.APITests
                 // invalid data
                 else
                 {
-                    var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);   // returns 404 not found
-                    Assert.Equal("Device not found.", notFoundResult.Value);    // matching error message
+                    Assert.IsType<BadRequestResult>(result);    // returns 400 bad request                   
                 }
             }
             // invalid id
             else
             {
-                Assert.IsType<BadRequestResult>(result);    // returns 400 bad request
+                var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);   // returns 404 not found
+                Assert.Equal("Device not found.", notFoundResult.Value);    // matching error message
             }
         }
     }

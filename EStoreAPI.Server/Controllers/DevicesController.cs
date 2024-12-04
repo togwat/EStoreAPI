@@ -3,6 +3,7 @@ using EStoreAPI.Server.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Server.Controllers
 {
@@ -70,19 +71,22 @@ namespace EStoreAPI.Server.Controllers
         [HttpPut("update/{id}")]
         public async Task<ActionResult> UpdateDeviceByIdAsync(int id, Device device)
         {
-            if (id != device.DeviceId)
-            {
-                return BadRequest();
-            }
-
+            // set up new device
+            device.DeviceId = id;
             try
             {
                 await _Repo.UpdateDeviceAsync(device);
                 return NoContent();
             }
+            // job not found
             catch (KeyNotFoundException ex)
             {
                 return NotFound(ex.Message);
+            }
+            // invalid data
+            catch (ValidationException)
+            {
+                return BadRequest();
             }
         }
     }

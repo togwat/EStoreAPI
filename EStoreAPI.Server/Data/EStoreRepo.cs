@@ -103,8 +103,15 @@ namespace EStoreAPI.Server.Data
 
             if (deviceToChange != null)
             {
-                deviceToChange.DeviceName = device.DeviceName;
-                deviceToChange.DeviceType = device.DeviceType;
+                if (device.DeviceName != null && device.DeviceType != null)
+                {
+                    deviceToChange.DeviceName = device.DeviceName;
+                    deviceToChange.DeviceType = device.DeviceType;
+                }
+                else
+                {
+                    throw new ValidationException();
+                }
 
                 await _dbContext.SaveChangesAsync();
             }
