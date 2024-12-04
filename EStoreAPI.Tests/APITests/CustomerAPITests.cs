@@ -208,13 +208,20 @@ namespace EStoreAPI.Tests.APITests
                                     .With(c => c.CustomerName, name)
                                     .With(c => c.PhoneNumbers, phones)
                                     .Create();
-            _repo.Setup(r => r.AddCustomerAsync(newCustomer))
+            // valid data
+            if (name == "a" && Enumerable.SequenceEqual(phones, ["123"]))
+            {
+                _repo.Setup(r => r.AddCustomerAsync(newCustomer))
                 .ReturnsAsync((Customer c) =>
                 {
                     c.CustomerId = 1; // EF auto-increments id
                     return c;
                 });
-
+            }
+            else
+            {
+                _repo.Setup(r => r.AddCustomerAsync(newCustomer)).ThrowsAsync(new ValidationException());
+            }
             // act
             var result = await _controller.CreateCustomerAsync(newCustomer);
 

@@ -39,10 +39,17 @@ namespace EStoreAPI.Server.Data
 
         public async Task<Customer> AddCustomerAsync(Customer customer)
         {
-            EntityEntry<Customer> e = await _dbContext.Customers.AddAsync(customer);
-            Customer c = e.Entity;
-            await _dbContext.SaveChangesAsync();
-            return c;
+            if (customer.CustomerName != null && customer.PhoneNumbers.Length >= 1)
+            {
+                EntityEntry<Customer> e = await _dbContext.Customers.AddAsync(customer);
+                Customer c = e.Entity;
+                await _dbContext.SaveChangesAsync();
+                return c;
+            }
+            else
+            {
+                throw new ValidationException();
+            }
         }
 
         public async Task UpdateCustomerAsync(Customer customer)

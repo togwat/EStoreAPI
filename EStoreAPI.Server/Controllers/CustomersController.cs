@@ -61,9 +61,15 @@ namespace EStoreAPI.Server.Controllers
         [HttpPost("create")]
         public async Task<ActionResult<Customer>> CreateCustomerAsync(Customer customer)
         {
-            Customer newCustomer = await _Repo.AddCustomerAsync(customer);
-
-            return CreatedAtAction(nameof(GetCustomerAsync), new { id = newCustomer.CustomerId }, newCustomer);
+            try
+            {
+                Customer newCustomer = await _Repo.AddCustomerAsync(customer);
+                return CreatedAtAction(nameof(GetCustomerAsync), new { id = newCustomer.CustomerId }, newCustomer);
+            }
+            catch (ValidationException)
+            {
+                return BadRequest();
+            }
         }
 
 
