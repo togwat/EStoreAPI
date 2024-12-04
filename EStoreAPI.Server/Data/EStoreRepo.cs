@@ -51,8 +51,16 @@ namespace EStoreAPI.Server.Data
 
             if (customerToChange != null)
             {
-                customerToChange.CustomerName = customer.CustomerName;
-                customerToChange.PhoneNumbers = customer.PhoneNumbers;
+                if (customer.CustomerName != null && customer.PhoneNumbers.Length >= 1)
+                {
+                    customerToChange.CustomerName = customer.CustomerName;
+                    customerToChange.PhoneNumbers = customer.PhoneNumbers;
+                }
+                else
+                {
+                    throw new ValidationException();
+                }
+                
                 customerToChange.Email = customer.Email;
                 customerToChange.Address = customer.Address;
 
