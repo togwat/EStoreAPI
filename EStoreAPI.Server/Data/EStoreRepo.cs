@@ -1,6 +1,7 @@
 ﻿using EStoreAPI.Server.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Server.Data
 {
@@ -38,10 +39,17 @@ namespace EStoreAPI.Server.Data
 
         public async Task<Customer> AddCustomerAsync(Customer customer)
         {
-            EntityEntry<Customer> e = await _dbContext.Customers.AddAsync(customer);
-            Customer c = e.Entity;
-            await _dbContext.SaveChangesAsync();
-            return c;
+            if (customer.CustomerName != null && customer.PhoneNumbers.Length >= 1)
+            {
+                EntityEntry<Customer> e = await _dbContext.Customers.AddAsync(customer);
+                Customer c = e.Entity;
+                await _dbContext.SaveChangesAsync();
+                return c;
+            }
+            else
+            {
+                throw new ValidationException();
+            }
         }
 
         public async Task UpdateCustomerAsync(Customer customer)
@@ -50,8 +58,16 @@ namespace EStoreAPI.Server.Data
 
             if (customerToChange != null)
             {
-                customerToChange.CustomerName = customer.CustomerName;
-                customerToChange.PhoneNumbers = customer.PhoneNumbers;
+                if (customer.CustomerName != null && customer.PhoneNumbers.Length >= 1)
+                {
+                    customerToChange.CustomerName = customer.CustomerName;
+                    customerToChange.PhoneNumbers = customer.PhoneNumbers;
+                }
+                else
+                {
+                    throw new ValidationException();
+                }
+                
                 customerToChange.Email = customer.Email;
                 customerToChange.Address = customer.Address;
 
@@ -90,10 +106,17 @@ namespace EStoreAPI.Server.Data
 
         public async Task<Device> AddDeviceAsync(Device device)
         {
-            EntityEntry<Device> e = await _dbContext.Devices.AddAsync(device);
-            Device d = e.Entity;
-            await _dbContext.SaveChangesAsync();
-            return d;
+            if (device.DeviceName != null && device.DeviceType != null)
+            {
+                EntityEntry<Device> e = await _dbContext.Devices.AddAsync(device);
+                Device d = e.Entity;
+                await _dbContext.SaveChangesAsync();
+                return d;
+            }
+            else
+            {
+                throw new ValidationException();
+            }
         }
 
         public async Task UpdateDeviceAsync(Device device)
@@ -102,8 +125,15 @@ namespace EStoreAPI.Server.Data
 
             if (deviceToChange != null)
             {
-                deviceToChange.DeviceName = device.DeviceName;
-                deviceToChange.DeviceType = device.DeviceType;
+                if (device.DeviceName != null && device.DeviceType != null)
+                {
+                    deviceToChange.DeviceName = device.DeviceName;
+                    deviceToChange.DeviceType = device.DeviceType;
+                }
+                else
+                {
+                    throw new ValidationException();
+                }
 
                 await _dbContext.SaveChangesAsync();
             }
@@ -120,18 +150,27 @@ namespace EStoreAPI.Server.Data
             return problem;
         }
 
-        public async Task<ICollection<Problem>> GetProblemsOfDeviceAsync(Device device)
+        public async Task<ICollection<Problem>> GetProblemsOfDeviceAsync(int deviceId)
         {
-            ICollection<Problem> problems = await _dbContext.Problems.Where(p => p.Device == device).ToListAsync();
+            ICollection<Problem> problems = await _dbContext.Problems.Where(p => p.DeviceId == deviceId).ToListAsync();
             return problems;
         }
 
         public async Task<Problem> AddProblemAsync(Problem problem)
         {
-            EntityEntry<Problem> e = await _dbContext.Problems.AddAsync(problem);
-            Problem p = e.Entity;
-            await _dbContext.SaveChangesAsync();
-            return p;
+            // check if device exists
+            Device? device = await GetDeviceByIdAsync(problem.DeviceId);
+            if (device != null)
+            {
+                EntityEntry<Problem> e = await _dbContext.Problems.AddAsync(problem);
+                Problem p = e.Entity;
+                await _dbContext.SaveChangesAsync();
+                return p;
+            }
+            else
+            {
+                throw new ValidationException();
+            }
         }
 
         public async Task UpdateProblemAsync(Problem problem)
@@ -141,8 +180,19 @@ namespace EStoreAPI.Server.Data
             if (problemToChange != null)
             {
                 problemToChange.ProblemName = problem.ProblemName;
-                problemToChange.Device = problem.Device;
                 problemToChange.Price = problem.Price;
+
+                // check device id
+                Device? device = await GetDeviceByIdAsync(problem.DeviceId);
+                if (device != null)
+                {
+                    problemToChange.DeviceId = problem.DeviceId;
+                    problemToChange.Device = device;
+                }
+                else
+                {
+                    throw new ValidationException();
+                }
 
                 await _dbContext.SaveChangesAsync();
             }
@@ -172,10 +222,20 @@ namespace EStoreAPI.Server.Data
 
         public async Task<Job> AddJobAsync(Job job)
         {
-            EntityEntry<Job> e = await _dbContext.Jobs.AddAsync(job);
-            Job j = e.Entity;
-            await _dbContext.SaveChangesAsync();
-            return j;
+            // check if required attributes are entered
+            Customer? customer = await GetCustomerByIdAsync(job.CustomerId);
+            Device? device = await GetDeviceByIdAsync(job.DeviceId);
+            if (customer != null && device != null && job.Problems.Count >= 1)
+            {
+                EntityEntry<Job> e = await _dbContext.Jobs.AddAsync(job);
+                Job j = e.Entity;
+                await _dbContext.SaveChangesAsync();
+                return j;
+            }
+            else
+            {
+                throw new ValidationException();
+            }
         }
 
         public async Task UpdateJobAsync(Job job)
@@ -187,7 +247,16 @@ namespace EStoreAPI.Server.Data
                 jobToChange.PickupTime = job.PickupTime;
                 jobToChange.EstimatedPickupTime = job.EstimatedPickupTime;
                 jobToChange.Note = job.Note;
-                jobToChange.Problems = job.Problems;
+                // check number of problems
+                if (job.Problems.Count >= 1)
+                {
+                    jobToChange.Problems = job.Problems;
+                }
+                else
+                {
+                    throw new ValidationException();
+                }
+
                 jobToChange.EstimatedPrice = job.EstimatedPrice;
                 jobToChange.CollectedPrice = job.CollectedPrice;
                 jobToChange.IsFinished = job.IsFinished;

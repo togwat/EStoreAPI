@@ -3,6 +3,7 @@ using Moq;
 using EStoreAPI.Server.Controllers;
 using EStoreAPI.Server.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Tests.APITests
 {
@@ -20,6 +21,7 @@ namespace EStoreAPI.Tests.APITests
                                     .With(p => p.ProblemId, 1)
                                     .Create();
             _repo.Setup(r => r.GetProblemByIdAsync(1)).ReturnsAsync(problem);
+            _repo.Setup(r => r.GetProblemByIdAsync(It.Is<int>(i => i != 1))).ReturnsAsync(null as Problem); // return null for invalid ids
 
             // act
             var result = await _controller.GetProblemAsync(id);
@@ -35,7 +37,7 @@ namespace EStoreAPI.Tests.APITests
             // invalid id
             else
             {
-                Assert.IsType<NotFoundObjectResult>(result.Result); // returns 404 not found
+                Assert.IsType<NotFoundResult>(result.Result); // returns 404 not found
             }
         }
 
@@ -51,12 +53,14 @@ namespace EStoreAPI.Tests.APITests
                                 .With(d => d.DeviceId, 1)
                                 .Create();
             var problems = _fixture.Build<Problem>()
-                                .With(p => p.Device, device)
+                                .With(p => p.DeviceId, id)
                                 .CreateMany(5).ToList();
-            _repo.Setup(r => r.GetProblemsOfDeviceAsync(device)).ReturnsAsync(problems);
+            _repo.Setup(r => r.GetProblemsOfDeviceAsync(1)).ReturnsAsync(problems);
+            _repo.Setup(r => r.GetDeviceByIdAsync(1)).ReturnsAsync(device);
+            _repo.Setup(r => r.GetDeviceByIdAsync(It.Is<int>(i => i != 1))).ReturnsAsync(null as Device);
 
             // act
-            var result = await _controller.GetDeviceProblemsAsync(device.DeviceId);
+            var result = await _controller.GetDeviceProblemsAsync(id);
 
             // assert
             // valid device
@@ -66,7 +70,7 @@ namespace EStoreAPI.Tests.APITests
                 var problemsResult = Assert.IsAssignableFrom<ICollection<Problem>>(okResult.Value); // return type ICollection<Problem>
 
                 Assert.Equal(problems.Count, problemsResult.Count); // returns 5 problems
-                Assert.All(problemsResult, p => Assert.Equal(device, p.Device));    // all returned problems should contain device
+                Assert.All(problemsResult, p => Assert.Equal(id, p.DeviceId));    // all returned problems should contain device
             }
             // invalid device
             else
@@ -94,13 +98,21 @@ namespace EStoreAPI.Tests.APITests
                                     .With(p => p.Price, price)
                                     .With(p => p.Device, givenDevice)
                                     .Create();
-            _repo.Setup(r => r.AddProblemAsync(newProblem))
+            // valid data
+            if (name == "name" && deviceId == 1 && price == 100.00m)
+            {
+                _repo.Setup(r => r.AddProblemAsync(newProblem))
                 .ReturnsAsync((Problem p) =>
                 {
                     p.ProblemId = 1;    // auto incremented id
                     return p;
                 });
-
+            }
+            else
+            {
+                _repo.Setup(r => r.AddProblemAsync(newProblem)).ThrowsAsync(new ValidationException());
+            }
+            
             // act
             var result = await _controller.CreateProblemAsync(newProblem);
 
@@ -150,7 +162,15 @@ namespace EStoreAPI.Tests.APITests
             // valid id
             if (id == 1)
             {
-                _repo.Setup(r => r.UpdateProblemAsync(newProblem)).Returns(Task.CompletedTask);
+                // valid data
+                if (name == "newname" && deviceId == 1 && price == 99.99m)
+                {
+                    _repo.Setup(r => r.UpdateProblemAsync(newProblem)).Returns(Task.CompletedTask);
+                }
+                else
+                {
+                    _repo.Setup(r => r.UpdateProblemAsync(newProblem)).ThrowsAsync(new ValidationException());
+                }
             }
             // not found id
             else
@@ -172,14 +192,14 @@ namespace EStoreAPI.Tests.APITests
                 // invalid data
                 else
                 {
-                    var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);   // returns 404 not found
-                    Assert.Equal("Problem not found.", notFoundResult.Value);   // matching error message
+                    Assert.IsType<BadRequestResult>(result);   // returns 400 bad request
                 }
             }
             // invalid id
             else
             {
-                Assert.IsType<BadRequestResult>(result);    // returns 400 bad request
+                var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);   // returns 404 not found
+                Assert.Equal("Problem not found.", notFoundResult.Value);   // matching error message
             }
         }
 

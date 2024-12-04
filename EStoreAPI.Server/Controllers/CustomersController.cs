@@ -3,6 +3,7 @@ using EStoreAPI.Server.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Server.Controllers
 {
@@ -60,9 +61,15 @@ namespace EStoreAPI.Server.Controllers
         [HttpPost("create")]
         public async Task<ActionResult<Customer>> CreateCustomerAsync(Customer customer)
         {
-            Customer newCustomer = await _Repo.AddCustomerAsync(customer);
-
-            return CreatedAtAction(nameof(GetCustomerAsync), new { id = newCustomer.CustomerId }, newCustomer);
+            try
+            {
+                Customer newCustomer = await _Repo.AddCustomerAsync(customer);
+                return CreatedAtAction(nameof(GetCustomerAsync), new { id = newCustomer.CustomerId }, newCustomer);
+            }
+            catch (ValidationException)
+            {
+                return BadRequest();
+            }
         }
 
 
@@ -70,19 +77,22 @@ namespace EStoreAPI.Server.Controllers
         [HttpPut("update/{id}")]
         public async Task<ActionResult> UpdateCustomerWithIdAsync(int id, Customer customer)
         {
-            if (id != customer.CustomerId)
-            {
-                return BadRequest();
-            }
-
+            // set up new customer
+            customer.CustomerId = id;
             try
             {
                 await _Repo.UpdateCustomerAsync(customer);
                 return NoContent();
             }
+            // customer not found
             catch (KeyNotFoundException ex)
             {
                 return NotFound(ex.Message);
+            }
+            // invalid data
+            catch (ValidationException)
+            {
+                return BadRequest();
             }
         }
     }

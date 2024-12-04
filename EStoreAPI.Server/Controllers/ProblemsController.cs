@@ -2,6 +2,7 @@
 using EStoreAPI.Server.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Server.Controllers
 {
@@ -45,7 +46,7 @@ namespace EStoreAPI.Server.Controllers
             }
             else
             {
-                ICollection<Problem> problems = await _Repo.GetProblemsOfDeviceAsync(device);
+                ICollection<Problem> problems = await _Repo.GetProblemsOfDeviceAsync(deviceId);
                 return Ok(problems);
             }
         }
@@ -54,28 +55,38 @@ namespace EStoreAPI.Server.Controllers
         [HttpPost("create")]
         public async Task<ActionResult<Problem>> CreateProblemAsync(Problem problem)
         {
-            Problem newProblem = await _Repo.AddProblemAsync(problem);
+            try
+            {
+                Problem newProblem = await _Repo.AddProblemAsync(problem);
+                return CreatedAtAction(nameof(GetProblemAsync), new { id = newProblem.ProblemId }, newProblem);
 
-            return CreatedAtAction(nameof(GetProblemAsync), new { id = newProblem.ProblemId }, newProblem);
+            }
+            catch (ValidationException)
+            {
+                return BadRequest();
+            }
         }
 
         // PUT: api/Problems/update/{id}
         [HttpPut("update/{id}")]
         public async Task<ActionResult> UpdateProblemWithIdAsync(int id, Problem problem)
         {
-            if (id != problem.ProblemId)
-            {
-                return BadRequest();
-            }
-
+            // set new problem
+            problem.ProblemId = id;
             try
             {
                 await _Repo.UpdateProblemAsync(problem);
                 return NoContent();
             }
+            // problem not found
             catch (KeyNotFoundException ex)
             {
                 return NotFound(ex.Message);
+            }
+            // device not found
+            catch (ValidationException)
+            {
+                return BadRequest();
             }
         }
     }

@@ -3,6 +3,7 @@ using Moq;
 using EStoreAPI.Server.Controllers;
 using EStoreAPI.Server.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Tests.APITests
 {
@@ -52,6 +53,7 @@ namespace EStoreAPI.Tests.APITests
                                 .With(j => j.JobId, 1)
                                 .Create();
             _repo.Setup(r => r.GetJobByIdAsync(1)).ReturnsAsync(job);
+            _repo.Setup(r => r.GetJobByIdAsync(It.Is<int>(i => i != 1))).ReturnsAsync(null as Job);
 
             // act
             var result = await _controller.GetJobAsync(id);
@@ -67,7 +69,7 @@ namespace EStoreAPI.Tests.APITests
             // invalid id
             else
             {
-                Assert.IsType<NotFoundObjectResult>(result.Result); // returns 404 not found
+                Assert.IsType<NotFoundResult>(result.Result); // returns 404 not found
             }
         }
 
@@ -84,12 +86,20 @@ namespace EStoreAPI.Tests.APITests
                                 .With(j => j.ReceiveTime, receiveTime)
                                 .With(j => j.Problems, problems)
                                 .Create();
-            _repo.Setup(r => r.AddJobAsync(newJob))
+            // valid data
+            if (customerId == 1 && deviceId == 1 && problems.Count >= 1)
+            {
+                _repo.Setup(r => r.AddJobAsync(newJob))
                 .ReturnsAsync((Job j) =>
                 {
                     j.JobId = 1;
                     return j;
                 });
+            }
+            else
+            {
+                _repo.Setup(r => r.AddJobAsync(newJob)).ThrowsAsync(new ValidationException());
+            }
 
             // act
             var result = await _controller.CreateJobAsync(newJob);
@@ -126,22 +136,28 @@ namespace EStoreAPI.Tests.APITests
         // PUT: api/Jobs/update{id}
         [Theory]
         [MemberData(nameof(UpdateJobData))]
-        public async Task TestUpdateJob(int id, int customerId, int deviceId, DateTime receiveTime, ICollection<Problem> problems)
+        public async Task TestUpdateJob(int id, DateTime pickupTime, ICollection<Problem> problems)
         {
             Job oldJob = _fixture.Build<Job>()
                                 .With(j => j.JobId, 1)
                                 .Create();
             Job newJob = _fixture.Build<Job>()
                                 .With(j => j.JobId, 1)
-                                .With(j => j.CustomerId, customerId)
-                                .With(j => j.DeviceId, deviceId)
-                                .With(j => j.ReceiveTime, receiveTime)
+                                .With(j => j.ReceiveTime, pickupTime)
                                 .With(j => j.Problems, problems)
                                 .Create();
             // valid id
             if (id == 1)
             {
-                _repo.Setup(r => r.UpdateJobAsync(newJob)).Returns(Task.CompletedTask);
+                // valid data
+                if (problems.Count >= 1)
+                {
+                    _repo.Setup(r => r.UpdateJobAsync(newJob)).Returns(Task.CompletedTask);
+                }
+                else
+                {
+                    _repo.Setup(r => r.UpdateJobAsync(newJob)).ThrowsAsync(new ValidationException());
+                }   
             }
             // not found id
             else
@@ -157,32 +173,29 @@ namespace EStoreAPI.Tests.APITests
             if (id == 1)
             {
                 // valid data
-                if (customerId == 2 && deviceId == 2 && problems.Count >= 1)
+                if (problems.Count >= 1)
                 {
                     Assert.IsType<NoContentResult>(result); // returns 204 no content
                 }
                 // invalid data
                 else
                 {
-                    var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);   // returns 404 not found
-                    Assert.Equal("Job not found.", notFoundResult.Value);   // matching error message
+                    Assert.IsType<BadRequestResult>(result);    // returns 400 bad request
                 }
             }
             // invalid id
             else
             {
-                Assert.IsType<BadRequestResult>(result);    // returns 400 bad request
+                var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);   // returns 404 not found
+                Assert.Equal("Job not found.", notFoundResult.Value);   // matching error message
             }
         }
 
         public static IEnumerable<object[]> UpdateJobData =>
             [
-                [1, 2, 2, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem> { new(), new() }],   // valid
-                [2, 2, 2, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem> { new(), new() }],   // invalid id
-                [1, -1, 2, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem> { new(), new() }],  // valid id. invalid data
-                [1, 2, -1, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem> { new(), new() }],  // valid id. invalid data
-                [1, 2, 2, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem>()],     // valid id. invalid data
-                [2, -1, -1, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem>()],     // invalid everything
+                [1, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem> { new(), new() }],   // valid
+                [2, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem> { new(), new() }],   // invalid id
+                [1, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem>()],     // valid id. invalid data
             ];
     }
 }

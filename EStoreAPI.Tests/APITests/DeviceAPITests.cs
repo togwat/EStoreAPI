@@ -3,6 +3,7 @@ using Moq;
 using EStoreAPI.Server.Controllers;
 using EStoreAPI.Server.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Tests.APITests
 {
@@ -52,6 +53,7 @@ namespace EStoreAPI.Tests.APITests
                                     .With(d => d.DeviceId, 1)
                                     .Create();
             _repo.Setup(r => r.GetDeviceByIdAsync(1)).ReturnsAsync(device);
+            _repo.Setup(r => r.GetDeviceByIdAsync(It.Is<int>(i => i != 1))).ReturnsAsync(null as Device);
 
             // act
             var result = await _controller.GetDeviceAsync(id);
@@ -67,7 +69,7 @@ namespace EStoreAPI.Tests.APITests
             // invalid id
             else
             {
-                Assert.IsType<NotFoundObjectResult>(result.Result); // returns 404 not found
+                Assert.IsType<NotFoundResult>(result.Result); // returns 404 not found
             }
         }
 
@@ -152,12 +154,20 @@ namespace EStoreAPI.Tests.APITests
                                     .With(d => d.DeviceName, name)
                                     .With(d => d.DeviceType, type)
                                     .Create();
-            _repo.Setup(r => r.AddDeviceAsync(newDevice))
+            // valid data
+            if (name == "name" && type == "type")
+            {
+                _repo.Setup(r => r.AddDeviceAsync(newDevice))
                 .ReturnsAsync((Device d) =>
                 {
                     d.DeviceId = 1; // EF auto-increments id
                     return d;
                 });
+            }
+            else
+            {
+                _repo.Setup(r => r.AddDeviceAsync(newDevice)).ThrowsAsync(new ValidationException());
+            }
 
             // act
             var result = await _controller.CreateDeviceAsync(newDevice);
@@ -203,7 +213,15 @@ namespace EStoreAPI.Tests.APITests
             // valid id
             if (id == 1)
             {
-                _repo.Setup(r => r.UpdateDeviceAsync(newDevice)).Returns(Task.CompletedTask);
+                // valid data
+                if (name == "newname" && type == "newtype")
+                {
+                    _repo.Setup(r => r.UpdateDeviceAsync(newDevice)).Returns(Task.CompletedTask);
+                }
+                else
+                {
+                    _repo.Setup(r => r.UpdateDeviceAsync(newDevice)).ThrowsAsync(new ValidationException());
+                }
             }
             // invalid id
             else
@@ -226,14 +244,14 @@ namespace EStoreAPI.Tests.APITests
                 // invalid data
                 else
                 {
-                    var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);   // returns 404 not found
-                    Assert.Equal("Device not found.", notFoundResult.Value);    // matching error message
+                    Assert.IsType<BadRequestResult>(result);    // returns 400 bad request                   
                 }
             }
             // invalid id
             else
             {
-                Assert.IsType<BadRequestResult>(result);    // returns 400 bad request
+                var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);   // returns 404 not found
+                Assert.Equal("Device not found.", notFoundResult.Value);    // matching error message
             }
         }
     }

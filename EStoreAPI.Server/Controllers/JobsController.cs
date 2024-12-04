@@ -2,6 +2,7 @@
 using EStoreAPI.Server.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Server.Controllers
 {
@@ -44,28 +45,37 @@ namespace EStoreAPI.Server.Controllers
         [HttpPost("create")]
         public async Task<ActionResult<Job>> CreateJobAsync(Job job)
         {
-            Job newJob = await _Repo.AddJobAsync(job);
-
-            return CreatedAtAction(nameof(GetJobAsync), new { id = newJob.JobId }, newJob);
+            try
+            {
+                Job newJob = await _Repo.AddJobAsync(job);
+                return CreatedAtAction(nameof(GetJobAsync), new { id = newJob.JobId }, newJob);
+            }
+            catch (ValidationException)
+            {
+                return BadRequest();
+            }
         }
 
         // PUT: api/Jobs/update/{id}
         [HttpPut("update/{id}")]
         public async Task<ActionResult> UpdateJobByIdAsync(int id, Job job)
         {
-            if (id != job.JobId)
-            {
-                return BadRequest();
-            }
-
+            // set up new job
+            job.JobId = id;
             try
             {
                 await _Repo.UpdateJobAsync(job);
                 return NoContent();
             }
+            // job not found
             catch (KeyNotFoundException ex)
             {
                 return NotFound(ex.Message);
+            }
+            // invalid data
+            catch (ValidationException)
+            {
+                return BadRequest();
             }
         }
     }
