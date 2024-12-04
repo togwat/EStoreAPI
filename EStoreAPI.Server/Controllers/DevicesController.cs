@@ -62,9 +62,15 @@ namespace EStoreAPI.Server.Controllers
         [HttpPost("create")]
         public async Task<ActionResult<Device>> CreateDeviceAsync(Device device)
         {
-            Device newDevice = await _Repo.AddDeviceAsync(device);
-
-            return CreatedAtAction(nameof(GetDeviceAsync), new { id = newDevice.DeviceId }, newDevice);
+            try
+            {
+                Device newDevice = await _Repo.AddDeviceAsync(device);
+                return CreatedAtAction(nameof(GetDeviceAsync), new { id = newDevice.DeviceId }, newDevice);
+            }
+            catch (ValidationException)
+            {
+                return BadRequest();
+            }
         }
 
         // PUT: api/Devices/update/{id}

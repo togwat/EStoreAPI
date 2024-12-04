@@ -154,12 +154,20 @@ namespace EStoreAPI.Tests.APITests
                                     .With(d => d.DeviceName, name)
                                     .With(d => d.DeviceType, type)
                                     .Create();
-            _repo.Setup(r => r.AddDeviceAsync(newDevice))
+            // valid data
+            if (name == "name" && type == "type")
+            {
+                _repo.Setup(r => r.AddDeviceAsync(newDevice))
                 .ReturnsAsync((Device d) =>
                 {
                     d.DeviceId = 1; // EF auto-increments id
                     return d;
                 });
+            }
+            else
+            {
+                _repo.Setup(r => r.AddDeviceAsync(newDevice)).ThrowsAsync(new ValidationException());
+            }
 
             // act
             var result = await _controller.CreateDeviceAsync(newDevice);

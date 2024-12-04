@@ -91,10 +91,17 @@ namespace EStoreAPI.Server.Data
 
         public async Task<Device> AddDeviceAsync(Device device)
         {
-            EntityEntry<Device> e = await _dbContext.Devices.AddAsync(device);
-            Device d = e.Entity;
-            await _dbContext.SaveChangesAsync();
-            return d;
+            if (device.DeviceName != null && device.DeviceType != null)
+            {
+                EntityEntry<Device> e = await _dbContext.Devices.AddAsync(device);
+                Device d = e.Entity;
+                await _dbContext.SaveChangesAsync();
+                return d;
+            }
+            else
+            {
+                throw new ValidationException();
+            }
         }
 
         public async Task UpdateDeviceAsync(Device device)
