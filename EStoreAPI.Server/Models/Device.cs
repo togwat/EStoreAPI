@@ -14,13 +14,5 @@ namespace EStoreAPI.Server.Models
         public string DeviceType { get; set; }
 
         public virtual ICollection<Problem> Problems { get; set; }
-
-        public Device() {}
-
-        public Device(string name, string type)
-        {
-            DeviceName = name;
-            DeviceType = type;
-        }
     }
 }

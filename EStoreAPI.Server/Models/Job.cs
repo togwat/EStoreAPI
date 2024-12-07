@@ -33,15 +33,5 @@ namespace EStoreAPI.Server.Models
         public Decimal? CollectedPrice { get; set; }
 
         public bool IsFinished { get; set; } = false;
-
-        public Job() {}
-
-        public Job(int customerId, int deviceId, DateTime receiveTime, ICollection<Problem> problems) 
-        { 
-            CustomerId = customerId;
-            DeviceId = deviceId;
-            ReceiveTime = receiveTime;
-            Problems = problems;
-        }
     }
 }

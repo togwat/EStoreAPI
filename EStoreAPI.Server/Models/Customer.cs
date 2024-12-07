@@ -19,14 +19,5 @@ namespace EStoreAPI.Server.Models
         public string? Address { get; set; }
 
         public virtual ICollection<Job> Jobs { get; set; }
-
-        public Customer() { }
-        
-        public Customer(string name, string[] phoneNumbers)
-        {
-            CustomerName = name;
-            PhoneNumbers = phoneNumbers;
-        }
     }
-
 }

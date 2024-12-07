@@ -16,14 +16,5 @@ namespace EStoreAPI.Server.Models
 
         [Required]
         public decimal Price { get; set; }
-
-        public Problem() {}
-
-        public Problem(string name, int deviceId, decimal price)
-        {
-            ProblemName = name;
-            DeviceId = deviceId;
-            Price = price;
-        }
     }
 }
