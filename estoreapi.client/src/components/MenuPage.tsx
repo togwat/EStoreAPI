@@ -1,4 +1,4 @@
-function Menu() {
+function MenuPage() {
     return (
         <div>
             <button>Form</button>
@@ -8,4 +8,4 @@ function Menu() {
     );
 }
 
-export default Menu;
+export default MenuPage;
