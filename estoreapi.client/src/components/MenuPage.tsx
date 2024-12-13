@@ -1,9 +1,17 @@
+import { Link } from 'react-router-dom';
+
 function MenuPage() {
     return (
         <div>
-            <button>Form</button>
-            <button>View Jobs</button>
-            <button>Manage Devices</button>
+            <Link to="/form">
+                <button>Form</button>
+            </Link>
+            <Link to="/jobs">
+                <button>View Jobs</button>
+            </Link>
+            <Link to="devices">
+                <button>Manage Devices</button>
+            </Link>
         </div>
     );
 }
