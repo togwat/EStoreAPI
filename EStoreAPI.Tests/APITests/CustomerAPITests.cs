@@ -120,7 +120,7 @@ namespace EStoreAPI.Tests.APITests
         {
             // arrange
             Customer customer = _fixture.Build<Customer>()
-                                    .With(c => c.PhoneNumbers, ["12345", "67890"])
+                                    .With(c => c.PhoneNumber, "12345")
                                     .Create();
             _repo.Setup(r => r.GetCustomersByQueryAsync("12345")).ReturnsAsync([customer]);
 
@@ -135,7 +135,7 @@ namespace EStoreAPI.Tests.APITests
             if (phone == "12345")
             {
                 Assert.Single(customersResult);   // returns 1 customer
-                Assert.All(customersResult, c => Assert.Contains("12345", c.PhoneNumbers)); // customer should have phone number
+                Assert.All(customersResult, c => Assert.Equal("12345", c.PhoneNumber)); // customer should have phone number
             }
             // invalid phone
             else
@@ -195,21 +195,20 @@ namespace EStoreAPI.Tests.APITests
 
         // POST: api/Customers/create
         [Theory]
-        [InlineData("a", new string[] { "123" })]   // valid customer
-        [InlineData(null, new string[] { "123" })]  // invalid name, valid phone
-        [InlineData("b", new string[] { })]     // valid name, invalid phone
-        [InlineData(null, new string[] { })]    // invalid name, invalid phone
+        [InlineData("a", "123")]   // valid customer
+        [InlineData(null, "123")]  // invalid name, valid phone
+        [InlineData("b", null)]     // valid name, invalid phone
         [InlineData(null, null)]                // invalid name, invalid phone
-        public async Task TestCreateCustomer(string name, string[] phones)
+        public async Task TestCreateCustomer(string name, string phone)
         {
             // arrange
             Customer newCustomer = _fixture.Build<Customer>()
                                     .Without(c => c.CustomerId)
                                     .With(c => c.CustomerName, name)
-                                    .With(c => c.PhoneNumbers, phones)
+                                    .With(c => c.PhoneNumber, phone)
                                     .Create();
             // valid data
-            if (name == "a" && Enumerable.SequenceEqual(phones, ["123"]))
+            if (name == "a" && phone == "123")
             {
                 _repo.Setup(r => r.AddCustomerAsync(newCustomer))
                 .ReturnsAsync((Customer c) =>
@@ -227,14 +226,14 @@ namespace EStoreAPI.Tests.APITests
 
             // assert
             // valid customer
-            if (name == "a" && Enumerable.SequenceEqual(phones, ["123"]))
+            if (name == "a" && phone == "123")
             {
                 var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
                 var createdCustomer = Assert.IsAssignableFrom<Customer>(createdResult.Value);   // return type Customer
 
                 // returned customer should match the sent customer
                 Assert.Equal(newCustomer.CustomerName, createdCustomer.CustomerName);
-                Assert.Equal(newCustomer.PhoneNumbers, createdCustomer.PhoneNumbers);
+                Assert.Equal(newCustomer.PhoneNumber, createdCustomer.PhoneNumber);
                 Assert.Equal(newCustomer.Email, createdCustomer.Email);
             }
             // invalid customer
@@ -246,11 +245,11 @@ namespace EStoreAPI.Tests.APITests
 
         // PUT: api/Customers/update/{id}
         [Theory]
-        [InlineData(1, "newname", new string[] { "123" })]     // valid id, valid data
+        [InlineData(1, "newname", "123")]     // valid id, valid data
         [InlineData(1, null, null)]    // valid id, invalid data
-        [InlineData(2, "newname", new string[] { "123" })]     // invalid id, valid data
+        [InlineData(2, "newname", "123")]     // invalid id, valid data
         [InlineData(2, null, null)]    // invalid id, invalid data
-        public async Task TestUpdateCustomer(int id, string name, string[] phones)
+        public async Task TestUpdateCustomer(int id, string name, string phone)
         {
             // arrange
             Customer oldCustomer = _fixture.Build<Customer>()
@@ -259,13 +258,13 @@ namespace EStoreAPI.Tests.APITests
             Customer newCustomer = _fixture.Build<Customer>()
                                         .With(c => c.CustomerId, 1)     // supplied customer will have same id as oldCustomer
                                         .With(c => c.CustomerName, name)
-                                        .With(c => c.PhoneNumbers, phones)
+                                        .With(c => c.PhoneNumber, phone)
                                         .Create();
             // valid id
             if (id == 1)
             {
                 // valid data
-                if (name == "newname" && Enumerable.SequenceEqual(phones, ["123"]))
+                if (name == "newname" && phone == "123")
                 {
                     _repo.Setup(r => r.UpdateCustomerAsync(newCustomer)).Returns(Task.CompletedTask);
                 }
@@ -289,7 +288,7 @@ namespace EStoreAPI.Tests.APITests
             if (id == 1)
             {
                 // valid data
-                if (name == "newname" && Enumerable.SequenceEqual(phones, ["123"]))
+                if (name == "newname" && phone == "123")
                 {
                     Assert.IsType<NoContentResult>(result); // returns 204 no content
                 }
