@@ -31,7 +31,7 @@ namespace EStoreAPI.Server.Data
         public async Task<ICollection<Customer>> GetCustomersByQueryAsync(string query)
         {
             ICollection<Customer> customers = await _dbContext.Customers.Where(
-                    c => c.CustomerName.Contains(query) || c.PhoneNumbers.Contains(query) || c.Email.Contains(query)
+                    c => c.CustomerName.Contains(query) || c.PhoneNumber.Contains(query) || c.Email.Contains(query)
                 ).ToListAsync();
 
             return customers;
@@ -39,7 +39,7 @@ namespace EStoreAPI.Server.Data
 
         public async Task<Customer> AddCustomerAsync(Customer customer)
         {
-            if (customer.CustomerName != null && customer.PhoneNumbers.Length >= 1)
+            if (customer.CustomerName != null && customer.PhoneNumber != null)
             {
                 EntityEntry<Customer> e = await _dbContext.Customers.AddAsync(customer);
                 Customer c = e.Entity;
@@ -58,16 +58,17 @@ namespace EStoreAPI.Server.Data
 
             if (customerToChange != null)
             {
-                if (customer.CustomerName != null && customer.PhoneNumbers.Length >= 1)
+                if (customer.CustomerName != null && customer.PhoneNumber != null)
                 {
                     customerToChange.CustomerName = customer.CustomerName;
-                    customerToChange.PhoneNumbers = customer.PhoneNumbers;
+                    customerToChange.PhoneNumber = customer.PhoneNumber;
                 }
                 else
                 {
                     throw new ValidationException();
                 }
                 
+                customerToChange.PhoneNumberSecondary = customer.PhoneNumberSecondary;
                 customerToChange.Email = customer.Email;
                 customerToChange.Address = customer.Address;
 
