@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 
-function MenuPage() {
+export default function MenuLinks() {
     return (
-        <div>
+        <div className="links-container">
             <Link to="/form">
                 <button>Form</button>
             </Link>
@@ -13,7 +13,5 @@ function MenuPage() {
                 <button>Manage Devices</button>
             </Link>
         </div>
-    );
+    )
 }
-
-export default MenuPage;

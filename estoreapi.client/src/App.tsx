@@ -1,9 +1,9 @@
 import './App.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import MenuPage from './components/MenuPage';
-import FormPage from './components/FormPage';
-import JobsPage from './components/JobsPage';
-import DevicesPage from './components/DevicesPage';
+import MenuPage from './pages/menu/MenuPage';
+import FormPage from './pages/form/FormPage';
+import JobsPage from './pages/jobs/JobsPage';
+import DevicesPage from './pages/devices/DevicesPage';
 
 function App() {
     return (

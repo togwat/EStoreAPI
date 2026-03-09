@@ -1,0 +1,35 @@
+.menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+
+    margin-bottom: 4rem;
+}
+
+.menu-header h1 {
+    font-size: 2.5rem;
+    margin: 0;
+}
+
+.menu-header img {
+    margin-top: 4px;
+    height: 2.5rem;
+}
+
+.links-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+/* is Link in tsx */
+.links-container a {
+    min-width: 200px;
+}
+
+.links-container a button {
+    width: 100%;
+}
