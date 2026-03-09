@@ -1,4 +1,4 @@
-import MenuButton from './MenuButton';
+import MenuButton from '../../components/MenuButton';
 import axios from 'axios';
 
 function FormPage() {
