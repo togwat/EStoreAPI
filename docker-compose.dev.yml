@@ -1,0 +1,10 @@
+services:
+  db:
+    ports:
+      - "5432:5432"
+
+  api:
+    ports:
+      - "5100:5100"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development

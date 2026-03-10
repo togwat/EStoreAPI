@@ -2,17 +2,19 @@ import axios from 'axios';
 import '../Form.css';
 
 export default function JobForm() {
-    async function addJob(event: React.FormEvent) {
+    async function handleSubmit(event: React.ChangeEvent<HTMLFormElement>) {
         event.preventDefault();
+
+        // retrieve all form data
+        const formData = new FormData(event.currentTarget);
+        
+        const name = formData.get("name")?.toString().trim();
+        const phone = formData.get("phone")!.toString().trim();
+        const phone2 = formData.get("phone2")?.toString().trim();
+        const email = formData.get("email")?.toString().trim();
+        const address = formData.get("address")?.toString().trim();
+                
         // add/assign customer
-        const formData = event.target as HTMLFormElement;
-
-        const name: string = formData.name.value;   // ignore ts warning, this works
-        const phone: string = formData.phone.value;
-        const phone2: string = formData.phone2.value;
-        const email: string = formData.email.value;
-        const address: string = formData.address.value;
-
         // check if an existing customer matches (using primary phone number)
         await axios.get('/api/Customers/search', {
             withCredentials: false,
@@ -25,10 +27,11 @@ export default function JobForm() {
             alert(error);
         });
         // TODO: add new job
+        console.log(`${name} ${phone} ${phone2} ${email} ${address}`);
     }
 
     return (
-        <form className="job-form" onSubmit={addJob} >
+        <form className="job-form" onSubmit={handleSubmit} >
             <div className="job-form-field">
                 <label htmlFor="name">Name</label>
                 <input name="name" />

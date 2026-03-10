@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build: ./EStoreAPI.Server
+    image: estoreapi-server:latest
+    environment:
+      ConnectionStrings__WebAPIDatabase:
+        Host=db;
+        Port=5432;
+        Database=${DB_NAME};
+        Username=${DB_USER};
+        Password=${DB_PASSWORD};
+    depends_on:
+      - db
+
+  client:
+    build: ./estoreapi.client
+    image: estoreapi-client:latest
+    ports: 
+      - "80:80"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:

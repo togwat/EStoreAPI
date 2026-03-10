@@ -1,0 +1,14 @@
+# backend
+bin
+obj
+
+# frontend
+node_modules
+dist
+
+.git
+.env
+.env.*
+.vscode
+.DS_Store
+npm-debug.log

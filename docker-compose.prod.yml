@@ -1,0 +1,11 @@
+services:
+  db:
+    restart: unless-stopped
+
+  api:
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+
+  client:
+    restart: unless-stopped
