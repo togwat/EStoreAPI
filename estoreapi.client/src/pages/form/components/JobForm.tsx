@@ -14,7 +14,7 @@ export default function JobForm() {
         const address: string = formData.address.value;
 
         // check if an existing customer matches (using primary phone number)
-        await axios.get('https://localhost:7211/api/Customers/search', {
+        await axios.get('/api/Customers/search', {
             withCredentials: false,
             params: {
                 query: phone
@@ -24,7 +24,7 @@ export default function JobForm() {
         }).catch((error) => {
             alert(error);
         });
-        // add new job
+        // TODO: add new job
     }
 
     return (
