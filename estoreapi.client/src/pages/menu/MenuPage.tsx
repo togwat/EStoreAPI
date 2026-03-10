@@ -5,9 +5,9 @@ import './Menu.css';
 
 export default function MenuPage() {
     return (
-        <>
+        <div className="menu-container">
             <MenuHeader />
             <MenuLinks />
-        </>
+        </div>
     );
 }

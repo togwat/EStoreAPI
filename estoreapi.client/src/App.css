@@ -1,6 +1,6 @@
 ﻿#root {
     max-width: 1280px;
-    margin: 8rem auto 0 auto;
+    margin: 2rem auto;
     padding: 2rem;
     text-align: center;
 }
@@ -8,18 +8,4 @@
 th, td {
     padding-left: 1rem;
     padding-right: 1rem;
-}
-
-/* tablet */
-@media only screen and (max-width: 1024px) {
-    #root {
-        margin-top: 4rem;
-    }
-}
-
-/* mobile */
-@media only screen and (max-width: 768px) {
-    #root {
-        margin-top: 2rem;
-    }
 }
