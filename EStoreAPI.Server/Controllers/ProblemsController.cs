@@ -58,7 +58,7 @@ namespace EStoreAPI.Server.Controllers
             try
             {
                 Problem newProblem = await _Repo.AddProblemAsync(problem);
-                return CreatedAtAction(nameof(GetProblemAsync), new { id = newProblem.ProblemId }, newProblem);
+                return CreatedAtAction("GetProblem", new { id = newProblem.ProblemId }, newProblem);
 
             }
             catch (ValidationException)

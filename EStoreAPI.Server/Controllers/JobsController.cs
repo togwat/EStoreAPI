@@ -48,7 +48,7 @@ namespace EStoreAPI.Server.Controllers
             try
             {
                 Job newJob = await _Repo.AddJobAsync(job);
-                return CreatedAtAction(nameof(GetJobAsync), new { id = newJob.JobId }, newJob);
+                return CreatedAtAction("GetJob", new { id = newJob.JobId }, newJob);
             }
             catch (ValidationException)
             {

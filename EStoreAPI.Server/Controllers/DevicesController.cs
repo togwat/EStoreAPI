@@ -65,7 +65,7 @@ namespace EStoreAPI.Server.Controllers
             try
             {
                 Device newDevice = await _Repo.AddDeviceAsync(device);
-                return CreatedAtAction(nameof(GetDeviceAsync), new { id = newDevice.DeviceId }, newDevice);
+                return CreatedAtAction("GetDevice", new { id = newDevice.DeviceId }, newDevice);
             }
             catch (ValidationException)
             {
