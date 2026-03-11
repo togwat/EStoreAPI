@@ -4,22 +4,24 @@ services:
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSGRES_DB: ${DB_NAME}
+      POSTGRES_DB: ${DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   api:
     build: ./EStoreAPI.Server
     image: estoreapi-server:latest
     environment:
-      ConnectionStrings__WebAPIDatabase:
-        Host=db;
-        Port=5432;
-        Database=${DB_NAME};
-        Username=${DB_USER};
-        Password=${DB_PASSWORD};
+      ConnectionStrings__WebAPIDatabase: "Host=db; Port=5432; Database=${DB_NAME}; Username=${DB_USER}; Password=${DB_PASSWORD};"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
 
   client:
     build: ./estoreapi.client

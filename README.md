@@ -37,3 +37,6 @@ Install Npgsql provider:
 
 Update database:
 `dotnet ef database update`
+
+Note: these steps are only conducted if Program.cs does not do the migration for you. (so no need for Docker deployment)
+

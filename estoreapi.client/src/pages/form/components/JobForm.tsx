@@ -13,6 +13,9 @@ export default function JobForm() {
         const phone2 = formData.get("phone2")?.toString().trim();
         const email = formData.get("email")?.toString().trim();
         const address = formData.get("address")?.toString().trim();
+        const device = formData.get("device")?.toString().trim();
+        const notes = formData.get("notes")?.toString().trim();
+        // const price = formData.get("price")?.toString().trim(); // might get rid of this field
                 
         // add/assign customer
         // check if an existing customer matches (using primary phone number)
@@ -27,7 +30,7 @@ export default function JobForm() {
             alert(error);
         });
         // TODO: add new job
-        console.log(`${name} ${phone} ${phone2} ${email} ${address}`);
+        console.log(`${name} ${phone} ${phone2} ${email} ${address}, ${device}, ${notes}`);
     }
 
     return (
