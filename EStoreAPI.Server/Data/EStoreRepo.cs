@@ -30,8 +30,10 @@ namespace EStoreAPI.Server.Data
         // query by name, phone, or email
         public async Task<ICollection<Customer>> GetCustomersByQueryAsync(string query)
         {
+            query = query.ToLower();
+
             ICollection<Customer> customers = await _dbContext.Customers.Where(
-                    c => c.CustomerName.Contains(query) || c.PhoneNumber.Contains(query) || c.Email.Contains(query)
+                    c => c.CustomerName.ToLower().Contains(query) || c.PhoneNumber.Contains(query) || c.Email.ToLower().Contains(query)
                 ).ToListAsync();
 
             return customers;
@@ -95,7 +97,9 @@ namespace EStoreAPI.Server.Data
 
         public async Task<ICollection<Device>> GetDevicesByNameAsync(string name)
         {
-            ICollection<Device> devices = await _dbContext.Devices.Where(d => d.DeviceName.Contains(name)).ToListAsync();
+            name = name.ToLower();
+
+            ICollection<Device> devices = await _dbContext.Devices.Where(d => d.DeviceName.ToLower().Contains(name)).ToListAsync();
             return devices;
         }
 
