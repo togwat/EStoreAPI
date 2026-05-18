@@ -17,6 +17,7 @@ EStoreAPI is a repair shop management system for internal staff use. It provides
 - [ ] Generate a quote suggestion from selected problems, adjustable by the technician to account for discounts
 - [ ] Allow staff to look up customer repair history and track job status
 - [ ] Establish a clean, scalable architecture that supports future feature growth
+- [ ] **The app can be entirely managed through an AI agent if needed; A chatbox should be available with an agent that can call APIs to manage and display data if needed**
 
 ### Non-Goals
 
@@ -31,6 +32,7 @@ EStoreAPI is a repair shop management system for internal staff use. It provides
 | Role | Description | Permissions |
 |------|-------------|-------------|
 | Staff | Counter and technician staff who create and manage jobs | Full CRUD on jobs, customers, devices, problems |
+| AI Agent | An AI agent that staff can talk and upload files to, who can automate the management process | Full CRUD on jobs, customers, devices, problems; requires staff consent via chatbox |
 
 All roles require a user account with password authentication to access the system. User management is infrequent and handled administratively (e.g. direct database queries or a basic admin interface).
 
@@ -79,6 +81,13 @@ All roles require a user account with password authentication to access the syst
 - [ ] Job list view showing outstanding and completed jobs
 - [ ] Customer lookup to retrieve repair history
 
+### 4.7 AI Agent
+- [ ] A chatbox that is easily accessible from anywhere on the app
+- [ ] Have the ability to upload files, such as pictures, documents, spreadsheets, for single or bulk import of data
+- [ ] From prompts, be able to call upon provided APIs to make changes to the database
+- [ ] From prompts, be able to redirect the user to their desired pages and apply any requested filters closest to the user's request
+- [ ] A dedicated auth account will be provided to the agent, just like a human staff
+
 ---
 
 ## 5. Non-Functional Requirements
@@ -90,6 +99,7 @@ All roles require a user account with password authentication to access the syst
 | Security | Hosted on a public URL; all routes protected behind authentication |
 | Scalability | Architecture should support adding new features (e.g. reporting, notifications) without major rework |
 | Data retention | Job and customer records kept for warranty and history purposes; stale customer records (no active warranty and no activity for 5 years) removed for privacy |
+| Privacy | All customer data is kept within the server computer; no data is given to any 3rd party providers |
 
 ---
 
@@ -103,10 +113,12 @@ All roles require a user account with password authentication to access the syst
 | Database | PostgreSQL via Entity Framework Core 10 |
 | Frontend | React + Vite (TypeScript) |
 | API docs | Swagger / OpenAPI |
-| Containerisation | Docker (3-image setup: API, client, DB) |
+| Containerisation | Docker (4-image setup: API, client, DB, agent) |
+| AI provider | Ollama (Python API), locally hosted or with private cloud |
+| AI interface | React assistant-ui |
 
 ### 6.2 High-Level Architecture
-![architecture diagram](assets/architecture.svg)
+![architecture diagram](assets/architecture.png)
 
 ### 6.3 Data Model
 ![data model diagram](assets/datamodel.svg)
@@ -118,7 +130,6 @@ The Problem entity represents the generic problems a device model may have.
 
 ## 7. API Summary
 
-See [api-reference.md](api-reference.md) for full endpoint documentation.
 
 | Resource   | Base path          |
 |------------|--------------------|
@@ -126,9 +137,9 @@ See [api-reference.md](api-reference.md) for full endpoint documentation.
 | Devices    | `/api/devices`     |
 | Jobs       | `/api/jobs`        |
 | Problems   | `/api/problems`    |
+| AI Agent | `/api/agent` |
 
 ---
 
 ## 8. Future Work
 - Tracking of external partners (jobs handed off to partner repair shops/technicians)
-- Integrated AI agent that helps find job records via text description
