@@ -133,6 +133,58 @@ namespace EStoreAPI.Tests.APITests
                 [-1, -1, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem>()],  // invalid combined
             ];
 
+        // POST: api/Jobs/bulk-create
+        [Theory]
+        [InlineData(-1)]    // all valid
+        [InlineData(0)]     // job at index 0 is invalid
+        [InlineData(1)]     // job at index 1 is invalid
+        public async Task TestCreateJobs(int invalidIndex)
+        {
+            // arrange
+            var jobs = _fixture.Build<Job>()
+                                .Without(j => j.JobId)
+                                .With(j => j.CustomerId, 1)
+                                .With(j => j.DeviceId, 1)
+                                .With(j => j.Problems, new List<Problem> { new() })
+                                .CreateMany(3).ToList();
+
+            if (invalidIndex >= 0)
+            {
+                _repo.Setup(r => r.AddJobsAsync(It.IsAny<ICollection<Job>>()))
+                     .ThrowsAsync(new ValidationException($"Job at index {invalidIndex} is missing required fields."));
+            }
+            else
+            {
+                _repo.Setup(r => r.AddJobsAsync(It.IsAny<ICollection<Job>>()))
+                     .ReturnsAsync((ICollection<Job> js) =>
+                     {
+                         var list = js.ToList();
+                         for (int i = 0; i < list.Count; i++)
+                             list[i].JobId = i + 1;  // simulate EF auto-increment
+                         return list;
+                     });
+            }
+
+            // act
+            var result = await _controller.CreateJobsAsync(jobs);
+
+            // assert
+            if (invalidIndex < 0)
+            {
+                var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
+                var createdJobs = Assert.IsAssignableFrom<ICollection<Job>>(createdResult.Value);
+                Assert.Equal(3, createdJobs.Count);
+                var createdList = createdJobs.ToList();
+                for (int i = 0; i < createdList.Count; i++)
+                    Assert.Equal(i + 1, createdList[i].JobId);  // IDs assigned correctly
+            }
+            else
+            {
+                var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);    // returns 400 with message
+                Assert.Contains($"index {invalidIndex}", badRequestResult.Value!.ToString());   // message identifies the failing index
+            }
+        }
+
         // PUT: api/Jobs/update{id}
         [Theory]
         [MemberData(nameof(UpdateJobData))]

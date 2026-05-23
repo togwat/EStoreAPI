@@ -189,6 +189,57 @@ namespace EStoreAPI.Tests.APITests
             }
         }
 
+        // POST: api/Devices/bulk-create
+        [Theory]
+        [InlineData(-1)]    // all valid
+        [InlineData(0)]     // device at index 0 is invalid
+        [InlineData(1)]     // device at index 1 is invalid
+        public async Task TestCreateDevices(int invalidIndex)
+        {
+            // arrange
+            var devices = _fixture.Build<Device>()
+                                    .Without(d => d.DeviceId)
+                                    .With(d => d.DeviceName, "name")
+                                    .With(d => d.DeviceType, "type")
+                                    .CreateMany(3).ToList();
+
+            if (invalidIndex >= 0)
+            {
+                _repo.Setup(r => r.AddDevicesAsync(It.IsAny<ICollection<Device>>()))
+                     .ThrowsAsync(new ValidationException($"Device at index {invalidIndex} is missing required fields."));
+            }
+            else
+            {
+                _repo.Setup(r => r.AddDevicesAsync(It.IsAny<ICollection<Device>>()))
+                     .ReturnsAsync((ICollection<Device> ds) =>
+                     {
+                         var list = ds.ToList();
+                         for (int i = 0; i < list.Count; i++)
+                             list[i].DeviceId = i + 1;   // simulate EF auto-increment
+                         return list;
+                     });
+            }
+
+            // act
+            var result = await _controller.CreateDevicesAsync(devices);
+
+            // assert
+            if (invalidIndex < 0)
+            {
+                var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
+                var createdDevices = Assert.IsAssignableFrom<ICollection<Device>>(createdResult.Value);
+                Assert.Equal(3, createdDevices.Count);
+                var createdList = createdDevices.ToList();
+                for (int i = 0; i < createdList.Count; i++)
+                    Assert.Equal(i + 1, createdList[i].DeviceId);   // IDs assigned correctly
+            }
+            else
+            {
+                var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);    // returns 400 with message
+                Assert.Contains($"index {invalidIndex}", badRequestResult.Value!.ToString());   // message identifies the failing index
+            }
+        }
+
         // PUT: api/Devices/update/{id}
         [Theory]
         [InlineData(1, "newname", "newtype")]   // valid id, valid data
