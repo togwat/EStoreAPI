@@ -72,6 +72,21 @@ namespace EStoreAPI.Server.Controllers
             }
         }
 
+        // POST: api/Customers/create-bulk
+        [HttpPost("create-bulk")]
+        public async Task<ActionResult<ICollection<Customer>>> CreateCustomersAsync(ICollection<Customer> customers)
+        {
+            try
+            {
+                ICollection<Customer> newCustomers = await _Repo.AddCustomersAsync(customers);
+                // fake GetAllCustomers to return newly created customers
+                return CreatedAtAction("GetAllCustomers", null, newCustomers);
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
         // PUT: api/Customers/update/{id}
         [HttpPut("update/{id}")]

@@ -67,6 +67,21 @@ namespace EStoreAPI.Server.Controllers
             }
         }
 
+        // POST: api/Problems/create-bulk
+        [HttpPost("create-bulk")]
+        public async Task<ActionResult<ICollection<Problem>>> CreateProblemsAsync(ICollection<Problem> problems)
+        {
+            try
+            {
+                ICollection<Problem> newProblems = await _Repo.AddProblemsAsync(problems);
+                return StatusCode(201, newProblems);
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         // PUT: api/Problems/update/{id}
         [HttpPut("update/{id}")]
         public async Task<ActionResult> UpdateProblemWithIdAsync(int id, Problem problem)

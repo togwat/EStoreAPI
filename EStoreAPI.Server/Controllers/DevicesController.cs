@@ -73,6 +73,22 @@ namespace EStoreAPI.Server.Controllers
             }
         }
 
+        // POST: api/Devices/create-bulk
+        [HttpPost("create-bulk")]
+        public async Task<ActionResult<ICollection<Device>>> CreateDevicesAsync(ICollection<Device> devices)
+        {
+            try
+            {
+                ICollection<Device> newDevices = await _Repo.AddDevicesAsync(devices);
+                // fake GetAllDevices to return newly created devices
+                return CreatedAtAction("GetAllDevices", null, newDevices);
+            }
+            catch(ValidationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         // PUT: api/Devices/update/{id}
         [HttpPut("update/{id}")]
         public async Task<ActionResult> UpdateDeviceByIdAsync(int id, Device device)

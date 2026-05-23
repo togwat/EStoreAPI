@@ -56,6 +56,22 @@ namespace EStoreAPI.Server.Controllers
             }
         }
 
+        // POST: api/Jobs/create-bulk
+        [HttpPost("create-bulk")]
+        public async Task<ActionResult<ICollection<Job>>> CreateJobsAsync(ICollection<Job> jobs)
+        {
+            try
+            {
+                ICollection<Job> newJobs = await _Repo.AddJobsAsync(jobs);
+                // fake GetAllJobs to return newly created jobs
+                return CreatedAtAction("GetAllJobs", null, newJobs);
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         // PUT: api/Jobs/update/{id}
         [HttpPut("update/{id}")]
         public async Task<ActionResult> UpdateJobByIdAsync(int id, Job job)
