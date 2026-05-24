@@ -18,3 +18,5 @@ SYSTEM_PROMPT = (
     "Use the available tools to read from and write to the database."
     "Respond in natural language. Confirm actions taken."
 )
+
+STREAMING = False
