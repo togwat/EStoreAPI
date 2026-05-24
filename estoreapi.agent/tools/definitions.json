@@ -142,7 +142,7 @@
   },
   {
     "name": "get_all_devices",
-    "description": "Retrieve all devices.",
+    "description": "Retrieve all device models.",
     "input_schema": {
       "type": "object",
       "properties": {},
@@ -151,7 +151,7 @@
   },
   {
     "name": "get_device_by_id",
-    "description": "Get a single device by its ID.",
+    "description": "Get a single device model by its ID.",
     "input_schema": {
       "type": "object",
       "properties": {
@@ -165,7 +165,7 @@
   },
   {
     "name": "search_devices_by_name",
-    "description": "Search for devices by name.",
+    "description": "Search for device models by name.",
     "input_schema": {
       "type": "object",
       "properties": {
@@ -179,7 +179,7 @@
   },
   {
     "name": "search_devices_by_type",
-    "description": "Search for devices by type.",
+    "description": "Search for device models by type/category (e.g. 'phone', 'laptop').",
     "input_schema": {
       "type": "object",
       "properties": {
@@ -193,17 +193,17 @@
   },
   {
     "name": "create_device",
-    "description": "Create a new device.",
+    "description": "Register a new device model (e.g. 'iPhone 15', type 'phone').",
     "input_schema": {
       "type": "object",
       "properties": {
         "deviceName": {
           "type": "string",
-          "description": "Name of the device."
+          "description": "Model name (e.g. 'iPhone 15', 'Samsung S24')."
         },
         "deviceType": {
           "type": "string",
-          "description": "Type/category of the device."
+          "description": "Category of the device model (e.g. 'phone', 'laptop', 'tablet')."
         }
       },
       "required": ["deviceName", "deviceType"]
@@ -211,23 +211,23 @@
   },
   {
     "name": "create_devices_bulk",
-    "description": "Create multiple devices in a single request.",
+    "description": "Register multiple device models in a single request.",
     "input_schema": {
       "type": "object",
       "properties": {
         "devices": {
           "type": "array",
-          "description": "List of devices to create.",
+          "description": "List of device models to register.",
           "items": {
             "type": "object",
             "properties": {
               "deviceName": {
                 "type": "string",
-                "description": "Name of the device."
+                "description": "Model name (e.g. 'iPhone 15', 'Samsung S24')."
               },
               "deviceType": {
                 "type": "string",
-                "description": "Type/category of the device."
+                "description": "Category of the device model (e.g. 'phone', 'laptop', 'tablet')."
               }
             },
             "required": ["deviceName", "deviceType"]
@@ -239,21 +239,21 @@
   },
   {
     "name": "update_device",
-    "description": "Update an existing device by ID.",
+    "description": "Update an existing device model by ID.",
     "input_schema": {
       "type": "object",
       "properties": {
         "id": {
           "type": "integer",
-          "description": "The ID of the device to update."
+          "description": "The ID of the device model to update."
         },
         "deviceName": {
           "type": "string",
-          "description": "Updated device name."
+          "description": "Updated device model name."
         },
         "deviceType": {
           "type": "string",
-          "description": "Updated device type."
+          "description": "Updated device category."
         }
       },
       "required": ["id", "deviceName", "deviceType"]
@@ -469,7 +469,7 @@
   },
   {
     "name": "get_problem_by_id",
-    "description": "Get a single problem by its ID.",
+    "description": "Get a single repair problem catalogue entry by its ID.",
     "input_schema": {
       "type": "object",
       "properties": {
@@ -483,13 +483,13 @@
   },
   {
     "name": "get_problems_by_device",
-    "description": "Get all problems associated with a specific device.",
+    "description": "Get all repair problems in the catalogue for a specific device model.",
     "input_schema": {
       "type": "object",
       "properties": {
         "deviceId": {
           "type": "integer",
-          "description": "The ID of the device to fetch problems for."
+          "description": "The ID of the device model to fetch catalogue problems for."
         }
       },
       "required": ["deviceId"]
@@ -497,21 +497,21 @@
   },
   {
     "name": "create_problem",
-    "description": "Create a new problem (repair issue) associated with a device.",
+    "description": "Add a repair problem to the catalogue for a device model (e.g. 'Screen replacement' for iPhone 15 at $150).",
     "input_schema": {
       "type": "object",
       "properties": {
         "problemName": {
           "type": "string",
-          "description": "Name of the problem."
+          "description": "Name of the repair issue (e.g. 'Screen replacement', 'Battery swap')."
         },
         "deviceId": {
           "type": "integer",
-          "description": "ID of the device this problem belongs to."
+          "description": "ID of the device model this problem applies to."
         },
         "price": {
           "type": "number",
-          "description": "Cost to fix this problem."
+          "description": "Fixed catalogue price for this repair."
         }
       },
       "required": ["problemName", "deviceId", "price"]
@@ -519,27 +519,27 @@
   },
   {
     "name": "create_problems_bulk",
-    "description": "Create multiple problems in a single request.",
+    "description": "Add multiple repair problems to the catalogue in a single request.",
     "input_schema": {
       "type": "object",
       "properties": {
         "problems": {
           "type": "array",
-          "description": "List of problems to create.",
+          "description": "List of catalogue problems to add.",
           "items": {
             "type": "object",
             "properties": {
               "problemName": {
                 "type": "string",
-                "description": "Name of the problem."
+                "description": "Name of the repair issue (e.g. 'Screen replacement', 'Battery swap')."
               },
               "deviceId": {
                 "type": "integer",
-                "description": "ID of the device this problem belongs to."
+                "description": "ID of the device model this problem applies to."
               },
               "price": {
                 "type": "number",
-                "description": "Cost to fix this problem."
+                "description": "Fixed catalogue price for this repair."
               }
             },
             "required": ["problemName", "deviceId", "price"]
@@ -551,7 +551,7 @@
   },
   {
     "name": "update_problem",
-    "description": "Update an existing problem by ID.",
+    "description": "Update an existing catalogue problem by ID.",
     "input_schema": {
       "type": "object",
       "properties": {
