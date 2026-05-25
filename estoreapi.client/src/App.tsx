@@ -1,22 +1,23 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import MenuPage from './pages/menu/MenuPage';
+import HomePage from './pages/home/HomePage';
 import FormPage from './pages/form/FormPage';
 import JobsPage from './pages/jobs/JobsPage';
 import DevicesPage from './pages/devices/DevicesPage';
 import Chat from './components/Chat';
+import { Navbar } from './components/Navbar';
 
 function App() {
     return (
         <BrowserRouter>
             <Chat>
-                <div className="max-w-7xl mx-auto my-8 p-8 text-center">
+                <Navbar>
                     <Routes>
-                        <Route path="/" element={<MenuPage />} />
+                        <Route path="/" element={<HomePage />} />
                         <Route path="/form" element={<FormPage />} />
                         <Route path="/jobs" element={<JobsPage />} />
                         <Route path="/devices" element={<DevicesPage />} />
                     </Routes>
-                </div>
+                </Navbar>
             </Chat>
         </BrowserRouter>
     );
