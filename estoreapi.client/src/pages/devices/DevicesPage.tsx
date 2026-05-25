@@ -1,6 +1,6 @@
 import { useIsMobile } from '@/hooks/use-mobile';
 
-function DevicesPage({ title }: { title: string }) {
+export default function DevicesPage({ title }: { title: string }) {
     const isMobile = useIsMobile();
 
     return (
@@ -9,5 +9,3 @@ function DevicesPage({ title }: { title: string }) {
         </div>
     );
 }
-
-export default DevicesPage;

@@ -1,6 +1,6 @@
 import { useIsMobile } from '@/hooks/use-mobile';
 
-function JobsPage({ title }: { title: string }) {
+export default function JobsPage({ title }: { title: string }) {
     const isMobile = useIsMobile();
 
     return (
@@ -9,5 +9,3 @@ function JobsPage({ title }: { title: string }) {
         </div>
     );
 }
-
-export default JobsPage;
