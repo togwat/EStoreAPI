@@ -1,5 +1,6 @@
+import type { PropsWithChildren } from "react";
 import { AssistantRuntimeProvider, useLocalRuntime, type ChatModelAdapter } from "@assistant-ui/react";
-import { AssistantModal } from "./assistant-ui/assistant-modal";
+import { AssistantSidebar } from "./assistant-ui/assistant-sidebar";
 
 const agentAdapter: ChatModelAdapter = {
     async *run({ messages, abortSignal }) {
@@ -14,7 +15,7 @@ const agentAdapter: ChatModelAdapter = {
         const res = await fetch("/agent/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ messages: formatted, stream: true }),    // always stream
+            body: JSON.stringify({ messages: formatted, stream: true }),
             signal: abortSignal,
         });
 
@@ -34,11 +35,13 @@ const agentAdapter: ChatModelAdapter = {
     },
 };
 
-function Chat() {
+function Chat({ children }: PropsWithChildren) {
     const runtime = useLocalRuntime(agentAdapter);
     return (
         <AssistantRuntimeProvider runtime={runtime}>
-            <AssistantModal />
+            <AssistantSidebar>
+                {children}
+            </AssistantSidebar>
         </AssistantRuntimeProvider>
     );
 }
