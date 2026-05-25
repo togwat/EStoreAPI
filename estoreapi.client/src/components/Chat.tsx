@@ -35,7 +35,7 @@ const agentAdapter: ChatModelAdapter = {
     },
 };
 
-function Chat({ children }: PropsWithChildren) {
+export default function Chat({ children }: PropsWithChildren) {
     const runtime = useLocalRuntime(agentAdapter);
     return (
         <AssistantRuntimeProvider runtime={runtime}>
@@ -45,5 +45,3 @@ function Chat({ children }: PropsWithChildren) {
         </AssistantRuntimeProvider>
     );
 }
-
-export default Chat;

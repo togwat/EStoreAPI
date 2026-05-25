@@ -1,12 +1,11 @@
-import MenuButton from '../../components/MenuButton';
+import { useIsMobile } from '@/hooks/use-mobile';
 
-function JobsPage() {
+export default function JobsPage({ title }: { title: string }) {
+    const isMobile = useIsMobile();
+
     return (
         <div>
-            <MenuButton/>
-            <p>Jobs</p>
+            { !isMobile && <h1>{title}</h1> }
         </div>
     );
 }
-
-export default JobsPage;
