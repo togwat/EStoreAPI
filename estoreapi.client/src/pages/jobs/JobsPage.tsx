@@ -1,7 +1,11 @@
-function JobsPage() {
+import { useIsMobile } from '@/hooks/use-mobile';
+
+function JobsPage({ title }: { title: string }) {
+    const isMobile = useIsMobile();
+
     return (
         <div>
-            <p>Jobs</p>
+            { !isMobile && <h1>{title}</h1> }
         </div>
     );
 }

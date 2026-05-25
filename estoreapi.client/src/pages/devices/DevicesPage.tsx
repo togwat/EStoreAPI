@@ -1,7 +1,11 @@
-function DevicesPage() {
+import { useIsMobile } from '@/hooks/use-mobile';
+
+function DevicesPage({ title }: { title: string }) {
+    const isMobile = useIsMobile();
+
     return (
         <div>
-            <p>Devices</p>
+            { !isMobile && <h1>{title}</h1> }
         </div>
     );
 }

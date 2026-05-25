@@ -1,13 +1,18 @@
 import { useState } from 'react';
 import { Form, ScrollText, TabletSmartphone, Menu, X } from 'lucide-react';
-import type { PropsWithChildren } from 'react';
+import type { ReactNode } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from 'src/components/ui/collapsible';
 import { Button } from 'src/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ThemeIcon } from './ThemeIcon';
 import NavItem from './NavItem';
 
-export function Navbar({ children }: PropsWithChildren) {
+interface NavbarProps {
+    title: string;
+    children?: ReactNode;
+}
+
+export function Navbar({ title, children }: NavbarProps) {
     const isMobile = useIsMobile();
     const [open, setOpen] = useState(false);
     const close = () => setOpen(false);
@@ -23,6 +28,7 @@ export function Navbar({ children }: PropsWithChildren) {
                                 {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                             </Button>
                         </CollapsibleTrigger>
+                        <h1 className="text-xl">{title}</h1>
                         <NavItem to="/" icon={<ThemeIcon className="h-4" />} label="" onClick={close} />
                     </div>
                     <CollapsibleContent className="absolute top-full left-0 right-0 z-40 border-y border-border bg-background">
