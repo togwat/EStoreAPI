@@ -1,5 +1,4 @@
 import axios from 'axios';
-import '../Form.css';
 
 export default function JobForm() {
     async function handleSubmit(event: React.ChangeEvent<HTMLFormElement>) {
@@ -34,38 +33,38 @@ export default function JobForm() {
     }
 
     return (
-        <form className="job-form" onSubmit={handleSubmit} >
-            <div className="job-form-field">
-                <label htmlFor="name">Name</label>
-                <input name="name" />
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+            <div className="flex flex-col gap-2">
+                <label htmlFor="name" className="text-left">Name</label>
+                <input name="name" className="w-full" />
             </div>
-            <div className="job-form-field">
-                <label htmlFor="phone" className="required">Phone number</label>
-                <input name="phone" placeholder="required" />
+            <div className="flex flex-col gap-2">
+                <label htmlFor="phone" className="text-left after:content-['_*'] after:text-red-500">Phone number</label>
+                <input name="phone" placeholder="required" className="w-full" />
             </div>
-            <div className="job-form-field">
-                <label htmlFor="phone2">Secondary phone number</label>
-                <input name="phone2" />
+            <div className="flex flex-col gap-2">
+                <label htmlFor="phone2" className="text-left">Secondary phone number</label>
+                <input name="phone2" className="w-full" />
             </div>
-            <div className="job-form-field">
-                <label htmlFor="email">Email</label>
-                <input name="email" />
+            <div className="flex flex-col gap-2">
+                <label htmlFor="email" className="text-left">Email</label>
+                <input name="email" className="w-full" />
             </div>
-            <div className="job-form-field">
-                <label htmlFor="address">Address</label>
-                <input name="address" />
+            <div className="flex flex-col gap-2">
+                <label htmlFor="address" className="text-left">Address</label>
+                <input name="address" className="w-full" />
             </div>
-            <div className="job-form-field">
-                <label htmlFor="Device">Device</label>
-                <input name="device" />
+            <div className="flex flex-col gap-2">
+                <label htmlFor="device" className="text-left">Device</label>
+                <input name="device" className="w-full" />
             </div>
-            <div className="job-form-field">
-                <label htmlFor="notes">Notes</label>
-                <textarea name="notes" />
+            <div className="flex flex-col gap-2">
+                <label htmlFor="notes" className="text-left">Notes</label>
+                <textarea name="notes" className="w-full" />
             </div>
-            <div className="job-form-field">
-                <label htmlFor="price">Estimated price</label>
-                <input name="price" />
+            <div className="flex flex-col gap-2">
+                <label htmlFor="price" className="text-left">Estimated price</label>
+                <input name="price" className="w-full" />
             </div>
             <button type="submit">Submit</button>
         </form>
