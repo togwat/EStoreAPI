@@ -54,6 +54,29 @@ namespace EStoreAPI.Server.Data
             }
         }
 
+        public async Task<ICollection<Customer>> AddCustomersAsync(ICollection<Customer> customers)
+        {
+            // validation
+            var customerList = customers.ToList();
+            for (int i = 0; i < customerList.Count; i++)
+            {
+                Customer customer = customerList[i];
+
+                if (customer.CustomerName == null)
+                {
+                    throw new ValidationException($"Customer at index {i} is missing a name.");
+                }
+                if (customer.PhoneNumber == null)
+                {
+                    throw new ValidationException($"Customer at index {i} is missing a phone number.");
+                }
+            }
+
+            await _dbContext.Customers.AddRangeAsync(customerList);
+            await _dbContext.SaveChangesAsync();
+            return customerList;
+        }
+
         public async Task UpdateCustomerAsync(Customer customer)
         {
             Customer? customerToChange = await GetCustomerByIdAsync(customer.CustomerId);
@@ -124,6 +147,29 @@ namespace EStoreAPI.Server.Data
             }
         }
 
+        public async Task<ICollection<Device>> AddDevicesAsync(ICollection<Device> devices)
+        {
+            // validation
+            var devicesList = devices.ToList();
+            for (int i = 0; i < devicesList.Count; i++)
+            {
+                Device device = devicesList[i];
+
+                if (device.DeviceName == null)
+                {
+                    throw new ValidationException($"Device at index {i} is missing a name.");
+                }
+                if (device.DeviceType == null)
+                {
+                    throw new ValidationException($"Device at index {i} is missing a type.");
+                }
+            }
+
+            await _dbContext.Devices.AddRangeAsync(devicesList);
+            await _dbContext.SaveChangesAsync();
+            return devicesList;
+        }
+
         public async Task UpdateDeviceAsync(Device device)
         {
             Device? deviceToChange = await GetDeviceByIdAsync(device.DeviceId);
@@ -155,6 +201,11 @@ namespace EStoreAPI.Server.Data
             return problem;
         }
 
+        public async Task<ICollection<Problem>> GetProblemsByIdsAsync(ICollection<int> ids)
+        {
+            return await _dbContext.Problems.Where(p => ids.Contains(p.ProblemId)).ToListAsync();
+        }
+
         public async Task<ICollection<Problem>> GetProblemsOfDeviceAsync(int deviceId)
         {
             ICollection<Problem> problems = await _dbContext.Problems.Where(p => p.DeviceId == deviceId).ToListAsync();
@@ -176,6 +227,30 @@ namespace EStoreAPI.Server.Data
             {
                 throw new ValidationException();
             }
+        }
+
+        public async Task<ICollection<Problem>> AddProblemsAsync(ICollection<Problem> problems)
+        {
+            // validation
+            var problemList = problems.ToList();
+            for (int i = 0; i < problemList.Count; i++)
+            {
+                Problem problem = problemList[i];
+
+                Device? device = await GetDeviceByIdAsync(problem.DeviceId);
+                if (problem.ProblemName == null)
+                {
+                    throw new ValidationException($"Problem at index {i} is missing a name.");
+                }
+                if (device == null)
+                {
+                    throw new ValidationException($"Problem at index {i} is missing a valid device.");
+                }
+            }
+
+            await _dbContext.Problems.AddRangeAsync(problemList);
+            await _dbContext.SaveChangesAsync();
+            return problemList;
         }
 
         public async Task UpdateProblemAsync(Problem problem)
@@ -210,13 +285,13 @@ namespace EStoreAPI.Server.Data
         // job operations
         public async Task<Job?> GetJobByIdAsync(int id)
         {
-            Job? job = await _dbContext.Jobs.FirstOrDefaultAsync(j => j.JobId == id);
+            Job? job = await _dbContext.Jobs.Include(j => j.Problems).FirstOrDefaultAsync(j => j.JobId == id);
             return job;
         }
 
         public async Task<ICollection<Job>> GetJobsAsync()
         {
-            ICollection<Job> jobs = await _dbContext.Jobs.ToListAsync();
+            ICollection<Job> jobs = await _dbContext.Jobs.Include(j => j.Problems).ToListAsync();
             return jobs;
         }
 
@@ -243,19 +318,53 @@ namespace EStoreAPI.Server.Data
             }
         }
 
+        public async Task<ICollection<Job>> AddJobsAsync(ICollection<Job> jobs)
+        {
+            // validation
+            var jobList = jobs.ToList();
+            for (int i = 0; i < jobList.Count; i++)
+            {
+                Job job = jobList[i];
+
+                Customer? customer = await GetCustomerByIdAsync(job.CustomerId);
+                Device? device = await GetDeviceByIdAsync(job.DeviceId);
+                if (customer == null)
+                {
+                    throw new ValidationException($"Job at index {i} is missing a valid customer.");
+                }
+                if (device == null)
+                {
+                    throw new ValidationException($"Job at index {i} is missing a valid device.");
+                }
+                if (job.Problems.Count < 1)
+                {
+                    throw new ValidationException($"Job at index {i} is missing at least one problem.");
+                }
+            }
+
+            await _dbContext.Jobs.AddRangeAsync(jobList);
+            await _dbContext.SaveChangesAsync();
+            return jobList;
+        }
+
         public async Task UpdateJobAsync(Job job)
         {
-            Job? jobToChange = await GetJobByIdAsync(job.JobId);
+            // Include Problems so EF Core can diff the join table
+            Job? jobToChange = await _dbContext.Jobs
+                .Include(j => j.Problems)
+                .FirstOrDefaultAsync(j => j.JobId == job.JobId);
 
             if (jobToChange != null)
             {
                 jobToChange.PickupTime = job.PickupTime;
                 jobToChange.EstimatedPickupTime = job.EstimatedPickupTime;
                 jobToChange.Note = job.Note;
-                // check number of problems
+                // update problems
                 if (job.Problems.Count >= 1)
                 {
-                    jobToChange.Problems = job.Problems;
+                    jobToChange.Problems.Clear();
+                    foreach (var p in job.Problems)
+                        jobToChange.Problems.Add(p);
                 }
                 else
                 {

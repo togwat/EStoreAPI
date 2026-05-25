@@ -9,3 +9,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: "http://+:5100"
+
+  agent:
+    ports:
+      - "8000:8000"

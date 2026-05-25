@@ -243,6 +243,57 @@ namespace EStoreAPI.Tests.APITests
             }
         }
 
+        // POST: api/Customers/bulk-create
+        [Theory]
+        [InlineData(-1)]    // all valid
+        [InlineData(0)]     // customer at index 0 is invalid
+        [InlineData(1)]     // customer at index 1 is invalid
+        public async Task TestCreateCustomers(int invalidIndex)
+        {
+            // arrange
+            var customers = _fixture.Build<Customer>()
+                                    .Without(c => c.CustomerId)
+                                    .With(c => c.CustomerName, "name")
+                                    .With(c => c.PhoneNumber, "123")
+                                    .CreateMany(3).ToList();
+
+            if (invalidIndex >= 0)
+            {
+                _repo.Setup(r => r.AddCustomersAsync(It.IsAny<ICollection<Customer>>()))
+                     .ThrowsAsync(new ValidationException($"Customer at index {invalidIndex} is missing required fields."));
+            }
+            else
+            {
+                _repo.Setup(r => r.AddCustomersAsync(It.IsAny<ICollection<Customer>>()))
+                     .ReturnsAsync((ICollection<Customer> cs) =>
+                     {
+                         var list = cs.ToList();
+                         for (int i = 0; i < list.Count; i++)
+                             list[i].CustomerId = i + 1;   // simulate EF auto-increment
+                         return list;
+                     });
+            }
+
+            // act
+            var result = await _controller.CreateCustomersAsync(customers);
+
+            // assert
+            if (invalidIndex < 0)
+            {
+                var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
+                var createdCustomers = Assert.IsAssignableFrom<ICollection<Customer>>(createdResult.Value);
+                Assert.Equal(3, createdCustomers.Count);
+                var createdList = createdCustomers.ToList();
+                for (int i = 0; i < createdList.Count; i++)
+                    Assert.Equal(i + 1, createdList[i].CustomerId);     // IDs assigned correctly
+            }
+            else
+            {
+                var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);    // returns 400 with message
+                Assert.Contains($"index {invalidIndex}", badRequestResult.Value!.ToString());    // message identifies the failing index
+            }
+        }
+
         // PUT: api/Customers/update/{id}
         [Theory]
         [InlineData(1, "newname", "123")]     // valid id, valid data

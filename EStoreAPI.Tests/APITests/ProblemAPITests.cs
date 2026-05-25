@@ -144,6 +144,58 @@ namespace EStoreAPI.Tests.APITests
                 [null, -1, null]        // invalid everything 
             ];
 
+        // POST: api/Problems/bulk-create
+        [Theory]
+        [InlineData(-1)]    // all valid
+        [InlineData(0)]     // problem at index 0 is invalid
+        [InlineData(1)]     // problem at index 1 is invalid
+        public async Task TestCreateProblems(int invalidIndex)
+        {
+            // arrange
+            var problems = _fixture.Build<Problem>()
+                                    .Without(p => p.ProblemId)
+                                    .With(p => p.ProblemName, "name")
+                                    .With(p => p.DeviceId, 1)
+                                    .With(p => p.Price, 100.00m)
+                                    .CreateMany(3).ToList();
+
+            if (invalidIndex >= 0)
+            {
+                _repo.Setup(r => r.AddProblemsAsync(It.IsAny<ICollection<Problem>>()))
+                     .ThrowsAsync(new ValidationException($"Problem at index {invalidIndex} is missing required fields."));
+            }
+            else
+            {
+                _repo.Setup(r => r.AddProblemsAsync(It.IsAny<ICollection<Problem>>()))
+                     .ReturnsAsync((ICollection<Problem> ps) =>
+                     {
+                         var list = ps.ToList();
+                         for (int i = 0; i < list.Count; i++)
+                             list[i].ProblemId = i + 1;  // simulate EF auto-increment
+                         return list;
+                     });
+            }
+
+            // act
+            var result = await _controller.CreateProblemsAsync(problems);
+
+            // assert
+            if (invalidIndex < 0)
+            {
+                var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
+                var createdProblems = Assert.IsAssignableFrom<ICollection<Problem>>(createdResult.Value);
+                Assert.Equal(3, createdProblems.Count);
+                var createdList = createdProblems.ToList();
+                for (int i = 0; i < createdList.Count; i++)
+                    Assert.Equal(i + 1, createdList[i].ProblemId);  // IDs assigned correctly
+            }
+            else
+            {
+                var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);    // returns 400 with message
+                Assert.Contains($"index {invalidIndex}", badRequestResult.Value!.ToString());   // message identifies the failing index
+            }
+        }
+
         // PUT: api/Problems/update/{id}
         [Theory]
         [MemberData(nameof(UpdateProblemData))]

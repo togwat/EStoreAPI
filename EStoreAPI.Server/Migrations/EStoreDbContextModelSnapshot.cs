@@ -17,7 +17,7 @@ namespace EStoreAPI.Server.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.10")
+                .HasAnnotation("ProductVersion", "10.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -128,9 +128,6 @@ namespace EStoreAPI.Server.Migrations
                     b.Property<int>("DeviceId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("JobId")
-                        .HasColumnType("integer");
-
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric");
 
@@ -142,9 +139,22 @@ namespace EStoreAPI.Server.Migrations
 
                     b.HasIndex("DeviceId");
 
-                    b.HasIndex("JobId");
-
                     b.ToTable("Problems");
+                });
+
+            modelBuilder.Entity("JobProblems", b =>
+                {
+                    b.Property<int>("JobId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ProblemId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("JobId", "ProblemId");
+
+                    b.HasIndex("ProblemId");
+
+                    b.ToTable("JobProblems");
                 });
 
             modelBuilder.Entity("EStoreAPI.Server.Models.Job", b =>
@@ -174,11 +184,22 @@ namespace EStoreAPI.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EStoreAPI.Server.Models.Job", null)
-                        .WithMany("Problems")
-                        .HasForeignKey("JobId");
-
                     b.Navigation("Device");
+                });
+
+            modelBuilder.Entity("JobProblems", b =>
+                {
+                    b.HasOne("EStoreAPI.Server.Models.Job", null)
+                        .WithMany()
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EStoreAPI.Server.Models.Problem", null)
+                        .WithMany()
+                        .HasForeignKey("ProblemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("EStoreAPI.Server.Models.Customer", b =>
@@ -187,11 +208,6 @@ namespace EStoreAPI.Server.Migrations
                 });
 
             modelBuilder.Entity("EStoreAPI.Server.Models.Device", b =>
-                {
-                    b.Navigation("Problems");
-                });
-
-            modelBuilder.Entity("EStoreAPI.Server.Models.Job", b =>
                 {
                     b.Navigation("Problems");
                 });

@@ -22,5 +22,19 @@ namespace EStoreAPI.Server.Data
             // connection string from appsettings.json
             optionsBuilder.UseNpgsql(_Configuration.GetConnectionString("WebAPIDatabase"));
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            // Job <-> Problem: many-to-many via explicit join table
+            modelBuilder.Entity<Job>()
+                .HasMany(j => j.Problems)
+                .WithMany()
+                .UsingEntity<Dictionary<string, object>>(
+                    "JobProblems",
+                    r => r.HasOne<Problem>().WithMany().HasForeignKey("ProblemId").OnDelete(DeleteBehavior.Cascade),
+                    l => l.HasOne<Job>().WithMany().HasForeignKey("JobId").OnDelete(DeleteBehavior.Cascade),
+                    j => j.HasKey("JobId", "ProblemId")
+                );
+        }
     }
 }

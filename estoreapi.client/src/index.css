@@ -1,68 +1,129 @@
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import "tailwindcss";
+@import "tw-shimmer";
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+/* ── Themes ──────────────────────────────────────────────────────────────
+   Import theme files here. Each file defines its variables under a
+   [data-theme="<name>"] selector on <html>. Add new themes by importing
+   another file and adding the name to ThemeName in src/lib/theme.ts.
+   ──────────────────────────────────────────────────────────────────── */
+@import "./themes/rustic-leather.css";
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  justify-content: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 2.5em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+/* ── Runtime color mappings ──────────────────────────────────────────────
+   @theme inline makes each CSS var readable by Tailwind utilities at
+   runtime, so switching [data-theme] on <html> updates every bg-*, text-*,
+   border-* etc. without a rebuild.
+   ──────────────────────────────────────────────────────────────────── */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+/* ── Static tokens (same across all themes) ──────────────────────────────
+   Fonts and shadows don't change per theme; defined here so Tailwind
+   generates font-serif, font-mono, font-sans, and shadow-paper utilities.
+   ──────────────────────────────────────────────────────────────────── */
+@theme {
+  --font-serif: "Lora", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-sans: "Lora", Georgia, "Times New Roman", serif;
+  --shadow-paper: 0 1px 0 rgba(42, 29, 18, 0.05), 0 6px 18px -10px rgba(42, 29, 18, 0.18);
+}
+
+/* ── Base element styles ─────────────────────────────────────────────── */
+@layer base {
+  * {
+    border-color: var(--border);
   }
+
+  body, #root {
+    margin: 0;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-serif);
+    font-feature-settings: "ss01", "kern";
+  }
+
+  h1 {
+    font-size: 2.25rem;
+    line-height: 1.2;
+    font-weight: 600;
+  }
+
+  a {
+    font-weight: 500;
+    color: var(--primary);
+    text-decoration: inherit;
+  }
+
   a:hover {
-    color: #747bff;
+    opacity: 0.8;
   }
-  button {
-    background-color: #f9f9f9;
+
+  input, textarea, select {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.375em 0.625em;
+    background-color: var(--card);
+    color: var(--foreground);
+  }
+
+  input:focus, textarea:focus, select:focus {
+    outline: 2px solid var(--ring);
+    outline-offset: 1px;
+  }
+
+  th, td {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Plain <button> elements (not shadcn Button which has data-slot="button") */
+  button:not([data-slot="button"]) {
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    padding: 0.5em 1.2em;
+    font-size: 1em;
+    font-weight: 500;
+    font-family: inherit;
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  button:not([data-slot="button"]):hover {
+    opacity: 0.85;
+  }
+
+  button:not([data-slot="button"]):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 }
