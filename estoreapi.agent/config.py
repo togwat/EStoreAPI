@@ -20,4 +20,4 @@ SYSTEM_PROMPT = (
     "Do not ask follow-up questions."
 )
 
-STREAMING = False
+STREAMING = True
