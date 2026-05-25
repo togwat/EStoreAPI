@@ -26,6 +26,7 @@ namespace EStoreAPI.Server.Data
 
         // problem operations
         Task<Problem?> GetProblemByIdAsync(int id);
+        Task<ICollection<Problem>> GetProblemsByIdsAsync(ICollection<int> ids);
         Task<ICollection<Problem>> GetProblemsOfDeviceAsync(int deviceId);
         Task<Problem> AddProblemAsync(Problem problem);
         // bulk

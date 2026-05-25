@@ -1,8 +1,8 @@
 ﻿using EStoreAPI.Server.Data;
 using EStoreAPI.Server.Models;
+using EStoreAPI.Server.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Server.Controllers
@@ -59,8 +59,17 @@ namespace EStoreAPI.Server.Controllers
 
         // POST: api/Customers/create
         [HttpPost("create")]
-        public async Task<ActionResult<Customer>> CreateCustomerAsync(Customer customer)
+        public async Task<ActionResult<Customer>> CreateCustomerAsync(CustomerDTO dto)
         {
+            Customer customer = new Customer
+            {
+                CustomerName = dto.CustomerName,
+                PhoneNumber = dto.PhoneNumber,
+                PhoneNumberSecondary = dto.PhoneNumberSecondary,
+                Email = dto.Email,
+                Address = dto.Address
+            };
+
             try
             {
                 Customer newCustomer = await _Repo.AddCustomerAsync(customer);
@@ -74,8 +83,17 @@ namespace EStoreAPI.Server.Controllers
 
         // POST: api/Customers/create-bulk
         [HttpPost("create-bulk")]
-        public async Task<ActionResult<ICollection<Customer>>> CreateCustomersAsync(ICollection<Customer> customers)
+        public async Task<ActionResult<ICollection<Customer>>> CreateCustomersAsync(ICollection<CustomerDTO> dtos)
         {
+            ICollection<Customer> customers = dtos.Select(dto => new Customer
+            {
+                CustomerName = dto.CustomerName,
+                PhoneNumber = dto.PhoneNumber,
+                PhoneNumberSecondary = dto.PhoneNumberSecondary,
+                Email = dto.Email,
+                Address = dto.Address
+            }).ToList();
+
             try
             {
                 ICollection<Customer> newCustomers = await _Repo.AddCustomersAsync(customers);
@@ -90,10 +108,19 @@ namespace EStoreAPI.Server.Controllers
 
         // PUT: api/Customers/update/{id}
         [HttpPut("update/{id}")]
-        public async Task<ActionResult> UpdateCustomerWithIdAsync(int id, Customer customer)
+        public async Task<ActionResult> UpdateCustomerWithIdAsync(int id, CustomerDTO dto)
         {
             // set up new customer
-            customer.CustomerId = id;
+            Customer customer = new Customer
+            {
+                CustomerId = id,
+                CustomerName = dto.CustomerName,
+                PhoneNumber = dto.PhoneNumber,
+                PhoneNumberSecondary = dto.PhoneNumberSecondary,
+                Email = dto.Email,
+                Address = dto.Address
+            };
+            
             try
             {
                 await _Repo.UpdateCustomerAsync(customer);

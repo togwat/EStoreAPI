@@ -201,6 +201,11 @@ namespace EStoreAPI.Server.Data
             return problem;
         }
 
+        public async Task<ICollection<Problem>> GetProblemsByIdsAsync(ICollection<int> ids)
+        {
+            return await _dbContext.Problems.Where(p => ids.Contains(p.ProblemId)).ToListAsync();
+        }
+
         public async Task<ICollection<Problem>> GetProblemsOfDeviceAsync(int deviceId)
         {
             ICollection<Problem> problems = await _dbContext.Problems.Where(p => p.DeviceId == deviceId).ToListAsync();
@@ -280,13 +285,13 @@ namespace EStoreAPI.Server.Data
         // job operations
         public async Task<Job?> GetJobByIdAsync(int id)
         {
-            Job? job = await _dbContext.Jobs.FirstOrDefaultAsync(j => j.JobId == id);
+            Job? job = await _dbContext.Jobs.Include(j => j.Problems).FirstOrDefaultAsync(j => j.JobId == id);
             return job;
         }
 
         public async Task<ICollection<Job>> GetJobsAsync()
         {
-            ICollection<Job> jobs = await _dbContext.Jobs.ToListAsync();
+            ICollection<Job> jobs = await _dbContext.Jobs.Include(j => j.Problems).ToListAsync();
             return jobs;
         }
 
@@ -344,17 +349,22 @@ namespace EStoreAPI.Server.Data
 
         public async Task UpdateJobAsync(Job job)
         {
-            Job? jobToChange = await GetJobByIdAsync(job.JobId);
+            // Include Problems so EF Core can diff the join table
+            Job? jobToChange = await _dbContext.Jobs
+                .Include(j => j.Problems)
+                .FirstOrDefaultAsync(j => j.JobId == job.JobId);
 
             if (jobToChange != null)
             {
                 jobToChange.PickupTime = job.PickupTime;
                 jobToChange.EstimatedPickupTime = job.EstimatedPickupTime;
                 jobToChange.Note = job.Note;
-                // check number of problems
+                // update problems
                 if (job.Problems.Count >= 1)
                 {
-                    jobToChange.Problems = job.Problems;
+                    jobToChange.Problems.Clear();
+                    foreach (var p in job.Problems)
+                        jobToChange.Problems.Add(p);
                 }
                 else
                 {

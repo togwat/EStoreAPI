@@ -1,5 +1,6 @@
 ﻿using EStoreAPI.Server.Data;
 using EStoreAPI.Server.Models;
+using EStoreAPI.Server.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
@@ -53,8 +54,15 @@ namespace EStoreAPI.Server.Controllers
 
         // POST: api/Problems/create
         [HttpPost("create")]
-        public async Task<ActionResult<Problem>> CreateProblemAsync(Problem problem)
+        public async Task<ActionResult<Problem>> CreateProblemAsync(ProblemDTO dto)
         {
+            Problem problem = new Problem
+            {
+                ProblemName = dto.ProblemName,
+                DeviceId = dto.DeviceId,
+                Price = dto.Price
+            };
+
             try
             {
                 Problem newProblem = await _Repo.AddProblemAsync(problem);
@@ -69,8 +77,15 @@ namespace EStoreAPI.Server.Controllers
 
         // POST: api/Problems/create-bulk
         [HttpPost("create-bulk")]
-        public async Task<ActionResult<ICollection<Problem>>> CreateProblemsAsync(ICollection<Problem> problems)
+        public async Task<ActionResult<ICollection<Problem>>> CreateProblemsAsync(ICollection<ProblemDTO> dtos)
         {
+            ICollection<Problem> problems = dtos.Select(dto => new Problem
+            {
+                ProblemName = dto.ProblemName,
+                DeviceId = dto.DeviceId,
+                Price = dto.Price
+            }).ToList();
+
             try
             {
                 ICollection<Problem> newProblems = await _Repo.AddProblemsAsync(problems);
@@ -84,10 +99,17 @@ namespace EStoreAPI.Server.Controllers
 
         // PUT: api/Problems/update/{id}
         [HttpPut("update/{id}")]
-        public async Task<ActionResult> UpdateProblemWithIdAsync(int id, Problem problem)
+        public async Task<ActionResult> UpdateProblemWithIdAsync(int id, ProblemDTO dto)
         {
             // set new problem
-            problem.ProblemId = id;
+            Problem problem = new Problem
+            {
+                ProblemId = id,
+                ProblemName = dto.ProblemName,
+                DeviceId = dto.DeviceId,
+                Price = dto.Price
+            };
+            
             try
             {
                 await _Repo.UpdateProblemAsync(problem);

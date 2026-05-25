@@ -1,5 +1,6 @@
 ﻿using EStoreAPI.Server.Data;
 using EStoreAPI.Server.Models;
+using EStoreAPI.Server.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -60,8 +61,14 @@ namespace EStoreAPI.Server.Controllers
 
         // POST: api/Devices/create
         [HttpPost("create")]
-        public async Task<ActionResult<Device>> CreateDeviceAsync(Device device)
+        public async Task<ActionResult<Device>> CreateDeviceAsync(DeviceDTO dto)
         {
+            Device device = new Device
+            {
+                DeviceName = dto.DeviceName,
+                DeviceType = dto.DeviceType
+            };
+
             try
             {
                 Device newDevice = await _Repo.AddDeviceAsync(device);
@@ -75,8 +82,14 @@ namespace EStoreAPI.Server.Controllers
 
         // POST: api/Devices/create-bulk
         [HttpPost("create-bulk")]
-        public async Task<ActionResult<ICollection<Device>>> CreateDevicesAsync(ICollection<Device> devices)
+        public async Task<ActionResult<ICollection<Device>>> CreateDevicesAsync(ICollection<DeviceDTO> dtos)
         {
+            ICollection<Device> devices = dtos.Select(dto => new Device
+            {
+                DeviceName = dto.DeviceName,
+                DeviceType = dto.DeviceType
+            }).ToList();
+
             try
             {
                 ICollection<Device> newDevices = await _Repo.AddDevicesAsync(devices);
@@ -91,10 +104,16 @@ namespace EStoreAPI.Server.Controllers
 
         // PUT: api/Devices/update/{id}
         [HttpPut("update/{id}")]
-        public async Task<ActionResult> UpdateDeviceByIdAsync(int id, Device device)
+        public async Task<ActionResult> UpdateDeviceByIdAsync(int id, DeviceDTO dto)
         {
             // set up new device
-            device.DeviceId = id;
+            Device device = new Device
+            {
+                DeviceId = id,
+                DeviceName = dto.DeviceName,
+                DeviceType = dto.DeviceType
+            };
+            
             try
             {
                 await _Repo.UpdateDeviceAsync(device);
