@@ -33,7 +33,7 @@ export default function JobForm() {
     }
 
     return (
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+        <form className="flex flex-col gap-4 max-w-xl mx-auto" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-2">
                 <label htmlFor="name" className="text-left">Name</label>
                 <input name="name" className="w-full" />
