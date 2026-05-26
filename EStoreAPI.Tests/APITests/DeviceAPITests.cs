@@ -24,7 +24,7 @@ namespace EStoreAPI.Tests.APITests
 
             // assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
-            var devicesResult = Assert.IsAssignableFrom<ICollection<Device>>(okResult.Value);
+            var devicesResult = Assert.IsAssignableFrom<ICollection<OutDeviceDTO>>(okResult.Value);
             Assert.Equal(5, devicesResult.Count);   // returns 5 devices
         }
 
@@ -39,7 +39,7 @@ namespace EStoreAPI.Tests.APITests
 
             // assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
-            var devicesResult = Assert.IsAssignableFrom<ICollection<Device>>(okResult.Value);
+            var devicesResult = Assert.IsAssignableFrom<ICollection<OutDeviceDTO>>(okResult.Value);
             Assert.Empty(devicesResult);    // returns empty list
         }
 
@@ -64,7 +64,7 @@ namespace EStoreAPI.Tests.APITests
             if (id == 1)
             {
                 var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
-                var deviceResult = Assert.IsAssignableFrom<Device>(okResult.Value);
+                var deviceResult = Assert.IsAssignableFrom<OutDeviceDTO>(okResult.Value);
                 Assert.Equal(device.DeviceId, deviceResult.DeviceId);
             }
             else
@@ -93,7 +93,7 @@ namespace EStoreAPI.Tests.APITests
 
             // assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
-            var devicesResult = Assert.IsAssignableFrom<ICollection<Device>>(okResult.Value);
+            var devicesResult = Assert.IsAssignableFrom<ICollection<OutDeviceDTO>>(okResult.Value);
 
             if (name == "phone" || name == "pho")
             {
@@ -125,7 +125,7 @@ namespace EStoreAPI.Tests.APITests
 
             // assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
-            var devicesResult = Assert.IsAssignableFrom<ICollection<Device>>(okResult.Value);
+            var devicesResult = Assert.IsAssignableFrom<ICollection<OutDeviceDTO>>(okResult.Value);
 
             if (type == "phone")
             {
@@ -170,7 +170,7 @@ namespace EStoreAPI.Tests.APITests
             if (name == "name" && type == "type")
             {
                 var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
-                var createdDevice = Assert.IsAssignableFrom<Device>(createdResult.Value);
+                var createdDevice = Assert.IsAssignableFrom<OutDeviceDTO>(createdResult.Value);
 
                 Assert.Equal(newDevice.DeviceName, createdDevice.DeviceName);
                 Assert.Equal(newDevice.DeviceType, createdDevice.DeviceType);
@@ -218,7 +218,7 @@ namespace EStoreAPI.Tests.APITests
             if (invalidIndex < 0)
             {
                 var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
-                var createdDevices = Assert.IsAssignableFrom<ICollection<Device>>(createdResult.Value);
+                var createdDevices = Assert.IsAssignableFrom<ICollection<OutDeviceDTO>>(createdResult.Value);
                 Assert.Equal(3, createdDevices.Count);
                 var createdList = createdDevices.ToList();
                 for (int i = 0; i < createdList.Count; i++)

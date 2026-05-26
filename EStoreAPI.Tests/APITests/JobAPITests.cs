@@ -24,7 +24,7 @@ namespace EStoreAPI.Tests.APITests
 
             // assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
-            var jobsResult = Assert.IsAssignableFrom<ICollection<Job>>(okResult.Value);
+            var jobsResult = Assert.IsAssignableFrom<ICollection<OutJobDTO>>(okResult.Value);
             Assert.Equal(5, jobsResult.Count);  // returns 5 jobs
         }
 
@@ -39,7 +39,7 @@ namespace EStoreAPI.Tests.APITests
 
             // assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
-            var jobResult = Assert.IsAssignableFrom<ICollection<Job>>(okResult.Value);
+            var jobResult = Assert.IsAssignableFrom<ICollection<OutJobDTO>>(okResult.Value);
             Assert.Empty(jobResult);    // returns empty list
         }
 
@@ -64,7 +64,7 @@ namespace EStoreAPI.Tests.APITests
             if (id == 1)
             {
                 var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
-                var jobResult = Assert.IsAssignableFrom<Job>(okResult.Value);
+                var jobResult = Assert.IsAssignableFrom<OutJobDTO>(okResult.Value);
                 Assert.Equal(job.JobId, jobResult.JobId);   // matching id
             }
             else
@@ -108,15 +108,19 @@ namespace EStoreAPI.Tests.APITests
             if (valid)
             {
                 var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
-                var createdJob = Assert.IsAssignableFrom<Job>(createdResult.Value);
+                var createdJob = Assert.IsAssignableFrom<OutJobDTO>(createdResult.Value);
 
                 Assert.Equal(newJob.CustomerId, createdJob.CustomerId);
                 Assert.Equal(newJob.DeviceId, createdJob.DeviceId);
                 Assert.Equal(newJob.JobId, createdJob.JobId);
             }
-            else
+            else if (invalidProblems)
             {
                 Assert.IsType<BadRequestObjectResult>(result.Result); // returns 400 bad request with message
+            }
+            else
+            {
+                Assert.IsType<BadRequestResult>(result.Result); // returns 400 bad request
             }
         }
 
@@ -163,7 +167,7 @@ namespace EStoreAPI.Tests.APITests
             if (invalidIndex < 0)
             {
                 var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
-                var createdJobs = Assert.IsAssignableFrom<ICollection<Job>>(createdResult.Value);
+                var createdJobs = Assert.IsAssignableFrom<ICollection<OutJobDTO>>(createdResult.Value);
                 Assert.Equal(3, createdJobs.Count);
                 var createdList = createdJobs.ToList();
                 for (int i = 0; i < createdList.Count; i++)

@@ -24,7 +24,7 @@ namespace EStoreAPI.Tests.APITests
 
             // assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 Ok
-            var customersResult = Assert.IsAssignableFrom<ICollection<Customer>>(okResult.Value);   // return type ICollection<Customer>
+            var customersResult = Assert.IsAssignableFrom<ICollection<OutCustomerDTO>>(okResult.Value);   // return type ICollection<OutCustomerDTO>
             Assert.Equal(5, customersResult.Count);   // returns 5 customers
         }
 
@@ -39,7 +39,7 @@ namespace EStoreAPI.Tests.APITests
 
             // assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 Ok
-            var customersResult = Assert.IsAssignableFrom<ICollection<Customer>>(okResult.Value);   // return type ICollection<Customer>
+            var customersResult = Assert.IsAssignableFrom<ICollection<OutCustomerDTO>>(okResult.Value);   // return type ICollection<OutCustomerDTO>
             Assert.Empty(customersResult);   // returns empty list
         }
 
@@ -64,7 +64,7 @@ namespace EStoreAPI.Tests.APITests
             if (id == 1)
             {
                 var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 Ok
-                var customerResult = Assert.IsAssignableFrom<Customer>(okResult.Value); // return type Customer
+                var customerResult = Assert.IsAssignableFrom<OutCustomerDTO>(okResult.Value); // return type OutCustomerDTO
                 Assert.Equal(customer.CustomerId, customerResult.CustomerId);   // matching id
             }
             else
@@ -92,7 +92,7 @@ namespace EStoreAPI.Tests.APITests
 
             // assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 Ok
-            var customersResult = Assert.IsAssignableFrom<ICollection<Customer>>(okResult.Value);   // return type ICollection<Customer>
+            var customersResult = Assert.IsAssignableFrom<ICollection<OutCustomerDTO>>(okResult.Value);   // return type ICollection<OutCustomerDTO>
 
             if (name == "name")
             {
@@ -128,7 +128,7 @@ namespace EStoreAPI.Tests.APITests
 
             // assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 Ok
-            var customersResult = Assert.IsAssignableFrom<ICollection<Customer>>(okResult.Value);
+            var customersResult = Assert.IsAssignableFrom<ICollection<OutCustomerDTO>>(okResult.Value);
 
             if (phone == "12345")
             {
@@ -159,7 +159,7 @@ namespace EStoreAPI.Tests.APITests
 
             // assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 Ok
-            var customersResult = Assert.IsAssignableFrom<ICollection<Customer>>(okResult.Value);
+            var customersResult = Assert.IsAssignableFrom<ICollection<OutCustomerDTO>>(okResult.Value);
 
             if (email == "test@email" || email == "test")
             {
@@ -184,7 +184,7 @@ namespace EStoreAPI.Tests.APITests
 
             // assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 Ok
-            var customersResult = Assert.IsAssignableFrom<ICollection<Customer>>(okResult.Value);
+            var customersResult = Assert.IsAssignableFrom<ICollection<OutCustomerDTO>>(okResult.Value);
             Assert.Equal(5, customersResult.Count);   // returns all customers
         }
 
@@ -220,7 +220,7 @@ namespace EStoreAPI.Tests.APITests
             if (name == "a" && phone == "123")
             {
                 var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
-                var createdCustomer = Assert.IsAssignableFrom<Customer>(createdResult.Value);
+                var createdCustomer = Assert.IsAssignableFrom<OutCustomerDTO>(createdResult.Value);
 
                 Assert.Equal(newCustomer.CustomerName, createdCustomer.CustomerName);
                 Assert.Equal(newCustomer.PhoneNumber, createdCustomer.PhoneNumber);
@@ -269,7 +269,7 @@ namespace EStoreAPI.Tests.APITests
             if (invalidIndex < 0)
             {
                 var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
-                var createdCustomers = Assert.IsAssignableFrom<ICollection<Customer>>(createdResult.Value);
+                var createdCustomers = Assert.IsAssignableFrom<ICollection<OutCustomerDTO>>(createdResult.Value);
                 Assert.Equal(3, createdCustomers.Count);
                 var createdList = createdCustomers.ToList();
                 for (int i = 0; i < createdList.Count; i++)

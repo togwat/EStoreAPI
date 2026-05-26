@@ -32,7 +32,7 @@ namespace EStoreAPI.Tests.APITests
             if (id == 1)
             {
                 var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
-                var problemResult = Assert.IsAssignableFrom<Problem>(okResult.Value);
+                var problemResult = Assert.IsAssignableFrom<OutProblemDTO>(okResult.Value);
                 Assert.Equal(problem.ProblemId, problemResult.ProblemId);   // matching id
             }
             else
@@ -63,7 +63,7 @@ namespace EStoreAPI.Tests.APITests
             if (id == 1)
             {
                 var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
-                var problemsResult = Assert.IsAssignableFrom<ICollection<Problem>>(okResult.Value);
+                var problemsResult = Assert.IsAssignableFrom<ICollection<OutProblemDTO>>(okResult.Value);
 
                 Assert.Equal(problems.Count, problemsResult.Count); // returns 5 problems
                 Assert.All(problemsResult, p => Assert.Equal(1, p.DeviceId));
@@ -104,7 +104,7 @@ namespace EStoreAPI.Tests.APITests
             if (name == "name" && deviceId == 1 && price == 100.00m)
             {
                 var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
-                var createdProblem = Assert.IsAssignableFrom<Problem>(createdResult.Value);
+                var createdProblem = Assert.IsAssignableFrom<OutProblemDTO>(createdResult.Value);
 
                 Assert.Equal(newProblem.ProblemName, createdProblem.ProblemName);
                 Assert.Equal(newProblem.Price, createdProblem.Price);
@@ -165,7 +165,7 @@ namespace EStoreAPI.Tests.APITests
             {
                 var createdResult = Assert.IsType<ObjectResult>(result.Result);    // returns 201 created
                 Assert.Equal(201, createdResult.StatusCode);
-                var createdProblems = Assert.IsAssignableFrom<ICollection<Problem>>(createdResult.Value);
+                var createdProblems = Assert.IsAssignableFrom<ICollection<OutProblemDTO>>(createdResult.Value);
                 Assert.Equal(3, createdProblems.Count);
                 var createdList = createdProblems.ToList();
                 for (int i = 0; i < createdList.Count; i++)
