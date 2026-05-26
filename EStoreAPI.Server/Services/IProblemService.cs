@@ -7,8 +7,8 @@ namespace EStoreAPI.Server.Services
     {
         Task<Problem?> GetProblemAsync(int id);
         Task<ICollection<Problem>> GetDeviceProblemsAsync(int deviceId);
-        Task<Problem> CreateProblemAsync(ProblemDTO dto);
-        Task<ICollection<Problem>> CreateProblemsAsync(ICollection<ProblemDTO> dtos);
-        Task UpdateProblemAsync(int id, ProblemDTO dto);
+        Task<Problem> CreateProblemAsync(InProblemDTO dto);
+        Task<ICollection<Problem>> CreateProblemsAsync(ICollection<InProblemDTO> dtos);
+        Task UpdateProblemAsync(int id, InProblemDTO dto);
     }
 }

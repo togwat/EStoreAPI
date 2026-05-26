@@ -197,7 +197,7 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestCreateCustomer(string name, string phone)
         {
             // arrange
-            var dto = new CustomerDTO { CustomerName = name, PhoneNumber = phone };
+            var dto = new InCustomerDTO { CustomerName = name, PhoneNumber = phone };
             Customer newCustomer = _fixture.Build<Customer>()
                                     .With(c => c.CustomerId, 1)
                                     .With(c => c.CustomerName, name)
@@ -240,14 +240,14 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestCreateCustomers(int invalidIndex)
         {
             // arrange
-            var dtos = _fixture.Build<CustomerDTO>()
+            var dtos = _fixture.Build<InCustomerDTO>()
                                 .With(d => d.CustomerName, "name")
                                 .With(d => d.PhoneNumber, "123")
                                 .CreateMany(3).ToList();
 
             if (invalidIndex >= 0)
             {
-                _service.Setup(s => s.CreateCustomersAsync(It.IsAny<ICollection<CustomerDTO>>()))
+                _service.Setup(s => s.CreateCustomersAsync(It.IsAny<ICollection<InCustomerDTO>>()))
                         .ThrowsAsync(new ValidationException($"Customer at index {invalidIndex} is missing required fields."));
             }
             else
@@ -258,7 +258,7 @@ namespace EStoreAPI.Tests.APITests
                     .With(c => c.PhoneNumber, d.PhoneNumber)
                     .Create()).ToList();
 
-                _service.Setup(s => s.CreateCustomersAsync(It.IsAny<ICollection<CustomerDTO>>()))
+                _service.Setup(s => s.CreateCustomersAsync(It.IsAny<ICollection<InCustomerDTO>>()))
                         .ReturnsAsync(newCustomers);
             }
 
@@ -291,7 +291,7 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestUpdateCustomer(int id, string name, string phone)
         {
             // arrange
-            var dto = new CustomerDTO { CustomerName = name, PhoneNumber = phone };
+            var dto = new InCustomerDTO { CustomerName = name, PhoneNumber = phone };
 
             if (id == 1)
             {

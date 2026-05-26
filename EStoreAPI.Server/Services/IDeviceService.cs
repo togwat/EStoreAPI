@@ -9,8 +9,8 @@ namespace EStoreAPI.Server.Services
         Task<Device?> GetDeviceAsync(int id);
         Task<ICollection<Device>> SearchDevicesByNameAsync(string name);
         Task<ICollection<Device>> SearchDevicesByTypeAsync(string type);
-        Task<Device> CreateDeviceAsync(DeviceDTO dto);
-        Task<ICollection<Device>> CreateDevicesAsync(ICollection<DeviceDTO> dtos);
-        Task UpdateDeviceAsync(int id, DeviceDTO dto);
+        Task<Device> CreateDeviceAsync(InDeviceDTO dto);
+        Task<ICollection<Device>> CreateDevicesAsync(ICollection<InDeviceDTO> dtos);
+        Task UpdateDeviceAsync(int id, InDeviceDTO dto);
     }
 }

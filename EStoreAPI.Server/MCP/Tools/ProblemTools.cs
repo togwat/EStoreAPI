@@ -16,12 +16,14 @@ public class ProblemTools
     }
 
     [McpServerTool, Description("Get the problem catalogue for a device, listing all potential problems and their service prices.")]
-    public async Task<ICollection<Problem>> GetDeviceProblemsAsync(
+    public async Task<ICollection<OutProblemDTO>> GetDeviceProblemsAsync(
         [Description("The ID of the device. Retrieve this by searching for the device first.")] int deviceId)
     {
         try
         {
-            return await _service.GetDeviceProblemsAsync(deviceId);
+            ICollection<Problem> problems = await _service.GetDeviceProblemsAsync(deviceId);
+            return problems.Select(OutProblemDTO.FromModel).ToList();
+             
         }
         catch (KeyNotFoundException ex)
         {
@@ -30,12 +32,13 @@ public class ProblemTools
     }
 
     [McpServerTool, Description("Create one or more problems and add them to the problem catalogue.")]
-    public async Task<ICollection<Problem>> CreateProblemsAsync(
-        [Description("A list of problems to create and add to the catalogue. Each problem requires: ProblemName, Price, and DeviceId. Retrieve the DeviceId by searching for the device first.")] ICollection<ProblemDTO> dtos)
+    public async Task<ICollection<OutProblemDTO>> CreateProblemsAsync(
+        [Description("A list of problems to create and add to the catalogue. Each problem requires: ProblemName, Price, and DeviceId. Retrieve the DeviceId by searching for the device first.")] ICollection<InProblemDTO> dtos)
     {
         try
         {
-            return await _service.CreateProblemsAsync(dtos);
+            ICollection<Problem> problems = await _service.CreateProblemsAsync(dtos);
+            return problems.Select(OutProblemDTO.FromModel).ToList();
         }
         catch (ValidationException ex)
         {

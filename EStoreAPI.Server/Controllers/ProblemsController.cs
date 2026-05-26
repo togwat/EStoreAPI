@@ -20,20 +20,20 @@ namespace EStoreAPI.Server.Controllers
 
         // GET: api/Problems/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Problem>> GetProblemAsync(int id)
+        public async Task<ActionResult<OutProblemDTO>> GetProblemAsync(int id)
         {
             Problem? problem = await _service.GetProblemAsync(id);
-            return problem is null ? NotFound() : Ok(problem);
+            return problem is null ? NotFound() : Ok(OutProblemDTO.FromModel(problem));
         }
 
         // GET: api/Problems?deviceId=
         [HttpGet]
-        public async Task<ActionResult<ICollection<Problem>>> GetDeviceProblemsAsync([FromQuery] int deviceId)
+        public async Task<ActionResult<ICollection<OutProblemDTO>>> GetDeviceProblemsAsync([FromQuery] int deviceId)
         {
             try
             {
                 ICollection<Problem> problems = await _service.GetDeviceProblemsAsync(deviceId);
-                return Ok(problems);
+                return Ok(problems.Select(OutProblemDTO.FromModel).ToList());
             }
             catch (KeyNotFoundException ex)
             {
@@ -43,12 +43,12 @@ namespace EStoreAPI.Server.Controllers
 
         // POST: api/Problems/create
         [HttpPost("create")]
-        public async Task<ActionResult<Problem>> CreateProblemAsync(ProblemDTO dto)
+        public async Task<ActionResult<OutProblemDTO>> CreateProblemAsync(InProblemDTO dto)
         {
             try
             {
                 Problem newProblem = await _service.CreateProblemAsync(dto);
-                return CreatedAtAction("GetProblem", new { id = newProblem.ProblemId }, newProblem);
+                return CreatedAtAction("GetProblem", new { id = newProblem.ProblemId }, OutProblemDTO.FromModel(newProblem));
 
             }
             catch (ValidationException)
@@ -59,12 +59,12 @@ namespace EStoreAPI.Server.Controllers
 
         // POST: api/Problems/create-bulk
         [HttpPost("create-bulk")]
-        public async Task<ActionResult<ICollection<Problem>>> CreateProblemsAsync(ICollection<ProblemDTO> dtos)
+        public async Task<ActionResult<ICollection<OutProblemDTO>>> CreateProblemsAsync(ICollection<InProblemDTO> dtos)
         {
             try
             {
                 ICollection<Problem> newProblems = await _service.CreateProblemsAsync(dtos);
-                return StatusCode(201, newProblems);
+                return StatusCode(201, newProblems.Select(OutProblemDTO.FromModel).ToList());
             }
             catch (ValidationException ex)
             {
@@ -74,7 +74,7 @@ namespace EStoreAPI.Server.Controllers
 
         // PUT: api/Problems/update/{id}
         [HttpPut("update/{id}")]
-        public async Task<ActionResult> UpdateProblemWithIdAsync(int id, ProblemDTO dto)
+        public async Task<ActionResult> UpdateProblemWithIdAsync(int id, InProblemDTO dto)
         {
             try
             {

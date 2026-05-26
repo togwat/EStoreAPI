@@ -80,7 +80,7 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestCreateProblem(string name, int deviceId, decimal? price)
         {
             // arrange
-            var dto = new ProblemDTO { ProblemName = name, DeviceId = deviceId, Price = price ?? 0 };
+            var dto = new InProblemDTO { ProblemName = name, DeviceId = deviceId, Price = price ?? 0 };
             Problem newProblem = _fixture.Build<Problem>()
                                     .With(p => p.ProblemId, 1)
                                     .With(p => p.ProblemName, name)
@@ -133,7 +133,7 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestCreateProblems(int invalidIndex)
         {
             // arrange
-            var dtos = _fixture.Build<ProblemDTO>()
+            var dtos = _fixture.Build<InProblemDTO>()
                                 .With(p => p.ProblemName, "name")
                                 .With(p => p.DeviceId, 1)
                                 .With(p => p.Price, 100.00m)
@@ -141,7 +141,7 @@ namespace EStoreAPI.Tests.APITests
 
             if (invalidIndex >= 0)
             {
-                _service.Setup(s => s.CreateProblemsAsync(It.IsAny<ICollection<ProblemDTO>>()))
+                _service.Setup(s => s.CreateProblemsAsync(It.IsAny<ICollection<InProblemDTO>>()))
                         .ThrowsAsync(new ValidationException($"Problem at index {invalidIndex} is missing required fields."));
             }
             else
@@ -153,7 +153,7 @@ namespace EStoreAPI.Tests.APITests
                     .With(p => p.Price, d.Price)
                     .Create()).ToList();
 
-                _service.Setup(s => s.CreateProblemsAsync(It.IsAny<ICollection<ProblemDTO>>()))
+                _service.Setup(s => s.CreateProblemsAsync(It.IsAny<ICollection<InProblemDTO>>()))
                         .ReturnsAsync(newProblems);
             }
 
@@ -184,7 +184,7 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestUpdateProblem(int id, string name, int deviceId, decimal price)
         {
             // arrange
-            var dto = new ProblemDTO { ProblemName = name, DeviceId = deviceId, Price = price };
+            var dto = new InProblemDTO { ProblemName = name, DeviceId = deviceId, Price = price };
 
             if (id == 1)
             {

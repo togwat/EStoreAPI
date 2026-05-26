@@ -147,7 +147,7 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestCreateDevice(string name, string type)
         {
             // arrange
-            var dto = new DeviceDTO { DeviceName = name, DeviceType = type };
+            var dto = new InDeviceDTO { DeviceName = name, DeviceType = type };
             Device newDevice = _fixture.Build<Device>()
                                     .With(d => d.DeviceId, 1)
                                     .With(d => d.DeviceName, name)
@@ -189,14 +189,14 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestCreateDevices(int invalidIndex)
         {
             // arrange
-            var dtos = _fixture.Build<DeviceDTO>()
+            var dtos = _fixture.Build<InDeviceDTO>()
                                 .With(d => d.DeviceName, "name")
                                 .With(d => d.DeviceType, "type")
                                 .CreateMany(3).ToList();
 
             if (invalidIndex >= 0)
             {
-                _service.Setup(s => s.CreateDevicesAsync(It.IsAny<ICollection<DeviceDTO>>()))
+                _service.Setup(s => s.CreateDevicesAsync(It.IsAny<ICollection<InDeviceDTO>>()))
                         .ThrowsAsync(new ValidationException($"Device at index {invalidIndex} is missing required fields."));
             }
             else
@@ -207,7 +207,7 @@ namespace EStoreAPI.Tests.APITests
                     .With(dev => dev.DeviceType, d.DeviceType)
                     .Create()).ToList();
 
-                _service.Setup(s => s.CreateDevicesAsync(It.IsAny<ICollection<DeviceDTO>>()))
+                _service.Setup(s => s.CreateDevicesAsync(It.IsAny<ICollection<InDeviceDTO>>()))
                         .ReturnsAsync(newDevices);
             }
 
@@ -244,7 +244,7 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestUpdateDevice(int id, string name, string type)
         {
             // arrange
-            var dto = new DeviceDTO { DeviceName = name, DeviceType = type };
+            var dto = new InDeviceDTO { DeviceName = name, DeviceType = type };
 
             if (id == 1)
             {

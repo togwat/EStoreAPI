@@ -20,36 +20,36 @@ namespace EStoreAPI.Server.Controllers
 
         // GET: api/Customers
         [HttpGet]
-        public async Task<ActionResult<ICollection<Customer>>> GetAllCustomersAsync()
+        public async Task<ActionResult<ICollection<OutCustomerDTO>>> GetAllCustomersAsync()
         {
             ICollection<Customer> customers = await _service.GetAllCustomersAsync();
-            return Ok(customers);
+            return Ok(customers.Select(OutCustomerDTO.FromModel).ToList());
         }
 
         // GET: api/Customers/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Customer?>> GetCustomerAsync(int id)
+        public async Task<ActionResult<OutCustomerDTO?>> GetCustomerAsync(int id)
         {
             Customer? customer = await _service.GetCustomerAsync(id);
-            return customer is null ? NotFound() : Ok(customer);
+            return customer is null ? NotFound() : Ok(OutCustomerDTO.FromModel(customer));
         }
 
         // GET: api/Customers/search?query=
         [HttpGet("search")]
-        public async Task<ActionResult<ICollection<Customer>>> SearchCustomersAsync([FromQuery] string? query)
+        public async Task<ActionResult<ICollection<OutCustomerDTO>>> SearchCustomersAsync([FromQuery] string? query)
         {
             ICollection<Customer> customers = await _service.SearchCustomersAsync(query);
-            return Ok(customers);
+            return Ok(customers.Select(OutCustomerDTO.FromModel).ToList());
         }
 
         // POST: api/Customers/create
         [HttpPost("create")]
-        public async Task<ActionResult<Customer>> CreateCustomerAsync(CustomerDTO dto)
+        public async Task<ActionResult<OutCustomerDTO>> CreateCustomerAsync(InCustomerDTO dto)
         {
             try
             {
                 Customer newCustomer = await _service.CreateCustomerAsync(dto);
-                return CreatedAtAction("GetCustomer", new { id = newCustomer.CustomerId }, newCustomer);
+                return CreatedAtAction("GetCustomer", new { id = newCustomer.CustomerId }, OutCustomerDTO.FromModel(newCustomer));
             }
             catch (ValidationException)
             {
@@ -59,13 +59,13 @@ namespace EStoreAPI.Server.Controllers
 
         // POST: api/Customers/create-bulk
         [HttpPost("create-bulk")]
-        public async Task<ActionResult<ICollection<Customer>>> CreateCustomersAsync(ICollection<CustomerDTO> dtos)
+        public async Task<ActionResult<ICollection<OutCustomerDTO>>> CreateCustomersAsync(ICollection<InCustomerDTO> dtos)
         {
             try
             {
                 ICollection<Customer> newCustomers = await _service.CreateCustomersAsync(dtos);
                 // fake GetAllCustomers to return newly created customers
-                return CreatedAtAction("GetAllCustomers", null, newCustomers);
+                return CreatedAtAction("GetAllCustomers", null, newCustomers.Select(OutCustomerDTO.FromModel).ToList());
             }
             catch (ValidationException ex)
             {
@@ -75,7 +75,7 @@ namespace EStoreAPI.Server.Controllers
 
         // PUT: api/Customers/update/{id}
         [HttpPut("update/{id}")]
-        public async Task<ActionResult> UpdateCustomerAsync(int id, CustomerDTO dto)
+        public async Task<ActionResult> UpdateCustomerAsync(int id, InCustomerDTO dto)
         {
             try
             {

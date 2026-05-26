@@ -27,46 +27,24 @@ namespace EStoreAPI.Server.Services
             return query is null ? _repo.GetCustomersAsync() : _repo.GetCustomersByQueryAsync(query);
         }
 
-        public async Task<Customer> CreateCustomerAsync(CustomerDTO dto)
+        public async Task<Customer> CreateCustomerAsync(InCustomerDTO dto)
         {
-            Customer customer = new Customer
-            {
-                CustomerName = dto.CustomerName,
-                PhoneNumber = dto.PhoneNumber,
-                PhoneNumberSecondary = dto.PhoneNumberSecondary,
-                Email = dto.Email,
-                Address = dto.Address
-            };
+            Customer customer = dto.ToModel();
 
             return await _repo.AddCustomerAsync(customer);
         }
 
-        public async Task<ICollection<Customer>> CreateCustomersAsync(ICollection<CustomerDTO> dtos)
+        public async Task<ICollection<Customer>> CreateCustomersAsync(ICollection<InCustomerDTO> dtos)
         {
-            ICollection<Customer> customers = dtos.Select(dto => new Customer
-            {
-                CustomerName = dto.CustomerName,
-                PhoneNumber = dto.PhoneNumber,
-                PhoneNumberSecondary = dto.PhoneNumberSecondary,
-                Email = dto.Email,
-                Address = dto.Address
-            }).ToList();
+            ICollection<Customer> customers = dtos.Select(dto => dto.ToModel()).ToList();
 
             return await _repo.AddCustomersAsync(customers);
         }
 
-        public async Task UpdateCustomerAsync(int id, CustomerDTO dto)
+        public async Task UpdateCustomerAsync(int id, InCustomerDTO dto)
         {
             // set up new customer
-            Customer customer = new Customer
-            {
-                CustomerId = id,
-                CustomerName = dto.CustomerName,
-                PhoneNumber = dto.PhoneNumber,
-                PhoneNumberSecondary = dto.PhoneNumberSecondary,
-                Email = dto.Email,
-                Address = dto.Address
-            };
+            Customer customer = dto.ToModel();
 
             await _repo.UpdateCustomerAsync(customer);
         }

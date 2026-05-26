@@ -32,37 +32,24 @@ namespace EStoreAPI.Server.Services
             return _repo.GetDevicesByTypeAsync(type);
         }
 
-        public async Task<Device> CreateDeviceAsync(DeviceDTO dto)
+        public async Task<Device> CreateDeviceAsync(InDeviceDTO dto)
         {
-            Device device = new Device
-            {
-                DeviceName = dto.DeviceName,
-                DeviceType = dto.DeviceType
-            };
+            Device device = dto.ToModel();
 
             return await _repo.AddDeviceAsync(device);
         }
 
-        public async Task<ICollection<Device>> CreateDevicesAsync(ICollection<DeviceDTO> dtos)
+        public async Task<ICollection<Device>> CreateDevicesAsync(ICollection<InDeviceDTO> dtos)
         {
-            ICollection<Device> devices = dtos.Select(dto => new Device
-            {
-                DeviceName = dto.DeviceName,
-                DeviceType = dto.DeviceType
-            }).ToList();
+            ICollection<Device> devices = dtos.Select(dto => dto.ToModel()).ToList();
 
             return await _repo.AddDevicesAsync(devices);
         }
 
-        public async Task UpdateDeviceAsync(int id, DeviceDTO dto)
+        public async Task UpdateDeviceAsync(int id, InDeviceDTO dto)
         {
             // set up new device
-            Device device = new Device
-            {
-                DeviceId = id,
-                DeviceName = dto.DeviceName,
-                DeviceType = dto.DeviceType
-            };
+            Device device = dto.ToModel();
 
             await _repo.UpdateDeviceAsync(device);
         }

@@ -21,44 +21,44 @@ namespace EStoreAPI.Server.Controllers
 
         // GET: api/Devices
         [HttpGet]
-        public async Task<ActionResult<ICollection<Device>>> GetAllDevicesAsync()
+        public async Task<ActionResult<ICollection<OutDeviceDTO>>> GetAllDevicesAsync()
         {
             ICollection<Device> devices = await _service.GetAllDevicesAsync();
-            return Ok(devices);
+            return Ok(devices.Select(OutDeviceDTO.FromModel).ToList());
         }
 
         // GET: api/Devices/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Device?>> GetDeviceAsync(int id)
+        public async Task<ActionResult<OutDeviceDTO?>> GetDeviceAsync(int id)
         {
             Device? device = await _service.GetDeviceAsync(id);
-            return device is null ? NotFound() : Ok(device);
+            return device is null ? NotFound() : Ok(OutDeviceDTO.FromModel(device));
         }
 
         // GET: api/Devices/searchName?name=
         [HttpGet("searchName")]
-        public async Task<ActionResult<ICollection<Device>>> SearchDevicesNameAsync([FromQuery] string name)
+        public async Task<ActionResult<ICollection<OutDeviceDTO>>> SearchDevicesNameAsync([FromQuery] string name)
         {
             ICollection<Device> devices = await _service.SearchDevicesByNameAsync(name);
-            return Ok(devices);
+            return Ok(devices.Select(OutDeviceDTO.FromModel).ToList());
         }
 
         // GET: api/Devices/searchType?type=
         [HttpGet("searchType")]
-        public async Task<ActionResult<ICollection<Device>>> SearchDevicesTypeAsync([FromQuery] string type)
+        public async Task<ActionResult<ICollection<OutDeviceDTO>>> SearchDevicesTypeAsync([FromQuery] string type)
         {
             ICollection<Device> devices = await _service.SearchDevicesByTypeAsync(type);
-            return Ok(devices);
+            return Ok(devices.Select(OutDeviceDTO.FromModel).ToList());
         }
 
         // POST: api/Devices/create
         [HttpPost("create")]
-        public async Task<ActionResult<Device>> CreateDeviceAsync(DeviceDTO dto)
+        public async Task<ActionResult<OutDeviceDTO>> CreateDeviceAsync(InDeviceDTO dto)
         {
             try 
             {
                 Device newDevice = await _service.CreateDeviceAsync(dto);
-                return CreatedAtAction("GetDevice", new { id = newDevice.DeviceId }, newDevice);
+                return CreatedAtAction("GetDevice", new { id = newDevice.DeviceId }, OutDeviceDTO.FromModel(newDevice));
             }
             catch (ValidationException)
             {
@@ -68,13 +68,13 @@ namespace EStoreAPI.Server.Controllers
 
         // POST: api/Devices/create-bulk
         [HttpPost("create-bulk")]
-        public async Task<ActionResult<ICollection<Device>>> CreateDevicesAsync(ICollection<DeviceDTO> dtos)
+        public async Task<ActionResult<ICollection<OutDeviceDTO>>> CreateDevicesAsync(ICollection<InDeviceDTO> dtos)
         {
             try
             {
                 ICollection<Device> newDevices = await _service.CreateDevicesAsync(dtos);
                 // fake GetAllDevices to return newly created devices
-                return CreatedAtAction("GetAllDevices", null, newDevices);
+                return CreatedAtAction("GetAllDevices", null, newDevices.Select(OutDeviceDTO.FromModel).ToList());
             }
             catch(ValidationException ex)
             {
@@ -84,7 +84,7 @@ namespace EStoreAPI.Server.Controllers
 
         // PUT: api/Devices/update/{id}
         [HttpPut("update/{id}")]
-        public async Task<ActionResult> UpdateDeviceAsync(int id, DeviceDTO dto)
+        public async Task<ActionResult> UpdateDeviceAsync(int id, InDeviceDTO dto)
         {
             try
             {

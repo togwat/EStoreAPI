@@ -16,19 +16,21 @@ public class CustomerTools
     }
     
     [McpServerTool, Description("Search for customers by name, phone number, or email address.")]
-    public async Task<ICollection<Customer>> SearchCustomersAsync(
+    public async Task<ICollection<OutCustomerDTO>> SearchCustomersAsync(
         [Description("The search query to match against customer name, phone number, or email address. Partial matches are supported.")]string? query)
     {
-        return await _service.SearchCustomersAsync(query);
+        ICollection<Customer> customers = await _service.SearchCustomersAsync(query);
+        return customers.Select(OutCustomerDTO.FromModel).ToList();
     }
 
     [McpServerTool, Description("Create one or more new customers and add them into the database.")]
-    public async Task<ICollection<Customer>> CreateCustomersAsync(
-        [Description("A list of customers to create. Each customer requires: CustomerName, PhoneNumber.")] ICollection<CustomerDTO> dtos)
+    public async Task<ICollection<OutCustomerDTO>> CreateCustomersAsync(
+        [Description("A list of customers to create. Each customer requires: CustomerName, PhoneNumber.")] ICollection<InCustomerDTO> dtos)
     {
         try
         {
-            return await _service.CreateCustomersAsync(dtos);
+            ICollection<Customer> customers = await _service.CreateCustomersAsync(dtos);
+            return customers.Select(OutCustomerDTO.FromModel).ToList();
         }
         catch (ValidationException ex)
         {

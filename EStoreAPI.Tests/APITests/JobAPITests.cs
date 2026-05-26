@@ -79,7 +79,7 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestCreateJob(bool valid, bool invalidProblems)
         {
             // arrange
-            var dto = _fixture.Build<JobDTO>()
+            var dto = _fixture.Build<InJobDTO>()
                                 .With(j => j.CustomerId, 1)
                                 .With(j => j.DeviceId, 1)
                                 .With(j => j.ProblemIds, new List<int> { 1 })
@@ -135,7 +135,7 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestCreateJobs(int invalidIndex)
         {
             // arrange
-            var dtos = _fixture.Build<JobDTO>()
+            var dtos = _fixture.Build<InJobDTO>()
                                 .With(j => j.CustomerId, 1)
                                 .With(j => j.DeviceId, 1)
                                 .With(j => j.ProblemIds, new List<int> { 1 })
@@ -143,7 +143,7 @@ namespace EStoreAPI.Tests.APITests
 
             if (invalidIndex >= 0)
             {
-                _service.Setup(s => s.CreateJobsAsync(It.IsAny<ICollection<JobDTO>>()))
+                _service.Setup(s => s.CreateJobsAsync(It.IsAny<ICollection<InJobDTO>>()))
                         .ThrowsAsync(new KeyNotFoundException($"One or more problem IDs are invalid for job at index {invalidIndex}."));
             }
             else
@@ -152,7 +152,7 @@ namespace EStoreAPI.Tests.APITests
                     .With(j => j.JobId, i + 1)
                     .Create()).ToList();
 
-                _service.Setup(s => s.CreateJobsAsync(It.IsAny<ICollection<JobDTO>>()))
+                _service.Setup(s => s.CreateJobsAsync(It.IsAny<ICollection<InJobDTO>>()))
                         .ReturnsAsync(newJobs);
             }
 
@@ -182,7 +182,7 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestUpdateJob(int id, bool invalidProblems)
         {
             // arrange
-            var dto = _fixture.Build<JobDTO>()
+            var dto = _fixture.Build<InJobDTO>()
                                 .With(j => j.ProblemIds, invalidProblems ? new List<int>() : new List<int> { 1 })
                                 .Create();
 

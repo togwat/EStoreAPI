@@ -16,26 +16,29 @@ public class DeviceTools
     }
 
     [McpServerTool, Description("Search for device models by model name.")]
-    public async Task<ICollection<Device>> SearchDevicesNameAsync(
+    public async Task<ICollection<OutDeviceDTO>> SearchDevicesNameAsync(
         [Description("Partial matches supported.")] string name)
-    {
-        return await _service.SearchDevicesByNameAsync(name);
+    {   
+        ICollection<Device> devices = await _service.SearchDevicesByNameAsync(name);
+        return devices.Select(OutDeviceDTO.FromModel).ToList();
     }
 
     [McpServerTool, Description("Search for device models by device type.")]
-    public async Task<ICollection<Device>> SearchDevicesByTypeAsync(
+    public async Task<ICollection<OutDeviceDTO>> SearchDevicesByTypeAsync(
         [Description("Partial matches supported.")] string type)
     {
-        return await _service.SearchDevicesByTypeAsync(type);
+        ICollection<Device> devices = await _service.SearchDevicesByTypeAsync(type);
+        return devices.Select(OutDeviceDTO.FromModel).ToList();
     }
 
     [McpServerTool, Description("Create one or more new device models and add them to the database.")]
-    public async Task<ICollection<Device>> CreateDevicesAsync(
-        [Description("A list of devices to create. Each device requires: deviceName, deviceType.")] ICollection<DeviceDTO> dtos)
+    public async Task<ICollection<OutDeviceDTO>> CreateDevicesAsync(
+        [Description("A list of devices to create. Each device requires: deviceName, deviceType.")] ICollection<InDeviceDTO> dtos)
     {
         try
         {
-            return await _service.CreateDevicesAsync(dtos);
+            ICollection<Device> devices = await _service.CreateDevicesAsync(dtos);
+            return devices.Select(OutDeviceDTO.FromModel).ToList();
         }
         catch (ValidationException ex)
         {

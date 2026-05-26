@@ -32,40 +32,24 @@ namespace EStoreAPI.Server.Services
             }
         }
 
-        public async Task<Problem> CreateProblemAsync(ProblemDTO dto)
+        public async Task<Problem> CreateProblemAsync(InProblemDTO dto)
         {
-            Problem problem = new Problem
-            {
-                ProblemName = dto.ProblemName,
-                DeviceId = dto.DeviceId,
-                Price = dto.Price
-            };
+            Problem problem = dto.ToModel();
 
             return await _repo.AddProblemAsync(problem);
         }
 
-        public async Task<ICollection<Problem>> CreateProblemsAsync(ICollection<ProblemDTO> dtos)
+        public async Task<ICollection<Problem>> CreateProblemsAsync(ICollection<InProblemDTO> dtos)
         {
-            ICollection<Problem> problems = dtos.Select(dto => new Problem
-            {
-                ProblemName = dto.ProblemName,
-                DeviceId = dto.DeviceId,
-                Price = dto.Price
-            }).ToList();
+            ICollection<Problem> problems = dtos.Select(dto => dto.ToModel()).ToList();
 
             return await _repo.AddProblemsAsync(problems);
         }
 
-        public async Task UpdateProblemAsync(int id, ProblemDTO dto)
+        public async Task UpdateProblemAsync(int id, InProblemDTO dto)
         {
             // set new problem
-            Problem problem = new Problem
-            {
-                ProblemId = id,
-                ProblemName = dto.ProblemName,
-                DeviceId = dto.DeviceId,
-                Price = dto.Price
-            };
+            Problem problem = dto.ToModel();
 
             await _repo.UpdateProblemAsync(problem);
         }

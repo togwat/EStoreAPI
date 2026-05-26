@@ -20,28 +20,28 @@ namespace EStoreAPI.Server.Controllers
 
         // GET: api/Jobs
         [HttpGet]
-        public async Task<ActionResult<ICollection<Job>>> GetAllJobsAsync()
+        public async Task<ActionResult<ICollection<OutJobDTO>>> GetAllJobsAsync()
         {
             ICollection<Job> jobs = await _service.GetAllJobsAsync();
-            return Ok(jobs);
+            return Ok(jobs.Select(OutJobDTO.FromModel).ToList());
         }
 
         // GET: api/Jobs/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Job>> GetJobAsync(int id)
+        public async Task<ActionResult<OutJobDTO>> GetJobAsync(int id)
         {
             Job? job = await _service.GetJobAsync(id);
-            return job is null ? NotFound() : Ok(job);
+            return job is null ? NotFound() : Ok(OutJobDTO.FromModel(job));
         }
 
         // POST: api/Jobs/create
         [HttpPost("create")]
-        public async Task<ActionResult<Job>> CreateJobAsync(JobDTO dto)
+        public async Task<ActionResult<OutJobDTO>> CreateJobAsync(InJobDTO dto)
         {
             try
             {
                 Job newJob = await _service.CreateJobAsync(dto);
-                return CreatedAtAction("GetJob", new { id = newJob.JobId }, newJob);
+                return CreatedAtAction("GetJob", new { id = newJob.JobId }, OutJobDTO.FromModel(newJob));
             }
             catch (KeyNotFoundException ex)
             {
@@ -55,13 +55,13 @@ namespace EStoreAPI.Server.Controllers
 
         // POST: api/Jobs/create-bulk
         [HttpPost("create-bulk")]
-        public async Task<ActionResult<ICollection<Job>>> CreateJobsAsync(ICollection<JobDTO> dtos)
+        public async Task<ActionResult<ICollection<OutJobDTO>>> CreateJobsAsync(ICollection<InJobDTO> dtos)
         {
             try
             {
                 ICollection<Job> newJobs = await _service.CreateJobsAsync(dtos);
                 // fake GetAllJobs to return newly created jobs
-                return CreatedAtAction("GetAllJobs", null, newJobs);
+                return CreatedAtAction("GetAllJobs", null, newJobs.Select(OutJobDTO.FromModel).ToList());
             }
             catch (KeyNotFoundException ex)
             {
@@ -75,7 +75,7 @@ namespace EStoreAPI.Server.Controllers
 
         // PUT: api/Jobs/update/{id}
         [HttpPut("update/{id}")]
-        public async Task<ActionResult> UpdateJobAsync(int id, JobDTO dto)
+        public async Task<ActionResult> UpdateJobAsync(int id, InJobDTO dto)
         {
             try
             {

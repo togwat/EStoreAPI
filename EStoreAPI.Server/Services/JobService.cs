@@ -22,7 +22,7 @@ namespace EStoreAPI.Server.Services
             return _repo.GetJobByIdAsync(id);
         }
 
-        public async Task<Job> CreateJobAsync(JobDTO dto)
+        public async Task<Job> CreateJobAsync(InJobDTO dto)
         {
             // validate number of problems
             ICollection<Problem> problems = await _repo.GetProblemsByIdsAsync(dto.ProblemIds);
@@ -31,27 +31,15 @@ namespace EStoreAPI.Server.Services
                 throw new KeyNotFoundException("One or more problem IDs are invalid.");
             }
 
-            Job job = new Job
-            {
-                CustomerId = dto.CustomerId,
-                DeviceId = dto.DeviceId,
-                ReceiveTime = dto.ReceiveTime,
-                PickupTime = dto.PickupTime,
-                EstimatedPickupTime = dto.EstimatedPickupTime,
-                Note = dto.Note,
-                Problems = problems,
-                EstimatedPrice = dto.EstimatedPrice,
-                CollectedPrice = dto.CollectedPrice,
-                IsFinished = dto.IsFinished
-            };
+            Job job = dto.ToModel(problems);
 
             return await _repo.AddJobAsync(job);
         }
 
-        public async Task<ICollection<Job>> CreateJobsAsync(ICollection<JobDTO> dtos)
+        public async Task<ICollection<Job>> CreateJobsAsync(ICollection<InJobDTO> dtos)
         {
             List<Job> jobs = new();
-            foreach (var dto in dtos)
+            foreach (InJobDTO dto in dtos)
             {
                 // validate number of problems
                 ICollection<Problem> problems = await _repo.GetProblemsByIdsAsync(dto.ProblemIds);
@@ -60,45 +48,20 @@ namespace EStoreAPI.Server.Services
                     throw new KeyNotFoundException($"One or more problem IDs are invalid for job with customerId {dto.CustomerId}.");
                 }
 
-                jobs.Add(new Job
-                {
-                    CustomerId = dto.CustomerId,
-                    DeviceId = dto.DeviceId,
-                    ReceiveTime = dto.ReceiveTime,
-                    PickupTime = dto.PickupTime,
-                    EstimatedPickupTime = dto.EstimatedPickupTime,
-                    Note = dto.Note,
-                    Problems = problems,
-                    EstimatedPrice = dto.EstimatedPrice,
-                    CollectedPrice = dto.CollectedPrice,
-                    IsFinished = dto.IsFinished
-                });
+                jobs.Add(dto.ToModel(problems));
             }
 
             return await _repo.AddJobsAsync(jobs);
         }
 
-        public async Task UpdateJobAsync(int id, JobDTO dto)
+        public async Task UpdateJobAsync(int id, InJobDTO dto)
         {
             // validate number of problems
             ICollection<Problem> problems = await _repo.GetProblemsByIdsAsync(dto.ProblemIds);
             if (problems.Count != dto.ProblemIds.Count)
                 throw new KeyNotFoundException("One or more problem IDs are invalid.");
 
-            Job job = new Job
-            {
-                JobId = id,
-                CustomerId = dto.CustomerId,
-                DeviceId = dto.DeviceId,
-                ReceiveTime = dto.ReceiveTime,
-                PickupTime = dto.PickupTime,
-                EstimatedPickupTime = dto.EstimatedPickupTime,
-                Note = dto.Note,
-                Problems = problems,
-                EstimatedPrice = dto.EstimatedPrice,
-                CollectedPrice = dto.CollectedPrice,
-                IsFinished = dto.IsFinished
-            };
+            Job job = dto.ToModel(problems);
 
             await _repo.UpdateJobAsync(job);
         }
