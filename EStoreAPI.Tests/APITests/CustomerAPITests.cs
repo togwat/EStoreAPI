@@ -2,12 +2,14 @@ using AutoFixture;
 using Moq;
 using EStoreAPI.Server.Controllers;
 using EStoreAPI.Server.Models;
+using EStoreAPI.Server.DTOs;
+using EStoreAPI.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Tests.APITests
 {
-    public class CustomerAPITests : APITests<CustomersController>
+    public class CustomerAPITests : APITests<CustomersController, ICustomerService>
     {
         // GET: api/Customers
         [Fact]
@@ -15,7 +17,7 @@ namespace EStoreAPI.Tests.APITests
         {
             // arrange
             var customers = _fixture.CreateMany<Customer>(5).ToList();
-            _repo.Setup(r => r.GetCustomersAsync()).ReturnsAsync(customers);
+            _service.Setup(s => s.GetAllCustomersAsync()).ReturnsAsync(customers);
 
             // act
             var result = await _controller.GetAllCustomersAsync();
@@ -30,7 +32,7 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestGetEmptyCustomers()
         {
             // arrange
-            _repo.Setup(r => r.GetCustomersAsync()).ReturnsAsync(new List<Customer>());
+            _service.Setup(s => s.GetAllCustomersAsync()).ReturnsAsync(new List<Customer>());
 
             // act
             var result = await _controller.GetAllCustomersAsync();
@@ -52,21 +54,19 @@ namespace EStoreAPI.Tests.APITests
             Customer customer = _fixture.Build<Customer>()
                                         .With(c => c.CustomerId, 1)
                                         .Create();
-            _repo.Setup(r => r.GetCustomerByIdAsync(1)).ReturnsAsync(customer);
-            _repo.Setup(r => r.GetCustomerByIdAsync(It.Is<int>(i => i != 1))).ReturnsAsync(null as Customer);
+            _service.Setup(s => s.GetCustomerAsync(1)).ReturnsAsync(customer);
+            _service.Setup(s => s.GetCustomerAsync(It.Is<int>(i => i != 1))).ReturnsAsync(null as Customer);
 
             // act
             var result = await _controller.GetCustomerAsync(id);
 
             // assert
-            // valid id
             if (id == 1)
             {
                 var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 Ok
                 var customerResult = Assert.IsAssignableFrom<Customer>(okResult.Value); // return type Customer
-                Assert.Equal(customer.CustomerId, customerResult.CustomerId);   // matching id        
+                Assert.Equal(customer.CustomerId, customerResult.CustomerId);   // matching id
             }
-            // invalid id
             else
             {
                 Assert.IsType<NotFoundResult>(result.Result); // returns 404 Not found
@@ -84,7 +84,8 @@ namespace EStoreAPI.Tests.APITests
             var customers = _fixture.Build<Customer>()
                                     .With(c => c.CustomerName, "name")
                                     .CreateMany(2).ToList();
-            _repo.Setup(r => r.GetCustomersByQueryAsync(It.Is<string>(s => "name".Contains(s)))).ReturnsAsync(customers);
+            _service.Setup(s => s.SearchCustomersAsync(It.Is<string>(s => "name".Contains(s)))).ReturnsAsync(customers);
+            _service.Setup(s => s.SearchCustomersAsync("notname")).ReturnsAsync(new List<Customer>());
 
             // act
             var result = await _controller.SearchCustomersAsync(name);
@@ -93,19 +94,16 @@ namespace EStoreAPI.Tests.APITests
             var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 Ok
             var customersResult = Assert.IsAssignableFrom<ICollection<Customer>>(okResult.Value);   // return type ICollection<Customer>
 
-            // valid name
             if (name == "name")
             {
                 Assert.Equal(customers.Count, customersResult.Count);   // returns 2 customers
-                Assert.All(customersResult, c => Assert.Contains("name", c.CustomerName)); // all returned customer contain name "name"
+                Assert.All(customersResult, c => Assert.Contains("name", c.CustomerName));
             }
-            // partial name
             else if (name == "na")
             {
                 Assert.Equal(customers.Count, customersResult.Count);   // returns 2 customers
-                Assert.All(customersResult, c => Assert.Contains("na", c.CustomerName)); // all returned customer contain name "na"
+                Assert.All(customersResult, c => Assert.Contains("na", c.CustomerName));
             }
-            // invalid name
             else
             {
                 Assert.Empty(customersResult);  // returns no customers
@@ -122,22 +120,21 @@ namespace EStoreAPI.Tests.APITests
             Customer customer = _fixture.Build<Customer>()
                                     .With(c => c.PhoneNumber, "12345")
                                     .Create();
-            _repo.Setup(r => r.GetCustomersByQueryAsync("12345")).ReturnsAsync([customer]);
+            _service.Setup(s => s.SearchCustomersAsync("12345")).ReturnsAsync(new List<Customer> { customer });
+            _service.Setup(s => s.SearchCustomersAsync(It.Is<string>(s => s != "12345"))).ReturnsAsync(new List<Customer>());
 
             // act
             var result = await _controller.SearchCustomersAsync(phone);
 
             // assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 Ok
-            var customersResult = Assert.IsAssignableFrom<ICollection<Customer>>(okResult.Value);   // return type ICollection<Customer>
+            var customersResult = Assert.IsAssignableFrom<ICollection<Customer>>(okResult.Value);
 
-            // valid phone
             if (phone == "12345")
             {
                 Assert.Single(customersResult);   // returns 1 customer
-                Assert.All(customersResult, c => Assert.Equal("12345", c.PhoneNumber)); // customer should have phone number
+                Assert.All(customersResult, c => Assert.Equal("12345", c.PhoneNumber));
             }
-            // invalid phone
             else
             {
                 Assert.Empty(customersResult);   // returns no customer
@@ -147,32 +144,31 @@ namespace EStoreAPI.Tests.APITests
         [Theory]
         [InlineData("test@email")]  // valid
         [InlineData("no@email")]    // invalid
-        [InlineData("test")]        // incomplete but valid
+        [InlineData("test")]        // partial, valid
         public async Task TestSearchCustomersEmail(string email)
         {
             // arrange
             Customer customer = _fixture.Build<Customer>()
                                     .With(c => c.Email, "test@email")
                                     .Create();
-            _repo.Setup(r => r.GetCustomersByQueryAsync(It.Is<string>(s => "test@email".Contains(s)))).ReturnsAsync([customer]);
+            _service.Setup(s => s.SearchCustomersAsync(It.Is<string>(s => "test@email".Contains(s)))).ReturnsAsync(new List<Customer> { customer });
+            _service.Setup(s => s.SearchCustomersAsync("no@email")).ReturnsAsync(new List<Customer>());
 
             // act
             var result = await _controller.SearchCustomersAsync(email);
 
             // assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 Ok
-            var customersResult = Assert.IsAssignableFrom<ICollection<Customer>>(okResult.Value);   // return type ICollection<Customer>
+            var customersResult = Assert.IsAssignableFrom<ICollection<Customer>>(okResult.Value);
 
-            // valid email
             if (email == "test@email" || email == "test")
             {
-                Assert.Single(customersResult);   // returns 1 customer
-                Assert.All(customersResult, c => Assert.Contains("test@email", c.Email)); // customer should have email
+                Assert.Single(customersResult);
+                Assert.All(customersResult, c => Assert.Contains("test@email", c.Email));
             }
-            // invalid email
             else
             {
-                Assert.Empty(customersResult);   // returns no customer
+                Assert.Empty(customersResult);
             }
         }
 
@@ -181,69 +177,62 @@ namespace EStoreAPI.Tests.APITests
         {
             // arrange
             var customers = _fixture.CreateMany<Customer>(5).ToList();
-            _repo.Setup(r => r.GetCustomersAsync()).ReturnsAsync(customers);
+            _service.Setup(s => s.SearchCustomersAsync(null)).ReturnsAsync(customers);
 
             // act
             var result = await _controller.SearchCustomersAsync(null);
 
             // assert
-            // should return all customers
             var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 Ok
-            var customersResult = Assert.IsAssignableFrom<ICollection<Customer>>(okResult.Value);   // return type ICollection<Customer>
-            Assert.Equal(5, customersResult.Count);   // returns 5 customers
+            var customersResult = Assert.IsAssignableFrom<ICollection<Customer>>(okResult.Value);
+            Assert.Equal(5, customersResult.Count);   // returns all customers
         }
 
         // POST: api/Customers/create
         [Theory]
-        [InlineData("a", "123")]   // valid customer
-        [InlineData(null, "123")]  // invalid name, valid phone
-        [InlineData("b", null)]     // valid name, invalid phone
-        [InlineData(null, null)]                // invalid name, invalid phone
+        [InlineData("a", "123")]    // valid customer
+        [InlineData(null, "123")]   // invalid name
+        [InlineData("b", null)]     // invalid phone
+        [InlineData(null, null)]    // invalid name and phone
         public async Task TestCreateCustomer(string name, string phone)
         {
             // arrange
+            var dto = new CustomerDTO { CustomerName = name, PhoneNumber = phone };
             Customer newCustomer = _fixture.Build<Customer>()
-                                    .Without(c => c.CustomerId)
+                                    .With(c => c.CustomerId, 1)
                                     .With(c => c.CustomerName, name)
                                     .With(c => c.PhoneNumber, phone)
                                     .Create();
-            // valid data
+
             if (name == "a" && phone == "123")
             {
-                _repo.Setup(r => r.AddCustomerAsync(newCustomer))
-                .ReturnsAsync((Customer c) =>
-                {
-                    c.CustomerId = 1; // EF auto-increments id
-                    return c;
-                });
+                _service.Setup(s => s.CreateCustomerAsync(dto)).ReturnsAsync(newCustomer);
             }
             else
             {
-                _repo.Setup(r => r.AddCustomerAsync(newCustomer)).ThrowsAsync(new ValidationException());
+                _service.Setup(s => s.CreateCustomerAsync(dto)).ThrowsAsync(new ValidationException());
             }
+
             // act
-            var result = await _controller.CreateCustomerAsync(newCustomer);
+            var result = await _controller.CreateCustomerAsync(dto);
 
             // assert
-            // valid customer
             if (name == "a" && phone == "123")
             {
                 var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
-                var createdCustomer = Assert.IsAssignableFrom<Customer>(createdResult.Value);   // return type Customer
+                var createdCustomer = Assert.IsAssignableFrom<Customer>(createdResult.Value);
 
-                // returned customer should match the sent customer
                 Assert.Equal(newCustomer.CustomerName, createdCustomer.CustomerName);
                 Assert.Equal(newCustomer.PhoneNumber, createdCustomer.PhoneNumber);
                 Assert.Equal(newCustomer.Email, createdCustomer.Email);
             }
-            // invalid customer
             else
             {
                 Assert.IsType<BadRequestResult>(result.Result); // returns 400 bad request
             }
         }
 
-        // POST: api/Customers/bulk-create
+        // POST: api/Customers/create-bulk
         [Theory]
         [InlineData(-1)]    // all valid
         [InlineData(0)]     // customer at index 0 is invalid
@@ -251,31 +240,30 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestCreateCustomers(int invalidIndex)
         {
             // arrange
-            var customers = _fixture.Build<Customer>()
-                                    .Without(c => c.CustomerId)
-                                    .With(c => c.CustomerName, "name")
-                                    .With(c => c.PhoneNumber, "123")
-                                    .CreateMany(3).ToList();
+            var dtos = _fixture.Build<CustomerDTO>()
+                                .With(d => d.CustomerName, "name")
+                                .With(d => d.PhoneNumber, "123")
+                                .CreateMany(3).ToList();
 
             if (invalidIndex >= 0)
             {
-                _repo.Setup(r => r.AddCustomersAsync(It.IsAny<ICollection<Customer>>()))
-                     .ThrowsAsync(new ValidationException($"Customer at index {invalidIndex} is missing required fields."));
+                _service.Setup(s => s.CreateCustomersAsync(It.IsAny<ICollection<CustomerDTO>>()))
+                        .ThrowsAsync(new ValidationException($"Customer at index {invalidIndex} is missing required fields."));
             }
             else
             {
-                _repo.Setup(r => r.AddCustomersAsync(It.IsAny<ICollection<Customer>>()))
-                     .ReturnsAsync((ICollection<Customer> cs) =>
-                     {
-                         var list = cs.ToList();
-                         for (int i = 0; i < list.Count; i++)
-                             list[i].CustomerId = i + 1;   // simulate EF auto-increment
-                         return list;
-                     });
+                var newCustomers = dtos.Select((d, i) => _fixture.Build<Customer>()
+                    .With(c => c.CustomerId, i + 1)
+                    .With(c => c.CustomerName, d.CustomerName)
+                    .With(c => c.PhoneNumber, d.PhoneNumber)
+                    .Create()).ToList();
+
+                _service.Setup(s => s.CreateCustomersAsync(It.IsAny<ICollection<CustomerDTO>>()))
+                        .ReturnsAsync(newCustomers);
             }
 
             // act
-            var result = await _controller.CreateCustomersAsync(customers);
+            var result = await _controller.CreateCustomersAsync(dtos);
 
             // assert
             if (invalidIndex < 0)
@@ -285,75 +273,53 @@ namespace EStoreAPI.Tests.APITests
                 Assert.Equal(3, createdCustomers.Count);
                 var createdList = createdCustomers.ToList();
                 for (int i = 0; i < createdList.Count; i++)
-                    Assert.Equal(i + 1, createdList[i].CustomerId);     // IDs assigned correctly
+                    Assert.Equal(i + 1, createdList[i].CustomerId);
             }
             else
             {
                 var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);    // returns 400 with message
-                Assert.Contains($"index {invalidIndex}", badRequestResult.Value!.ToString());    // message identifies the failing index
+                Assert.Contains($"index {invalidIndex}", badRequestResult.Value!.ToString());
             }
         }
 
         // PUT: api/Customers/update/{id}
         [Theory]
-        [InlineData(1, "newname", "123")]     // valid id, valid data
-        [InlineData(1, null, null)]    // valid id, invalid data
-        [InlineData(2, "newname", "123")]     // invalid id, valid data
-        [InlineData(2, null, null)]    // invalid id, invalid data
+        [InlineData(1, "newname", "123")]    // valid id, valid data
+        [InlineData(1, null, null)]          // valid id, invalid data
+        [InlineData(2, "newname", "123")]    // invalid id, valid data
+        [InlineData(2, null, null)]          // invalid id, invalid data
         public async Task TestUpdateCustomer(int id, string name, string phone)
         {
             // arrange
-            Customer oldCustomer = _fixture.Build<Customer>()
-                                        .With(c => c.CustomerId, 1)
-                                        .Create();
-            Customer newCustomer = _fixture.Build<Customer>()
-                                        .With(c => c.CustomerId, 1)     // supplied customer will have same id as oldCustomer
-                                        .With(c => c.CustomerName, name)
-                                        .With(c => c.PhoneNumber, phone)
-                                        .Create();
-            // valid id
+            var dto = new CustomerDTO { CustomerName = name, PhoneNumber = phone };
+
             if (id == 1)
             {
-                // valid data
                 if (name == "newname" && phone == "123")
-                {
-                    _repo.Setup(r => r.UpdateCustomerAsync(newCustomer)).Returns(Task.CompletedTask);
-                }
+                    _service.Setup(s => s.UpdateCustomerAsync(id, dto)).Returns(Task.CompletedTask);
                 else
-                {
-                    _repo.Setup(r => r.UpdateCustomerAsync(newCustomer)).ThrowsAsync(new ValidationException());
-                }
-                    
+                    _service.Setup(s => s.UpdateCustomerAsync(id, dto)).ThrowsAsync(new ValidationException());
             }
-            // not found id
             else
             {
-                _repo.Setup(r => r.UpdateCustomerAsync(newCustomer)).ThrowsAsync(new KeyNotFoundException("Customer not found."));
+                _service.Setup(s => s.UpdateCustomerAsync(id, dto)).ThrowsAsync(new KeyNotFoundException("Customer not found."));
             }
 
             // act
-            var result = await _controller.UpdateCustomerWithIdAsync(id, newCustomer);
+            var result = await _controller.UpdateCustomerAsync(id, dto);
 
             // assert
-            // valid id
             if (id == 1)
             {
-                // valid data
                 if (name == "newname" && phone == "123")
-                {
                     Assert.IsType<NoContentResult>(result); // returns 204 no content
-                }
-                // invalid data
                 else
-                {
                     Assert.IsType<BadRequestResult>(result);    // returns 400 bad request
-                }
             }
-            // invalid id
             else
             {
                 var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);   // returns 404 not found
-                Assert.Equal("Customer not found.", notFoundResult.Value);  // matching error message
+                Assert.Equal("Customer not found.", notFoundResult.Value);
             }
         }
     }

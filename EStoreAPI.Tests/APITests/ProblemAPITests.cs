@@ -1,13 +1,15 @@
-﻿using AutoFixture;
+using AutoFixture;
 using Moq;
 using EStoreAPI.Server.Controllers;
 using EStoreAPI.Server.Models;
+using EStoreAPI.Server.DTOs;
+using EStoreAPI.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Tests.APITests
 {
-    public class ProblemAPITests : APITests<ProblemsController>
+    public class ProblemAPITests : APITests<ProblemsController, IProblemService>
     {
         // GET: api/Problems/{id}
         [Theory]
@@ -20,21 +22,19 @@ namespace EStoreAPI.Tests.APITests
             Problem problem = _fixture.Build<Problem>()
                                     .With(p => p.ProblemId, 1)
                                     .Create();
-            _repo.Setup(r => r.GetProblemByIdAsync(1)).ReturnsAsync(problem);
-            _repo.Setup(r => r.GetProblemByIdAsync(It.Is<int>(i => i != 1))).ReturnsAsync(null as Problem); // return null for invalid ids
+            _service.Setup(s => s.GetProblemAsync(1)).ReturnsAsync(problem);
+            _service.Setup(s => s.GetProblemAsync(It.Is<int>(i => i != 1))).ReturnsAsync(null as Problem);
 
             // act
             var result = await _controller.GetProblemAsync(id);
 
             // assert
-            // valid id
             if (id == 1)
             {
-                var okResult = Assert.IsType<OkObjectResult>(result.Result);  // returns 200 ok
-                var problemResult = Assert.IsAssignableFrom<Problem>(okResult.Value);   // return type Problem
+                var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
+                var problemResult = Assert.IsAssignableFrom<Problem>(okResult.Value);
                 Assert.Equal(problem.ProblemId, problemResult.ProblemId);   // matching id
             }
-            // invalid id
             else
             {
                 Assert.IsType<NotFoundResult>(result.Result); // returns 404 not found
@@ -49,33 +49,28 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestGetProblemByDeviceId(int id)
         {
             // arrange
-            Device device = _fixture.Build<Device>()
-                                .With(d => d.DeviceId, 1)
-                                .Create();
             var problems = _fixture.Build<Problem>()
-                                .With(p => p.DeviceId, id)
+                                .With(p => p.DeviceId, 1)
                                 .CreateMany(5).ToList();
-            _repo.Setup(r => r.GetProblemsOfDeviceAsync(1)).ReturnsAsync(problems);
-            _repo.Setup(r => r.GetDeviceByIdAsync(1)).ReturnsAsync(device);
-            _repo.Setup(r => r.GetDeviceByIdAsync(It.Is<int>(i => i != 1))).ReturnsAsync(null as Device);
+            _service.Setup(s => s.GetDeviceProblemsAsync(1)).ReturnsAsync(problems);
+            _service.Setup(s => s.GetDeviceProblemsAsync(It.Is<int>(i => i != 1)))
+                    .ThrowsAsync(new KeyNotFoundException($"Device not found."));
 
             // act
             var result = await _controller.GetDeviceProblemsAsync(id);
 
             // assert
-            // valid device
             if (id == 1)
             {
                 var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
-                var problemsResult = Assert.IsAssignableFrom<ICollection<Problem>>(okResult.Value); // return type ICollection<Problem>
+                var problemsResult = Assert.IsAssignableFrom<ICollection<Problem>>(okResult.Value);
 
                 Assert.Equal(problems.Count, problemsResult.Count); // returns 5 problems
-                Assert.All(problemsResult, p => Assert.Equal(id, p.DeviceId));    // all returned problems should contain device
+                Assert.All(problemsResult, p => Assert.Equal(1, p.DeviceId));
             }
-            // invalid device
             else
             {
-                Assert.IsType<BadRequestResult>(result.Result); // returns 400 bad request
+                Assert.IsType<NotFoundObjectResult>(result.Result); // returns 404 not found
             }
         }
 
@@ -85,50 +80,36 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestCreateProblem(string name, int deviceId, decimal? price)
         {
             // arrange
-            Device validDevice = _fixture.Build<Device>()
-                                    .With(d => d.DeviceId, 1)
-                                    .Create();
-            Device givenDevice = _fixture.Build<Device>()
-                                    .With(d => d.DeviceId, deviceId)
+            var dto = new ProblemDTO { ProblemName = name, DeviceId = deviceId, Price = price ?? 0 };
+            Problem newProblem = _fixture.Build<Problem>()
+                                    .With(p => p.ProblemId, 1)
+                                    .With(p => p.ProblemName, name)
+                                    .With(p => p.DeviceId, deviceId)
+                                    .With(p => p.Price, price ?? 0)
                                     .Create();
 
-            Problem newProblem = _fixture.Build<Problem>()
-                                    .Without(p => p.ProblemId)
-                                    .With(p => p.ProblemName, name)
-                                    .With(p => p.Price, price)
-                                    .With(p => p.Device, givenDevice)
-                                    .Create();
-            // valid data
             if (name == "name" && deviceId == 1 && price == 100.00m)
             {
-                _repo.Setup(r => r.AddProblemAsync(newProblem))
-                .ReturnsAsync((Problem p) =>
-                {
-                    p.ProblemId = 1;    // auto incremented id
-                    return p;
-                });
+                _service.Setup(s => s.CreateProblemAsync(dto)).ReturnsAsync(newProblem);
             }
             else
             {
-                _repo.Setup(r => r.AddProblemAsync(newProblem)).ThrowsAsync(new ValidationException());
+                _service.Setup(s => s.CreateProblemAsync(dto)).ThrowsAsync(new ValidationException());
             }
-            
+
             // act
-            var result = await _controller.CreateProblemAsync(newProblem);
+            var result = await _controller.CreateProblemAsync(dto);
 
             // assert
-            // valid problem
             if (name == "name" && deviceId == 1 && price == 100.00m)
             {
                 var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
-                var createdProblem = Assert.IsAssignableFrom<Problem>(createdResult.Value);     // return type problem
+                var createdProblem = Assert.IsAssignableFrom<Problem>(createdResult.Value);
 
-                // returned problem should match the sent problem
                 Assert.Equal(newProblem.ProblemName, createdProblem.ProblemName);
                 Assert.Equal(newProblem.Price, createdProblem.Price);
-                Assert.Equal(newProblem.Device.DeviceId, createdProblem.Device.DeviceId);
+                Assert.Equal(newProblem.DeviceId, createdProblem.DeviceId);
             }
-            // invalid problem
             else
             {
                 Assert.IsType<BadRequestResult>(result.Result); // returns 400 bad request
@@ -141,10 +122,10 @@ namespace EStoreAPI.Tests.APITests
                 [null, 1, 100.00m],     // invalid name
                 ["name", 2, 100.00m],   // invalid device
                 ["name", 1, null],      // invalid price
-                [null, -1, null]        // invalid everything 
+                [null, -1, null]        // invalid everything
             ];
 
-        // POST: api/Problems/bulk-create
+        // POST: api/Problems/create-bulk
         [Theory]
         [InlineData(-1)]    // all valid
         [InlineData(0)]     // problem at index 0 is invalid
@@ -152,47 +133,48 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestCreateProblems(int invalidIndex)
         {
             // arrange
-            var problems = _fixture.Build<Problem>()
-                                    .Without(p => p.ProblemId)
-                                    .With(p => p.ProblemName, "name")
-                                    .With(p => p.DeviceId, 1)
-                                    .With(p => p.Price, 100.00m)
-                                    .CreateMany(3).ToList();
+            var dtos = _fixture.Build<ProblemDTO>()
+                                .With(p => p.ProblemName, "name")
+                                .With(p => p.DeviceId, 1)
+                                .With(p => p.Price, 100.00m)
+                                .CreateMany(3).ToList();
 
             if (invalidIndex >= 0)
             {
-                _repo.Setup(r => r.AddProblemsAsync(It.IsAny<ICollection<Problem>>()))
-                     .ThrowsAsync(new ValidationException($"Problem at index {invalidIndex} is missing required fields."));
+                _service.Setup(s => s.CreateProblemsAsync(It.IsAny<ICollection<ProblemDTO>>()))
+                        .ThrowsAsync(new ValidationException($"Problem at index {invalidIndex} is missing required fields."));
             }
             else
             {
-                _repo.Setup(r => r.AddProblemsAsync(It.IsAny<ICollection<Problem>>()))
-                     .ReturnsAsync((ICollection<Problem> ps) =>
-                     {
-                         var list = ps.ToList();
-                         for (int i = 0; i < list.Count; i++)
-                             list[i].ProblemId = i + 1;  // simulate EF auto-increment
-                         return list;
-                     });
+                var newProblems = dtos.Select((d, i) => _fixture.Build<Problem>()
+                    .With(p => p.ProblemId, i + 1)
+                    .With(p => p.ProblemName, d.ProblemName)
+                    .With(p => p.DeviceId, d.DeviceId)
+                    .With(p => p.Price, d.Price)
+                    .Create()).ToList();
+
+                _service.Setup(s => s.CreateProblemsAsync(It.IsAny<ICollection<ProblemDTO>>()))
+                        .ReturnsAsync(newProblems);
             }
 
             // act
-            var result = await _controller.CreateProblemsAsync(problems);
+            var result = await _controller.CreateProblemsAsync(dtos);
 
             // assert
             if (invalidIndex < 0)
             {
-                var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
+                var createdResult = Assert.IsType<ObjectResult>(result.Result);    // returns 201 created
+                Assert.Equal(201, createdResult.StatusCode);
                 var createdProblems = Assert.IsAssignableFrom<ICollection<Problem>>(createdResult.Value);
                 Assert.Equal(3, createdProblems.Count);
                 var createdList = createdProblems.ToList();
                 for (int i = 0; i < createdList.Count; i++)
-                    Assert.Equal(i + 1, createdList[i].ProblemId);  // IDs assigned correctly
+                    Assert.Equal(i + 1, createdList[i].ProblemId);
             }
             else
             {
                 var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);    // returns 400 with message
-                Assert.Contains($"index {invalidIndex}", badRequestResult.Value!.ToString());   // message identifies the failing index
+                Assert.Contains($"index {invalidIndex}", badRequestResult.Value!.ToString());
             }
         }
 
@@ -202,56 +184,35 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestUpdateProblem(int id, string name, int deviceId, decimal price)
         {
             // arrange
-            Problem oldProblem = _fixture.Build<Problem>()
-                                        .With(p => p.ProblemId, 1)
-                                        .Create();
-            Problem newProblem = _fixture.Build<Problem>()
-                                        .With(p => p.ProblemId, 1)
-                                        .With(p => p.ProblemName, name)
-                                        .With(p => p.DeviceId, deviceId)
-                                        .With(p => p.Price, price)
-                                        .Create();
-            // valid id
+            var dto = new ProblemDTO { ProblemName = name, DeviceId = deviceId, Price = price };
+
             if (id == 1)
             {
-                // valid data
                 if (name == "newname" && deviceId == 1 && price == 99.99m)
-                {
-                    _repo.Setup(r => r.UpdateProblemAsync(newProblem)).Returns(Task.CompletedTask);
-                }
+                    _service.Setup(s => s.UpdateProblemAsync(id, dto)).Returns(Task.CompletedTask);
                 else
-                {
-                    _repo.Setup(r => r.UpdateProblemAsync(newProblem)).ThrowsAsync(new ValidationException());
-                }
+                    _service.Setup(s => s.UpdateProblemAsync(id, dto)).ThrowsAsync(new ValidationException());
             }
-            // not found id
             else
             {
-                _repo.Setup(r => r.UpdateProblemAsync(newProblem)).ThrowsAsync(new KeyNotFoundException("Problem not found."));
+                _service.Setup(s => s.UpdateProblemAsync(id, dto)).ThrowsAsync(new KeyNotFoundException("Problem not found."));
             }
+
             // act
-            var result = await _controller.UpdateProblemWithIdAsync(id, newProblem);
+            var result = await _controller.UpdateProblemWithIdAsync(id, dto);
 
             // assert
-            // valid id
             if (id == 1)
             {
-                // valid data
                 if (name == "newname" && deviceId == 1 && price == 99.99m)
-                {
                     Assert.IsType<NoContentResult>(result); // returns 204 no content
-                }
-                // invalid data
                 else
-                {
-                    Assert.IsType<BadRequestResult>(result);   // returns 400 bad request
-                }
+                    Assert.IsType<BadRequestResult>(result);    // returns 400 bad request
             }
-            // invalid id
             else
             {
                 var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);   // returns 404 not found
-                Assert.Equal("Problem not found.", notFoundResult.Value);   // matching error message
+                Assert.Equal("Problem not found.", notFoundResult.Value);
             }
         }
 
@@ -259,14 +220,12 @@ namespace EStoreAPI.Tests.APITests
             [
                 [1, "newname", 1, 99.99m],   // valid
                 [2, "newname", 1, 99.99m],   // invalid id, valid data
-                [1, null, 1, 99.99m],        // valid id, invalid data
-                [1, "newname", 2, 99.99m],   // valid id, invalid data
-                [1, "newname", 1, null],     // valid id, invalid data
-                [1, null, 2, null],          // valid id, invalid data
+                [1, null, 1, 99.99m],        // valid id, invalid name
+                [1, "newname", 2, 99.99m],   // valid id, invalid device
+                [1, null, 2, 0m],            // valid id, invalid data
                 [2, null, 1, 99.99m],        // invalid id, invalid data
                 [2, "newname", 2, 99.99m],   // invalid id, invalid data
-                [2, "newname", 1, null],     // invalid id, invalid data
-                [2, null, 2, null]           // invalid id, invalid data
+                [2, null, 2, 0m]             // invalid id, invalid data
             ];
     }
 }

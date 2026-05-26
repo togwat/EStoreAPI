@@ -1,13 +1,15 @@
-﻿using AutoFixture;
+using AutoFixture;
 using Moq;
 using EStoreAPI.Server.Controllers;
 using EStoreAPI.Server.Models;
+using EStoreAPI.Server.DTOs;
+using EStoreAPI.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Tests.APITests
 {
-    public class JobAPITests : APITests<JobsController>
+    public class JobAPITests : APITests<JobsController, IJobService>
     {
         // GET: api/Jobs
         [Fact]
@@ -15,14 +17,14 @@ namespace EStoreAPI.Tests.APITests
         {
             // arrange
             var jobs = _fixture.CreateMany<Job>(5).ToList();
-            _repo.Setup(r => r.GetJobsAsync()).ReturnsAsync(jobs);
+            _service.Setup(s => s.GetAllJobsAsync()).ReturnsAsync(jobs);
 
             // act
             var result = await _controller.GetAllJobsAsync();
 
             // assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
-            var jobsResult = Assert.IsAssignableFrom<ICollection<Job>>(okResult.Value); // return type ICollection<Job>
+            var jobsResult = Assert.IsAssignableFrom<ICollection<Job>>(okResult.Value);
             Assert.Equal(5, jobsResult.Count);  // returns 5 jobs
         }
 
@@ -30,14 +32,14 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestGetEmptyJobs()
         {
             // arrange
-            _repo.Setup(r => r.GetJobsAsync()).ReturnsAsync(new List<Job>());
+            _service.Setup(s => s.GetAllJobsAsync()).ReturnsAsync(new List<Job>());
 
             // act
             var result = await _controller.GetAllJobsAsync();
 
             // assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
-            var jobResult = Assert.IsAssignableFrom<ICollection<Job>>(okResult.Value);  // return type ICollection<Job>
+            var jobResult = Assert.IsAssignableFrom<ICollection<Job>>(okResult.Value);
             Assert.Empty(jobResult);    // returns empty list
         }
 
@@ -52,21 +54,19 @@ namespace EStoreAPI.Tests.APITests
             Job job = _fixture.Build<Job>()
                                 .With(j => j.JobId, 1)
                                 .Create();
-            _repo.Setup(r => r.GetJobByIdAsync(1)).ReturnsAsync(job);
-            _repo.Setup(r => r.GetJobByIdAsync(It.Is<int>(i => i != 1))).ReturnsAsync(null as Job);
+            _service.Setup(s => s.GetJobAsync(1)).ReturnsAsync(job);
+            _service.Setup(s => s.GetJobAsync(It.Is<int>(i => i != 1))).ReturnsAsync(null as Job);
 
             // act
             var result = await _controller.GetJobAsync(id);
 
             // assert
-            // valid id
             if (id == 1)
             {
                 var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
-                var jobResult = Assert.IsAssignableFrom<Job>(okResult.Value);   // return type job
+                var jobResult = Assert.IsAssignableFrom<Job>(okResult.Value);
                 Assert.Equal(job.JobId, jobResult.JobId);   // matching id
             }
-            // invalid id
             else
             {
                 Assert.IsType<NotFoundResult>(result.Result); // returns 404 not found
@@ -76,97 +76,88 @@ namespace EStoreAPI.Tests.APITests
         // POST: api/Jobs/create
         [Theory]
         [MemberData(nameof(CreateJobData))]
-        public async Task TestCreateJob(int customerId, int deviceId, DateTime receiveTime, ICollection<Problem> problems)
+        public async Task TestCreateJob(bool valid, bool invalidProblems)
         {
             // arrange
-            Job newJob = _fixture.Build<Job>()
-                                .Without(j => j.JobId)
-                                .With(j => j.CustomerId, customerId)
-                                .With(j => j.DeviceId, deviceId)
-                                .With(j => j.ReceiveTime, receiveTime)
-                                .With(j => j.Problems, problems)
+            var dto = _fixture.Build<JobDTO>()
+                                .With(j => j.CustomerId, 1)
+                                .With(j => j.DeviceId, 1)
+                                .With(j => j.ProblemIds, new List<int> { 1 })
                                 .Create();
-            // valid data
-            if (customerId == 1 && deviceId == 1 && problems.Count >= 1)
+            Job newJob = _fixture.Build<Job>()
+                                .With(j => j.JobId, 1)
+                                .Create();
+
+            if (valid)
             {
-                _repo.Setup(r => r.AddJobAsync(newJob))
-                .ReturnsAsync((Job j) =>
-                {
-                    j.JobId = 1;
-                    return j;
-                });
+                _service.Setup(s => s.CreateJobAsync(dto)).ReturnsAsync(newJob);
+            }
+            else if (invalidProblems)
+            {
+                _service.Setup(s => s.CreateJobAsync(dto)).ThrowsAsync(new KeyNotFoundException("One or more problem IDs are invalid."));
             }
             else
             {
-                _repo.Setup(r => r.AddJobAsync(newJob)).ThrowsAsync(new ValidationException());
+                _service.Setup(s => s.CreateJobAsync(dto)).ThrowsAsync(new ValidationException());
             }
 
             // act
-            var result = await _controller.CreateJobAsync(newJob);
+            var result = await _controller.CreateJobAsync(dto);
 
             // assert
-            // valid job
-            if (customerId == 1 && deviceId == 1 && problems.Count >= 1)
+            if (valid)
             {
                 var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
-                var createdJob = Assert.IsAssignableFrom<Job>(createdResult.Value);     // return type Job
+                var createdJob = Assert.IsAssignableFrom<Job>(createdResult.Value);
 
-                // returned job should match the sent job
                 Assert.Equal(newJob.CustomerId, createdJob.CustomerId);
-                Assert.Equal(newJob.DeviceId, deviceId);
-                Assert.Equal(newJob.ReceiveTime, createdJob.ReceiveTime);
-                Assert.Equal(newJob.Problems, createdJob.Problems);
+                Assert.Equal(newJob.DeviceId, createdJob.DeviceId);
+                Assert.Equal(newJob.JobId, createdJob.JobId);
             }
-            // invalid job
             else
             {
-                Assert.IsType<BadRequestResult>(result.Result); // returns 400 bad request
+                Assert.IsType<BadRequestObjectResult>(result.Result); // returns 400 bad request with message
             }
         }
 
         public static IEnumerable<object[]> CreateJobData =>
             [
-                [1, 1, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem> { new() }],    // valid (datetime can be whatever)
-                [-1, 1, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem> { new() }],   // invalid customer
-                [1, -1, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem> { new() }],   // invalid device
-                [1, 1, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem>()],    // invalid problems
-                [-1, -1, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem>()],  // invalid combined
+                [true, false],      // valid
+                [false, true],      // invalid problem IDs
+                [false, false],     // invalid data (ValidationException)
             ];
 
-        // POST: api/Jobs/bulk-create
+        // POST: api/Jobs/create-bulk
         [Theory]
         [InlineData(-1)]    // all valid
-        [InlineData(0)]     // job at index 0 is invalid
-        [InlineData(1)]     // job at index 1 is invalid
+        [InlineData(0)]     // job at index 0 has invalid problem IDs
+        [InlineData(1)]     // job at index 1 has invalid problem IDs
         public async Task TestCreateJobs(int invalidIndex)
         {
             // arrange
-            var jobs = _fixture.Build<Job>()
-                                .Without(j => j.JobId)
+            var dtos = _fixture.Build<JobDTO>()
                                 .With(j => j.CustomerId, 1)
                                 .With(j => j.DeviceId, 1)
-                                .With(j => j.Problems, new List<Problem> { new() })
+                                .With(j => j.ProblemIds, new List<int> { 1 })
                                 .CreateMany(3).ToList();
 
             if (invalidIndex >= 0)
             {
-                _repo.Setup(r => r.AddJobsAsync(It.IsAny<ICollection<Job>>()))
-                     .ThrowsAsync(new ValidationException($"Job at index {invalidIndex} is missing required fields."));
+                _service.Setup(s => s.CreateJobsAsync(It.IsAny<ICollection<JobDTO>>()))
+                        .ThrowsAsync(new KeyNotFoundException($"One or more problem IDs are invalid for job at index {invalidIndex}."));
             }
             else
             {
-                _repo.Setup(r => r.AddJobsAsync(It.IsAny<ICollection<Job>>()))
-                     .ReturnsAsync((ICollection<Job> js) =>
-                     {
-                         var list = js.ToList();
-                         for (int i = 0; i < list.Count; i++)
-                             list[i].JobId = i + 1;  // simulate EF auto-increment
-                         return list;
-                     });
+                var newJobs = dtos.Select((d, i) => _fixture.Build<Job>()
+                    .With(j => j.JobId, i + 1)
+                    .Create()).ToList();
+
+                _service.Setup(s => s.CreateJobsAsync(It.IsAny<ICollection<JobDTO>>()))
+                        .ReturnsAsync(newJobs);
             }
 
             // act
-            var result = await _controller.CreateJobsAsync(jobs);
+            var result = await _controller.CreateJobsAsync(dtos);
 
             // assert
             if (invalidIndex < 0)
@@ -176,78 +167,62 @@ namespace EStoreAPI.Tests.APITests
                 Assert.Equal(3, createdJobs.Count);
                 var createdList = createdJobs.ToList();
                 for (int i = 0; i < createdList.Count; i++)
-                    Assert.Equal(i + 1, createdList[i].JobId);  // IDs assigned correctly
+                    Assert.Equal(i + 1, createdList[i].JobId);
             }
             else
             {
                 var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);    // returns 400 with message
-                Assert.Contains($"index {invalidIndex}", badRequestResult.Value!.ToString());   // message identifies the failing index
+                Assert.Contains($"index {invalidIndex}", badRequestResult.Value!.ToString());
             }
         }
 
-        // PUT: api/Jobs/update{id}
+        // PUT: api/Jobs/update/{id}
         [Theory]
         [MemberData(nameof(UpdateJobData))]
-        public async Task TestUpdateJob(int id, DateTime pickupTime, ICollection<Problem> problems)
+        public async Task TestUpdateJob(int id, bool invalidProblems)
         {
-            Job oldJob = _fixture.Build<Job>()
-                                .With(j => j.JobId, 1)
+            // arrange
+            var dto = _fixture.Build<JobDTO>()
+                                .With(j => j.ProblemIds, invalidProblems ? new List<int>() : new List<int> { 1 })
                                 .Create();
-            Job newJob = _fixture.Build<Job>()
-                                .With(j => j.JobId, 1)
-                                .With(j => j.ReceiveTime, pickupTime)
-                                .With(j => j.Problems, problems)
-                                .Create();
-            // valid id
-            if (id == 1)
+
+            if (id == 1 && !invalidProblems)
             {
-                // valid data
-                if (problems.Count >= 1)
-                {
-                    _repo.Setup(r => r.UpdateJobAsync(newJob)).Returns(Task.CompletedTask);
-                }
-                else
-                {
-                    _repo.Setup(r => r.UpdateJobAsync(newJob)).ThrowsAsync(new ValidationException());
-                }   
+                _service.Setup(s => s.UpdateJobAsync(id, dto)).Returns(Task.CompletedTask);
             }
-            // not found id
+            else if (id != 1)
+            {
+                _service.Setup(s => s.UpdateJobAsync(id, dto)).ThrowsAsync(new KeyNotFoundException("Job not found."));
+            }
             else
             {
-                _repo.Setup(r => r.UpdateJobAsync(newJob)).ThrowsAsync(new KeyNotFoundException("Job not found."));
+                _service.Setup(s => s.UpdateJobAsync(id, dto)).ThrowsAsync(new ValidationException());
             }
 
             // act
-            var result = await _controller.UpdateJobByIdAsync(id, newJob);
+            var result = await _controller.UpdateJobAsync(id, dto);
 
             // assert
-            // valid id
-            if (id == 1)
+            if (id == 1 && !invalidProblems)
             {
-                // valid data
-                if (problems.Count >= 1)
-                {
-                    Assert.IsType<NoContentResult>(result); // returns 204 no content
-                }
-                // invalid data
-                else
-                {
-                    Assert.IsType<BadRequestResult>(result);    // returns 400 bad request
-                }
+                Assert.IsType<NoContentResult>(result); // returns 204 no content
             }
-            // invalid id
-            else
+            else if (id != 1)
             {
                 var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);   // returns 404 not found
-                Assert.Equal("Job not found.", notFoundResult.Value);   // matching error message
+                Assert.Equal("Job not found.", notFoundResult.Value);
+            }
+            else
+            {
+                Assert.IsType<BadRequestResult>(result);    // returns 400 bad request
             }
         }
 
         public static IEnumerable<object[]> UpdateJobData =>
             [
-                [1, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem> { new(), new() }],   // valid
-                [2, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem> { new(), new() }],   // invalid id
-                [1, new DateTime(2024, 1, 1, 12, 0, 0), new List<Problem>()],     // valid id. invalid data
+                [1, false],     // valid id, valid data
+                [2, false],     // invalid id, valid data
+                [1, true],      // valid id, invalid data (no problems)
             ];
     }
 }

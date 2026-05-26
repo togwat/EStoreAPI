@@ -1,17 +1,18 @@
-﻿using AutoFixture;
+using AutoFixture;
 using Moq;
 using AutoFixture.AutoMoq;
-using EStoreAPI.Server.Data;
 using Microsoft.AspNetCore.Mvc;
 using AutoFixture.Kernel;
 using System.Reflection;
 
 namespace EStoreAPI.Tests.APITests
 {
-    public abstract class APITests<T> where T : ControllerBase
+    public abstract class APITests<TController, TService>
+        where TController : ControllerBase
+        where TService : class
     {
-        protected readonly T _controller;
-        protected readonly Mock<IEStoreRepo> _repo;
+        protected readonly TController _controller;
+        protected readonly Mock<TService> _service;
         protected readonly IFixture _fixture;
 
         public APITests()
@@ -21,8 +22,8 @@ namespace EStoreAPI.Tests.APITests
                 .Customize(new NoCircularReferencesCustomization())
                 .Customize(new IgnoreVirtualMembersCustomization());
 
-            _repo = _fixture.Freeze<Mock<IEStoreRepo>>();
-            _controller = (T)Activator.CreateInstance(typeof(T), _repo.Object);
+            _service = _fixture.Freeze<Mock<TService>>();
+            _controller = (TController)Activator.CreateInstance(typeof(TController), _service.Object)!;
         }
     }
 
