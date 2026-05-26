@@ -86,6 +86,8 @@ class OllamaProvider(ChatProvider):
             stream=True,
         ):
             msg = chunk.message
+            if msg.thinking:
+                yield ("reasoning", msg.thinking)
             if msg.content:
                 content_parts.append(msg.content)
                 yield ("chunk", msg.content)
