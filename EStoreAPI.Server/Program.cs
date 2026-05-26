@@ -24,6 +24,11 @@ builder.Services.AddScoped<IDeviceService, DeviceService>();
 builder.Services.AddScoped<IJobService, JobService>();
 builder.Services.AddScoped<IProblemService, ProblemService>();
 
+// MCP services
+builder.Services.AddMcpServer()
+    .WithHttpTransport()
+    .WithToolsFromAssembly();
+
 // CORS for local frontend testing
 builder.Services.AddCors(options =>
 {
@@ -54,6 +59,8 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapMcp("/mcp");
 
 app.MapFallbackToFile("/index.html");
 
