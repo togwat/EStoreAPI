@@ -16,7 +16,7 @@ namespace EStoreAPI.Server.DTOs
 
         public Problem ToModel() => new()
         {
-            ProblemName = ProblemName,
+            ProblemName = ProblemName.ToLower(),
             DeviceId = DeviceId,
             Price = Price,
         };

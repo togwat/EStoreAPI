@@ -1,10 +1,15 @@
 using EStoreAPI.Server.Models;
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 
 namespace EStoreAPI.Server.DTOs
 {
-    public class InCustomerDTO
+    public partial class InCustomerDTO
     {
+        // regex pattern ensures phone numbers are just a string of digits
+        [GeneratedRegex(@"\D")]
+        private static partial Regex NonDigits();
+
         [Required]
         public string CustomerName { get; set; }
 
@@ -20,8 +25,8 @@ namespace EStoreAPI.Server.DTOs
         public Customer ToModel() => new()
         {
             CustomerName = CustomerName,
-            PhoneNumber = PhoneNumber,
-            PhoneNumberSecondary = PhoneNumberSecondary,
+            PhoneNumber = NonDigits().Replace(PhoneNumber, ""),
+            PhoneNumberSecondary = PhoneNumberSecondary is null ? null : NonDigits().Replace(PhoneNumberSecondary, ""),
             Email = Email,
             Address = Address,
         };

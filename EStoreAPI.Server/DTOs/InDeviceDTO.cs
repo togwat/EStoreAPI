@@ -14,7 +14,7 @@ namespace EStoreAPI.Server.DTOs
         public Device ToModel() => new()
         {
             DeviceName = DeviceName,
-            DeviceType = DeviceType,
+            DeviceType = DeviceType.ToLower(),
         };
     }
 }
