@@ -1,7 +1,7 @@
 from fastapi import Request
 
 from providers.AbstractProvider import ChatProvider
-from tools.executor import Executor
+from tools.mcp_client import McpClient
 
 
 # FastAPI dependency functions
@@ -11,6 +11,5 @@ from tools.executor import Executor
 def get_provider(request: Request) -> ChatProvider:
     return request.app.state.provider
 
-
-def get_executor(request: Request) -> Executor:
-    return request.app.state.executor
+def get_mcp_client(request: Request) -> McpClient:
+    return request.app.state.mcp

@@ -1,3 +1,5 @@
+# DEPRECATED: replaced by tools/mcp_client.py + the MCP server in EStoreAPI.Server
+
 import requests
 
 

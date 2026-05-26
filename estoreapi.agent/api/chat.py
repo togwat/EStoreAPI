@@ -1,5 +1,3 @@
-import json
-from pathlib import Path
 from typing import Iterator
 
 from fastapi import APIRouter, Depends
@@ -7,15 +5,11 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from config import SYSTEM_PROMPT, STREAMING
-from dependencies import get_executor, get_provider
+from dependencies import get_mcp_client, get_provider
 from providers.AbstractProvider import ChatProvider
-from tools.executor import Executor
+from tools.mcp_client import McpClient
 
 router = APIRouter()
-
-_tools_path = Path(__file__).parent.parent / "tools" / "definitions.json"
-with open(_tools_path) as f:
-    TOOLS: list[dict] = json.load(f)
 
 
 class ChatRequest(BaseModel):
@@ -31,24 +25,25 @@ class ChatResponse(BaseModel):
 def _run_agentic_loop(
     messages: list[dict],
     provider: ChatProvider,
-    executor: Executor,
+    mcp: McpClient,
 ) -> Iterator[str]:
     """
     Core loop: yields text chunks as they arrive, executing any tool calls
     transparently between iterations.
     """
+    tools = mcp.list_tools()
+
     while True:
         had_tool_calls = False
 
-        for event in provider.stream_chat_with_tools(messages, TOOLS):
+        for event in provider.stream_chat_with_tools(messages, tools):
             if event[0] == "chunk":
                 yield event[1]
             elif event[0] == "tool_calls":
                 _, tool_calls, assistant_msg = event
-                # Append the assistant's tool-call message, then each tool result
                 messages.append(assistant_msg)
                 for tc in tool_calls:
-                    result = executor.dispatch(tc["name"], tc["arguments"])
+                    result = mcp.call_tool(tc["name"], tc["arguments"])
                     messages.append(provider.make_tool_result_message(tc["name"], result))
                 had_tool_calls = True
 
@@ -61,7 +56,7 @@ def _run_agentic_loop(
 def chat(
     req: ChatRequest,
     provider: ChatProvider = Depends(get_provider),
-    executor: Executor = Depends(get_executor),
+    mcp: McpClient = Depends(get_mcp_client),
 ):
     """
     Run the agentic loop. Tool calls execute transparently; only the final text
@@ -72,10 +67,10 @@ def chat(
 
     if req.stream:
         return StreamingResponse(
-            _run_agentic_loop(messages, provider, executor),
+            _run_agentic_loop(messages, provider, mcp),
             media_type="text/plain",
         )
 
     # Non-streaming: collect all chunks then return JSON
-    text = "".join(_run_agentic_loop(messages, provider, executor))
+    text = "".join(_run_agentic_loop(messages, provider, mcp))
     return ChatResponse(response=text)

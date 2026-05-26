@@ -4,16 +4,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.chat import router as chat_router
-from config import API_BASE_URL
+from config import MCP_URL
 from providers.factory import create_provider
-from tools.executor import Executor
+from tools.mcp_client import McpClient
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialise shared services on startup; clean up on shutdown."""
     app.state.provider = create_provider()
-    app.state.executor = Executor(base_url=API_BASE_URL)
+    app.state.mcp = McpClient(url=MCP_URL)
     yield
 
 
