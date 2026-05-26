@@ -1,4 +1,4 @@
-﻿using EStoreAPI.Server.Data;
+﻿using EStoreAPI.Server.Services;
 using EStoreAPI.Server.Models;
 using EStoreAPI.Server.DTOs;
 using Microsoft.AspNetCore.Http;
@@ -11,44 +11,33 @@ namespace EStoreAPI.Server.Controllers
     [ApiController]
     public class ProblemsController : ControllerBase
     {
-        private readonly IEStoreRepo _Repo;
+        private readonly IProblemService _service;
 
-        public ProblemsController(IEStoreRepo repo)
+        public ProblemsController(IProblemService service)
         {
-            _Repo = repo;
+            _service = service;
         }
 
         // GET: api/Problems/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<Problem>> GetProblemAsync(int id)
         {
-            Problem? problem = await _Repo.GetProblemByIdAsync(id);
-
-            if (problem == null)
-            {
-                return NotFound();
-            }
-            else
-            {
-                return Ok(problem);
-            }
+            Problem? problem = await _service.GetProblemAsync(id);
+            return problem is null ? NotFound() : Ok(problem);
         }
 
         // GET: api/Problems?deviceId=
         [HttpGet]
         public async Task<ActionResult<ICollection<Problem>>> GetDeviceProblemsAsync([FromQuery] int deviceId)
         {
-            // check if device exists
-            Device? device = await _Repo.GetDeviceByIdAsync(deviceId);
-
-            if (device == null)
+            try
             {
-                return BadRequest();
-            }
-            else
-            {
-                ICollection<Problem> problems = await _Repo.GetProblemsOfDeviceAsync(deviceId);
+                ICollection<Problem> problems = await _service.GetDeviceProblemsAsync(deviceId);
                 return Ok(problems);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
             }
         }
 
@@ -56,16 +45,9 @@ namespace EStoreAPI.Server.Controllers
         [HttpPost("create")]
         public async Task<ActionResult<Problem>> CreateProblemAsync(ProblemDTO dto)
         {
-            Problem problem = new Problem
-            {
-                ProblemName = dto.ProblemName,
-                DeviceId = dto.DeviceId,
-                Price = dto.Price
-            };
-
             try
             {
-                Problem newProblem = await _Repo.AddProblemAsync(problem);
+                Problem newProblem = await _service.CreateProblemAsync(dto);
                 return CreatedAtAction("GetProblem", new { id = newProblem.ProblemId }, newProblem);
 
             }
@@ -79,16 +61,9 @@ namespace EStoreAPI.Server.Controllers
         [HttpPost("create-bulk")]
         public async Task<ActionResult<ICollection<Problem>>> CreateProblemsAsync(ICollection<ProblemDTO> dtos)
         {
-            ICollection<Problem> problems = dtos.Select(dto => new Problem
-            {
-                ProblemName = dto.ProblemName,
-                DeviceId = dto.DeviceId,
-                Price = dto.Price
-            }).ToList();
-
             try
             {
-                ICollection<Problem> newProblems = await _Repo.AddProblemsAsync(problems);
+                ICollection<Problem> newProblems = await _service.CreateProblemsAsync(dtos);
                 return StatusCode(201, newProblems);
             }
             catch (ValidationException ex)
@@ -101,18 +76,9 @@ namespace EStoreAPI.Server.Controllers
         [HttpPut("update/{id}")]
         public async Task<ActionResult> UpdateProblemWithIdAsync(int id, ProblemDTO dto)
         {
-            // set new problem
-            Problem problem = new Problem
-            {
-                ProblemId = id,
-                ProblemName = dto.ProblemName,
-                DeviceId = dto.DeviceId,
-                Price = dto.Price
-            };
-            
             try
             {
-                await _Repo.UpdateProblemAsync(problem);
+                await _service.UpdateProblemAsync(id, dto);
                 return NoContent();
             }
             // problem not found

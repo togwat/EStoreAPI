@@ -1,4 +1,4 @@
-﻿using EStoreAPI.Server.Data;
+﻿using EStoreAPI.Server.Services;
 using EStoreAPI.Server.Models;
 using EStoreAPI.Server.DTOs;
 using Microsoft.AspNetCore.Http;
@@ -12,42 +12,34 @@ namespace EStoreAPI.Server.Controllers
     [ApiController]
     public class DevicesController : ControllerBase
     {
-        private readonly IEStoreRepo _Repo;
+        private readonly IDeviceService _service;
 
-        public DevicesController(IEStoreRepo repo)
+        public DevicesController(IDeviceService service)
         {
-            _Repo = repo;
+            _service = service;
         }
 
         // GET: api/Devices
         [HttpGet]
         public async Task<ActionResult<ICollection<Device>>> GetAllDevicesAsync()
         {
-            ICollection<Device> devices = await _Repo.GetDevicesAsync();
+            ICollection<Device> devices = await _service.GetAllDevicesAsync();
             return Ok(devices);
         }
 
         // GET: api/Devices/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Device>> GetDeviceAsync(int id)
+        public async Task<ActionResult<Device?>> GetDeviceAsync(int id)
         {
-            Device? device = await _Repo.GetDeviceByIdAsync(id);
-
-            if (device == null)
-            {
-                return NotFound();
-            }
-            else
-            {
-                return Ok(device);
-            }
+            Device? device = await _service.GetDeviceAsync(id);
+            return device is null ? NotFound() : Ok(device);
         }
 
         // GET: api/Devices/searchName?name=
         [HttpGet("searchName")]
         public async Task<ActionResult<ICollection<Device>>> SearchDevicesNameAsync([FromQuery] string name)
         {
-            ICollection<Device> devices = await _Repo.GetDevicesByNameAsync(name);
+            ICollection<Device> devices = await _service.SearchDevicesByNameAsync(name);
             return Ok(devices);
         }
 
@@ -55,7 +47,7 @@ namespace EStoreAPI.Server.Controllers
         [HttpGet("searchType")]
         public async Task<ActionResult<ICollection<Device>>> SearchDevicesTypeAsync([FromQuery] string type)
         {
-            ICollection<Device> devices = await _Repo.GetDevicesByTypeAsync(type);
+            ICollection<Device> devices = await _service.SearchDevicesByTypeAsync(type);
             return Ok(devices);
         }
 
@@ -63,15 +55,9 @@ namespace EStoreAPI.Server.Controllers
         [HttpPost("create")]
         public async Task<ActionResult<Device>> CreateDeviceAsync(DeviceDTO dto)
         {
-            Device device = new Device
+            try 
             {
-                DeviceName = dto.DeviceName,
-                DeviceType = dto.DeviceType
-            };
-
-            try
-            {
-                Device newDevice = await _Repo.AddDeviceAsync(device);
+                Device newDevice = await _service.CreateDeviceAsync(dto);
                 return CreatedAtAction("GetDevice", new { id = newDevice.DeviceId }, newDevice);
             }
             catch (ValidationException)
@@ -84,15 +70,9 @@ namespace EStoreAPI.Server.Controllers
         [HttpPost("create-bulk")]
         public async Task<ActionResult<ICollection<Device>>> CreateDevicesAsync(ICollection<DeviceDTO> dtos)
         {
-            ICollection<Device> devices = dtos.Select(dto => new Device
-            {
-                DeviceName = dto.DeviceName,
-                DeviceType = dto.DeviceType
-            }).ToList();
-
             try
             {
-                ICollection<Device> newDevices = await _Repo.AddDevicesAsync(devices);
+                ICollection<Device> newDevices = await _service.CreateDevicesAsync(dtos);
                 // fake GetAllDevices to return newly created devices
                 return CreatedAtAction("GetAllDevices", null, newDevices);
             }
@@ -104,19 +84,11 @@ namespace EStoreAPI.Server.Controllers
 
         // PUT: api/Devices/update/{id}
         [HttpPut("update/{id}")]
-        public async Task<ActionResult> UpdateDeviceByIdAsync(int id, DeviceDTO dto)
+        public async Task<ActionResult> UpdateDeviceAsync(int id, DeviceDTO dto)
         {
-            // set up new device
-            Device device = new Device
-            {
-                DeviceId = id,
-                DeviceName = dto.DeviceName,
-                DeviceType = dto.DeviceType
-            };
-            
             try
             {
-                await _Repo.UpdateDeviceAsync(device);
+                await _service.UpdateDeviceAsync(id, dto);
                 return NoContent();
             }
             // job not found

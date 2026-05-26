@@ -1,4 +1,5 @@
 using EStoreAPI.Server.Data;
+using EStoreAPI.Server.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,12 @@ builder.Services.AddSwaggerGen();
 // db and repo
 builder.Services.AddDbContext<EStoreDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("WebAPIDatabase")));
 builder.Services.AddScoped<IEStoreRepo, EStoreRepo>();
+
+// services
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IDeviceService, DeviceService>();
+builder.Services.AddScoped<IJobService, JobService>();
+builder.Services.AddScoped<IProblemService, ProblemService>();
 
 // CORS for local frontend testing
 builder.Services.AddCors(options =>

@@ -1,4 +1,4 @@
-﻿using EStoreAPI.Server.Data;
+﻿using EStoreAPI.Server.Services;
 using EStoreAPI.Server.Models;
 using EStoreAPI.Server.DTOs;
 using Microsoft.AspNetCore.Http;
@@ -11,68 +11,44 @@ namespace EStoreAPI.Server.Controllers
     [ApiController]
     public class CustomersController : ControllerBase
     {
-        private readonly IEStoreRepo _Repo;
+        private readonly ICustomerService _service;
 
-        public CustomersController(IEStoreRepo repo)
+        public CustomersController(ICustomerService service)
         {
-            _Repo = repo;
+            _service = service;
         }
 
         // GET: api/Customers
         [HttpGet]
         public async Task<ActionResult<ICollection<Customer>>> GetAllCustomersAsync()
         {
-            ICollection<Customer> customers = await _Repo.GetCustomersAsync();
+            ICollection<Customer> customers = await _service.GetAllCustomersAsync();
             return Ok(customers);
         }
 
         // GET: api/Customers/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Customer>> GetCustomerAsync(int id)
+        public async Task<ActionResult<Customer?>> GetCustomerAsync(int id)
         {
-            Customer? customer = await _Repo.GetCustomerByIdAsync(id);
-
-            if (customer == null)
-            {
-                return NotFound();
-            }
-            else
-            {
-                return Ok(customer);
-            }
+            Customer? customer = await _service.GetCustomerAsync(id);
+            return customer is null ? NotFound() : Ok(customer);
         }
 
         // GET: api/Customers/search?query=
         [HttpGet("search")]
         public async Task<ActionResult<ICollection<Customer>>> SearchCustomersAsync([FromQuery] string? query)
         {
-            if (query == null)
-            {
-                return await GetAllCustomersAsync();
-            }
-            else
-            {
-                ICollection<Customer> customers = await _Repo.GetCustomersByQueryAsync(query);
-                return Ok(customers);
-            }
+            ICollection<Customer> customers = await _service.SearchCustomersAsync(query);
+            return Ok(customers);
         }
 
         // POST: api/Customers/create
         [HttpPost("create")]
         public async Task<ActionResult<Customer>> CreateCustomerAsync(CustomerDTO dto)
         {
-            Customer customer = new Customer
-            {
-                CustomerName = dto.CustomerName,
-                PhoneNumber = dto.PhoneNumber,
-                PhoneNumberSecondary = dto.PhoneNumberSecondary,
-                Email = dto.Email,
-                Address = dto.Address
-            };
-
             try
             {
-                Customer newCustomer = await _Repo.AddCustomerAsync(customer);
+                Customer newCustomer = await _service.CreateCustomerAsync(dto);
                 return CreatedAtAction("GetCustomer", new { id = newCustomer.CustomerId }, newCustomer);
             }
             catch (ValidationException)
@@ -85,18 +61,9 @@ namespace EStoreAPI.Server.Controllers
         [HttpPost("create-bulk")]
         public async Task<ActionResult<ICollection<Customer>>> CreateCustomersAsync(ICollection<CustomerDTO> dtos)
         {
-            ICollection<Customer> customers = dtos.Select(dto => new Customer
-            {
-                CustomerName = dto.CustomerName,
-                PhoneNumber = dto.PhoneNumber,
-                PhoneNumberSecondary = dto.PhoneNumberSecondary,
-                Email = dto.Email,
-                Address = dto.Address
-            }).ToList();
-
             try
             {
-                ICollection<Customer> newCustomers = await _Repo.AddCustomersAsync(customers);
+                ICollection<Customer> newCustomers = await _service.CreateCustomersAsync(dtos);
                 // fake GetAllCustomers to return newly created customers
                 return CreatedAtAction("GetAllCustomers", null, newCustomers);
             }
@@ -108,22 +75,11 @@ namespace EStoreAPI.Server.Controllers
 
         // PUT: api/Customers/update/{id}
         [HttpPut("update/{id}")]
-        public async Task<ActionResult> UpdateCustomerWithIdAsync(int id, CustomerDTO dto)
+        public async Task<ActionResult> UpdateCustomerAsync(int id, CustomerDTO dto)
         {
-            // set up new customer
-            Customer customer = new Customer
-            {
-                CustomerId = id,
-                CustomerName = dto.CustomerName,
-                PhoneNumber = dto.PhoneNumber,
-                PhoneNumberSecondary = dto.PhoneNumberSecondary,
-                Email = dto.Email,
-                Address = dto.Address
-            };
-            
             try
             {
-                await _Repo.UpdateCustomerAsync(customer);
+                await _service.UpdateCustomerAsync(id, dto);
                 return NoContent();
             }
             // customer not found

@@ -1,4 +1,4 @@
-using EStoreAPI.Server.Data;
+using EStoreAPI.Server.Services;
 using EStoreAPI.Server.Models;
 using EStoreAPI.Server.DTOs;
 using Microsoft.AspNetCore.Http;
@@ -11,18 +11,18 @@ namespace EStoreAPI.Server.Controllers
     [ApiController]
     public class JobsController : ControllerBase
     {
-        private readonly IEStoreRepo _Repo;
+        private readonly IJobService _service;
 
-        public JobsController(IEStoreRepo repo)
+        public JobsController(IJobService service)
         {
-            _Repo = repo;
+            _service = service;
         }
 
         // GET: api/Jobs
         [HttpGet]
         public async Task<ActionResult<ICollection<Job>>> GetAllJobsAsync()
         {
-            ICollection<Job> jobs = await _Repo.GetJobsAsync();
+            ICollection<Job> jobs = await _service.GetAllJobsAsync();
             return Ok(jobs);
         }
 
@@ -30,45 +30,22 @@ namespace EStoreAPI.Server.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Job>> GetJobAsync(int id)
         {
-            Job? job = await _Repo.GetJobByIdAsync(id);
-
-            if (job == null)
-            {
-                return NotFound();
-            }
-            else
-            {
-                return Ok(job);
-            }
+            Job? job = await _service.GetJobAsync(id);
+            return job is null ? NotFound() : Ok(job);
         }
 
         // POST: api/Jobs/create
         [HttpPost("create")]
         public async Task<ActionResult<Job>> CreateJobAsync(JobDTO dto)
         {
-            // validate number of problems
-            ICollection<Problem> problems = await _Repo.GetProblemsByIdsAsync(dto.ProblemIds);
-            if (problems.Count != dto.ProblemIds.Count)
-                return BadRequest("One or more problem IDs are invalid.");
-
-            Job job = new Job
-            {
-                CustomerId = dto.CustomerId,
-                DeviceId = dto.DeviceId,
-                ReceiveTime = dto.ReceiveTime,
-                PickupTime = dto.PickupTime,
-                EstimatedPickupTime = dto.EstimatedPickupTime,
-                Note = dto.Note,
-                Problems = problems,
-                EstimatedPrice = dto.EstimatedPrice,
-                CollectedPrice = dto.CollectedPrice,
-                IsFinished = dto.IsFinished
-            };
-
             try
             {
-                Job newJob = await _Repo.AddJobAsync(job);
+                Job newJob = await _service.CreateJobAsync(dto);
                 return CreatedAtAction("GetJob", new { id = newJob.JobId }, newJob);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
             }
             catch (ValidationException)
             {
@@ -80,34 +57,15 @@ namespace EStoreAPI.Server.Controllers
         [HttpPost("create-bulk")]
         public async Task<ActionResult<ICollection<Job>>> CreateJobsAsync(ICollection<JobDTO> dtos)
         {
-            List<Job> jobs = new();
-            foreach (var dto in dtos)
-            {
-                // validate number of problems
-                ICollection<Problem> problems = await _Repo.GetProblemsByIdsAsync(dto.ProblemIds);
-                if (problems.Count != dto.ProblemIds.Count)
-                    return BadRequest($"One or more problem IDs are invalid for job with customerId {dto.CustomerId}.");
-
-                jobs.Add(new Job
-                {
-                    CustomerId = dto.CustomerId,
-                    DeviceId = dto.DeviceId,
-                    ReceiveTime = dto.ReceiveTime,
-                    PickupTime = dto.PickupTime,
-                    EstimatedPickupTime = dto.EstimatedPickupTime,
-                    Note = dto.Note,
-                    Problems = problems,
-                    EstimatedPrice = dto.EstimatedPrice,
-                    CollectedPrice = dto.CollectedPrice,
-                    IsFinished = dto.IsFinished
-                });
-            }
-
             try
             {
-                ICollection<Job> newJobs = await _Repo.AddJobsAsync(jobs);
+                ICollection<Job> newJobs = await _service.CreateJobsAsync(dtos);
                 // fake GetAllJobs to return newly created jobs
                 return CreatedAtAction("GetAllJobs", null, newJobs);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
             }
             catch (ValidationException ex)
             {
@@ -117,31 +75,11 @@ namespace EStoreAPI.Server.Controllers
 
         // PUT: api/Jobs/update/{id}
         [HttpPut("update/{id}")]
-        public async Task<ActionResult> UpdateJobByIdAsync(int id, JobDTO dto)
+        public async Task<ActionResult> UpdateJobAsync(int id, JobDTO dto)
         {
-            // validate number of problems
-            ICollection<Problem> problems = await _Repo.GetProblemsByIdsAsync(dto.ProblemIds);
-            if (problems.Count != dto.ProblemIds.Count)
-                return BadRequest("One or more problem IDs are invalid.");
-
-            Job job = new Job
-            {
-                JobId = id,
-                CustomerId = dto.CustomerId,
-                DeviceId = dto.DeviceId,
-                ReceiveTime = dto.ReceiveTime,
-                PickupTime = dto.PickupTime,
-                EstimatedPickupTime = dto.EstimatedPickupTime,
-                Note = dto.Note,
-                Problems = problems,
-                EstimatedPrice = dto.EstimatedPrice,
-                CollectedPrice = dto.CollectedPrice,
-                IsFinished = dto.IsFinished
-            };
-
             try
             {
-                await _Repo.UpdateJobAsync(job);
+                await _service.UpdateJobAsync(id, dto);
                 return NoContent();
             }
             // job not found
