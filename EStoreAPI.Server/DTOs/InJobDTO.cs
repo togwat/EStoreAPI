@@ -11,8 +11,7 @@ namespace EStoreAPI.Server.DTOs
         [Required]
         public int DeviceId { get; set; }
 
-        [Required]
-        public DateTime ReceiveTime { get; set; }
+        public DateTime? ReceiveTime { get; set; }
 
         public DateTime? PickupTime { get; set; }
 
@@ -35,7 +34,7 @@ namespace EStoreAPI.Server.DTOs
         {
             CustomerId = CustomerId,
             DeviceId = DeviceId,
-            ReceiveTime = ReceiveTime,
+            ReceiveTime = ReceiveTime ?? DateTime.UtcNow,
             PickupTime = PickupTime,
             EstimatedPickupTime = EstimatedPickupTime,
             Note = Note,
