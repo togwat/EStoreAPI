@@ -17,7 +17,7 @@ export const AssistantSidebar: FC<PropsWithChildren> = ({ children }) => {
   return (
     <ResizablePanelGroup key={isMobile ? "vertical" : "horizontal"} orientation={isMobile ? "vertical" : "horizontal"}>
       <ResizablePanel defaultSize={isMobile ? 100 - defaultChatWidthMobile : 100 - defaultChatWidth}>{children}</ResizablePanel>
-      <ResizableHandle />
+      <ResizableHandle withHandle />
       <ResizablePanel defaultSize={isMobile ? defaultChatWidthMobile : defaultChatWidth}>
         <Thread />
       </ResizablePanel>
