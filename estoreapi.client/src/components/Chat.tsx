@@ -7,6 +7,7 @@ import {
     SimpleTextAttachmentAdapter,
     CompositeAttachmentAdapter,
 } from "@assistant-ui/react";
+import MarkdownAttachmentAdapter from "@/adapters/MarkdownAttachmentAdapter";
 import { AssistantSidebar } from "./assistant-ui/assistant-sidebar";
 
 /**
@@ -154,6 +155,7 @@ const agentAdapter: ChatModelAdapter = {
 
 const attachmentAdapter = new CompositeAttachmentAdapter([
     new SimpleImageAttachmentAdapter(),
+    new MarkdownAttachmentAdapter(),
     new SimpleTextAttachmentAdapter(),
 ]);
 
