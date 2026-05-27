@@ -31,7 +31,7 @@ public class ProblemTools
         }
     }
 
-    [McpServerTool, Description("Create one or more problems and add them to the problem catalogue.")]
+    [McpServerTool, Description("Create one or more problems and add them to the problem catalogue. Check if problems exist for a device before creating.")]
     public async Task<ICollection<OutProblemDTO>> CreateProblemsAsync(
         [Description("A list of problems to create and add to the catalogue. Each problem requires: ProblemName, Price, and DeviceId. Retrieve the DeviceId by searching for the device first.")] ICollection<InProblemDTO> dtos)
     {

@@ -23,7 +23,7 @@ public class CustomerTools
         return customers.Select(OutCustomerDTO.FromModel).ToList();
     }
 
-    [McpServerTool, Description("Create one or more new customers and add them into the database.")]
+    [McpServerTool, Description("Create one or more new customers and add them into the database. Check if customers exist using search before creating.")]
     public async Task<ICollection<OutCustomerDTO>> CreateCustomersAsync(
         [Description("A list of customers to create. Each customer requires: CustomerName, PhoneNumber.")] ICollection<InCustomerDTO> dtos)
     {

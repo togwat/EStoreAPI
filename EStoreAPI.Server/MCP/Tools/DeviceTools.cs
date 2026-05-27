@@ -31,7 +31,7 @@ public class DeviceTools
         return devices.Select(OutDeviceDTO.FromModel).ToList();
     }
 
-    [McpServerTool, Description("Create one or more new device models and add them to the database.")]
+    [McpServerTool, Description("Create one or more new device models and add them to the database. Check if devices exist using search before creating.")]
     public async Task<ICollection<OutDeviceDTO>> CreateDevicesAsync(
         [Description("A list of devices to create. Each device requires: deviceName, deviceType.")] ICollection<InDeviceDTO> dtos)
     {
