@@ -24,12 +24,12 @@ export function Navbar({ title, children }: NavbarProps) {
                 <Collapsible open={open} onOpenChange={setOpen} className="sticky top-0 z-5 relative border-b border-border bg-background">
                     <div className="flex items-center justify-between px-2 py-2">
                         <CollapsibleTrigger asChild>
-                            <Button variant="outline" size="icon">
+                            <Button variant="ghost" size="icon">
                                 {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                             </Button>
                         </CollapsibleTrigger>
                         <h1 className="text-xl">{title}</h1>
-                        <NavItem to="/" icon={<ThemeIcon className="h-4" />} label="" onClick={close} />
+                        <NavItem to="/" icon={<ThemeIcon className="h-5" />} label="" onClick={close} />
                     </div>
                     <CollapsibleContent className="overflow-hidden absolute top-full left-0 right-0 z-40 border-y border-border bg-background data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
                         <nav className="flex flex-col gap-1 p-1">
@@ -49,7 +49,7 @@ export function Navbar({ title, children }: NavbarProps) {
         <div className="flex h-full">
             <aside className="flex h-full w-20 shrink-0 flex-col border-r border-border bg-background">
                 <nav className="flex flex-col gap-1 p-3">
-                    <NavItem to="/" icon={<ThemeIcon className="h-8" />} label="" />
+                    <NavItem to="/" icon={<ThemeIcon className="h-6" />} label="" />
                     <NavItem to="/form" icon={<Form className="h-4.5 w-4.5" />} label="Form" />
                     <NavItem to="/jobs" icon={<ScrollText className="h-4.5 w-4.5" />} label="Jobs" />
                     <NavItem to="/devices" icon={<TabletSmartphone className="h-4.5 w-4.5" />} label="Devices" />

@@ -116,27 +116,4 @@
     padding-left: 1rem;
     padding-right: 1rem;
   }
-
-  /* Plain <button> elements (not shadcn Button which has data-slot="button") */
-  button:not([data-slot="button"]) {
-    border-radius: var(--radius);
-    border: 1px solid transparent;
-    padding: 0.5em 1.2em;
-    font-size: 1em;
-    font-weight: 500;
-    font-family: inherit;
-    background-color: var(--primary);
-    color: var(--primary-foreground);
-    cursor: pointer;
-    transition: opacity 0.2s;
-  }
-
-  button:not([data-slot="button"]):hover {
-    opacity: 0.85;
-  }
-
-  button:not([data-slot="button"]):focus-visible {
-    outline: 2px solid var(--ring);
-    outline-offset: 2px;
-  }
 }

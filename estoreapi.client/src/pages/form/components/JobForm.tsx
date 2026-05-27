@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import axios from 'axios';
 
 export default function JobForm() {
@@ -66,7 +67,7 @@ export default function JobForm() {
                 <label htmlFor="price" className="text-left">Estimated price</label>
                 <input name="price" className="w-full" />
             </div>
-            <button type="submit">Submit</button>
+            <Button variant="default" type="submit" className="py-5">Submit</Button>
         </form>
     )
 }

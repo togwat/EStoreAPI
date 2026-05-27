@@ -20,8 +20,8 @@ export default function NavItem({ to, icon, label, horizontal, onClick }: NavIte
             onClick={onClick}
             className={({ isActive }) =>
                 cn(
-                    'flex rounded-md px-3 py-2 transition-colors',
-                    horizontal ? 'flex-row items-center gap-3' : 'flex-col items-center gap-1',
+                    'flex rounded-md p-2 transition-colors',
+                    horizontal ? 'flex-row items-center gap-2' : 'flex-col items-center gap-1',
                     isActive
                         ? 'bg-accent text-accent-foreground'
                         : 'text-foreground hover:bg-accent hover:text-accent-foreground'
