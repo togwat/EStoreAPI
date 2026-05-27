@@ -31,7 +31,8 @@ type IncomingContentPart =
 /** Content part shapes sent to the agent over the wire. */
 type OutgoingContentPart =
     | { type: "text"; text: string }
-    | { type: "image_url"; url: string };
+    | { type: "image_url"; url: string }
+    | { type: "tool_use"; id: string; name: string; input: unknown; result?: unknown };
 
 /** Streaming event shapes from /agent/chat's StreamingResponse */
 type StreamEvent =
@@ -45,6 +46,13 @@ const agentAdapter: ChatModelAdapter = {
         const toParts = (c: { type: string; [k: string]: unknown }): OutgoingContentPart[] => {
             if (c.type === "text") return [{ type: "text", text: c.text as string }];
             if (c.type === "image") return [{ type: "image_url", url: c.image as string }];
+            if (c.type === "tool-call") return [{
+                type: "tool_use",
+                id: c.toolCallId as string,
+                name: c.toolName as string,
+                input: JSON.parse(c.argsText as string),
+                result: (c as ToolCallPart).result,
+            }];
             return [];
         };
 

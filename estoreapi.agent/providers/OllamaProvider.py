@@ -79,23 +79,55 @@ class OllamaProvider(ChatProvider):
         """
         Convert the provider-agnostic content format to Ollama's native format.
 
-        The frontend sends content as a typed parts list:
-          [{"type": "text", "text": "..."}, {"type": "image_url", "url": "data:image/png;base64,..."}]
+        The frontend sends content as a typed parts list which may include:
+          {"type": "text", "text": "..."}
+          {"type": "image_url", "url": "data:image/png;base64,..."}
+          {"type": "tool_use", "id": "...", "name": "...", "input": {...}, "result": ...}
 
-        Ollama expects a plain string for content and a separate "images" list of raw base64 strings.
+        Ollama expects plain string content, a separate "images" list, and tool calls as a
+        dedicated "tool_calls" key. An assistant message with tool_use parts is expanded
+        into an assistant message (with tool_calls) followed by one tool message per result.
         """
         result = []
         for msg in messages:
-            content = msg.get("content")
-            if isinstance(content, list):
-                text = " ".join(p["text"] for p in content if p.get("type") == "text")
-                images = [
-                    p["url"].split(";base64,", 1)[1]
-                    for p in content
-                    if p.get("type") == "image_url" and ";base64," in p["url"]
-                ]
-                msg = {**msg, "content": text}
-                if images:
-                    msg["images"] = images
-            result.append(msg)
+            result.extend(self._expand_message(msg))
         return result
+
+    def _expand_message(self, msg: dict) -> list[dict]:
+        content = msg.get("content")
+        if not isinstance(content, list):
+            return [msg]
+        
+        text = " ".join(p["text"] for p in content if p.get("type") == "text")
+        images = [
+            p["url"].split(";base64,", 1)[1]
+            for p in content
+            if p.get("type") == "image_url" and ";base64," in p["url"]
+        ]
+        tool_uses = [p for p in content if p.get("type") == "tool_use"]
+
+        if not tool_uses:
+            normalized = {**msg, "content": text}
+            if images:
+                normalized["images"] = images
+            return [normalized]
+
+        # Assistant message with tool calls: emit assistant msg then tool result messages.
+        assistant_msg: dict = {
+            "role": "assistant",
+            "content": text,
+            "tool_calls": [
+                {"function": {"name": p["name"], "arguments": p["input"]}}
+                for p in tool_uses
+            ],
+        }
+        if images:
+            assistant_msg["images"] = images
+
+        tool_msgs = [
+            {"role": "tool", "content": str(p["result"]), "name": p["name"]}
+            for p in tool_uses
+            if p.get("result") is not None
+        ]
+
+        return [assistant_msg] + tool_msgs
