@@ -5,6 +5,7 @@ import JobsPage from './pages/jobs/JobsPage';
 import DevicesPage from './pages/devices/DevicesPage';
 import Chat from './components/Chat';
 import { Navbar } from './components/Navbar';
+import { TooltipProvider } from './components/ui/tooltip';
 
 const pageTitles: Record<string, string> = {
     '/': '',
@@ -34,7 +35,9 @@ function AppContent() {
 export default function App() {
     return (
         <BrowserRouter>
-            <AppContent />
+            <TooltipProvider>
+                <AppContent />
+            </TooltipProvider>
         </BrowserRouter>
     );
 }

@@ -1,5 +1,12 @@
 import type { PropsWithChildren } from "react";
-import { AssistantRuntimeProvider, useLocalRuntime, type ChatModelAdapter } from "@assistant-ui/react";
+import {
+    AssistantRuntimeProvider,
+    useLocalRuntime,
+    type ChatModelAdapter,
+    SimpleImageAttachmentAdapter,
+    SimpleTextAttachmentAdapter,
+    CompositeAttachmentAdapter,
+} from "@assistant-ui/react";
 import { AssistantSidebar } from "./assistant-ui/assistant-sidebar";
 
 /**
@@ -124,8 +131,15 @@ const agentAdapter: ChatModelAdapter = {
     },
 };
 
+const attachmentAdapter = new CompositeAttachmentAdapter([
+    new SimpleImageAttachmentAdapter(),
+    new SimpleTextAttachmentAdapter(),
+]);
+
 export default function Chat({ children }: PropsWithChildren) {
-    const runtime = useLocalRuntime(agentAdapter);
+    const runtime = useLocalRuntime(agentAdapter, {
+        adapters: { attachments: attachmentAdapter },
+    });
     return (
         <AssistantRuntimeProvider runtime={runtime}>
             <AssistantSidebar>
