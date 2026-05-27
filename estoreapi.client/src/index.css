@@ -48,6 +48,19 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --font-sans: "Lora", Georgia, "Times New Roman", serif;
   --shadow-paper: 0 1px 0 rgba(42, 29, 18, 0.05), 0 6px 18px -10px rgba(42, 29, 18, 0.18);
+  --animate-collapsible-down: collapsible-down 220ms ease-out;
+  --animate-collapsible-up: collapsible-up 180ms ease-in;
+}
+
+/* Collapsible open/close animation */
+@keyframes collapsible-down {
+  from { height: 0; }
+  to { height: var(--radix-collapsible-content-height); }
+}
+
+@keyframes collapsible-up {
+  from { height: var(--radix-collapsible-content-height); }
+  to { height: 0; }
 }
 
 /* ── Base element styles ─────────────────────────────────────────────── */

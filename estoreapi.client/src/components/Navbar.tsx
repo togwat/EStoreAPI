@@ -31,7 +31,7 @@ export function Navbar({ title, children }: NavbarProps) {
                         <h1 className="text-xl">{title}</h1>
                         <NavItem to="/" icon={<ThemeIcon className="h-4" />} label="" onClick={close} />
                     </div>
-                    <CollapsibleContent className="absolute top-full left-0 right-0 z-40 border-y border-border bg-background">
+                    <CollapsibleContent className="overflow-hidden absolute top-full left-0 right-0 z-40 border-y border-border bg-background data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
                         <nav className="flex flex-col gap-1 p-1">
                             <NavItem to="/form" icon={<Form className="h-4 w-4" />} label="Form" horizontal onClick={close} />
                             <NavItem to="/jobs" icon={<ScrollText className="h-4 w-4" />} label="Jobs" horizontal onClick={close} />
