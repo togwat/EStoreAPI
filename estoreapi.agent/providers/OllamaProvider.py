@@ -11,7 +11,7 @@ class OllamaProvider(ChatProvider):
         print(f"Provider Ollama connected at {host}. Model: {self.model}")
 
     def _to_ollama_tools(self, tools: list[dict]) -> list[dict]:
-        """Convert definitions.json format (input_schema) to Ollama tool format (parameters)."""
+        """Convert MCP tool format (input_schema) to Ollama's expected format (parameters)."""
         return [
             {
                 "type": "function",
