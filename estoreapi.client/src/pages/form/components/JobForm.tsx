@@ -1,4 +1,7 @@
 import { Button } from '@/components/ui/button';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import axios from 'axios';
 
 export default function JobForm() {
@@ -34,40 +37,42 @@ export default function JobForm() {
     }
 
     return (
-        <form className="flex flex-col gap-4 max-w-xl mx-auto" onSubmit={handleSubmit}>
-            <div className="flex flex-col gap-2">
-                <label htmlFor="name" className="text-left">Name</label>
-                <input name="name" className="w-full" />
-            </div>
-            <div className="flex flex-col gap-2">
-                <label htmlFor="phone" className="text-left after:content-['_*'] after:text-red-500">Phone number</label>
-                <input name="phone" placeholder="required" className="w-full" />
-            </div>
-            <div className="flex flex-col gap-2">
-                <label htmlFor="phone2" className="text-left">Secondary phone number</label>
-                <input name="phone2" className="w-full" />
-            </div>
-            <div className="flex flex-col gap-2">
-                <label htmlFor="email" className="text-left">Email</label>
-                <input name="email" className="w-full" />
-            </div>
-            <div className="flex flex-col gap-2">
-                <label htmlFor="address" className="text-left">Address</label>
-                <input name="address" className="w-full" />
-            </div>
-            <div className="flex flex-col gap-2">
-                <label htmlFor="device" className="text-left">Device</label>
-                <input name="device" className="w-full" />
-            </div>
-            <div className="flex flex-col gap-2">
-                <label htmlFor="notes" className="text-left">Notes</label>
-                <textarea name="notes" className="w-full" />
-            </div>
-            <div className="flex flex-col gap-2">
-                <label htmlFor="price" className="text-left">Estimated price</label>
-                <input name="price" className="w-full" />
-            </div>
-            <Button variant="default" type="submit" className="py-5">Submit</Button>
+        <form className="flex flex-col gap-4 max-w-lg mx-auto" onSubmit={handleSubmit}>
+            <FieldGroup>
+                <Field>
+                    <FieldLabel htmlFor="name">Name</FieldLabel>
+                    <Input id="name" name="name" />
+                </Field>
+                <Field>
+                    <FieldLabel htmlFor="phone" className="after:content-['_*'] after:text-destructive">Phone number</FieldLabel>
+                    <Input id="phone" name="phone" placeholder="required" required />
+                </Field>
+                <Field>
+                    <FieldLabel htmlFor="phone2">Secondary phone number</FieldLabel>
+                    <Input id="phone2" name="phone2" />
+                </Field>
+                <Field>
+                    <FieldLabel htmlFor="email">Email</FieldLabel>
+                    <Input id="email" name="email" type="email" />
+                </Field>
+                <Field>
+                    <FieldLabel htmlFor="address">Address</FieldLabel>
+                    <Input id="address" name="address" />
+                </Field>
+                <Field>
+                    <FieldLabel htmlFor="device">Device</FieldLabel>
+                    <Input id="device" name="device" />
+                </Field>
+                <Field>
+                    <FieldLabel htmlFor="notes">Notes</FieldLabel>
+                    <Textarea id="notes" name="notes" />
+                </Field>
+                <Field>
+                    <FieldLabel htmlFor="price">Estimated price</FieldLabel>
+                    <Input id="price" name="price" />
+                </Field>
+            </FieldGroup>
+            <Button type="submit">Submit</Button>
         </form>
     )
 }

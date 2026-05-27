@@ -30,7 +30,7 @@
 
   /* borders / inputs / focus rings */
   --border: hsl(46, 49%, 78%);           /* #e3d6ad */
-  --input: hsl(46, 49%, 78%);
+  --input: hsl(50, 85%, 97%); /*card*/
   --ring: hsl(19, 72%, 42%);
 
   --radius: 0.375rem;
