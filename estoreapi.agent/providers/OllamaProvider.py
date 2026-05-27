@@ -10,6 +10,46 @@ class OllamaProvider(ChatProvider):
         self._client = Client(host=host)
         print(f"Provider Ollama connected at {host}. Model: {self.model}")
 
+    def stream_chat_with_tools(self, messages: list[dict], tools: list[dict]) \
+    -> Iterator[tuple]:
+        """
+        Stream a response with tools. Yields:
+          ("chunk", text)                              — partial text token
+          ("tool_calls", list[dict], assistant_msg)   — model chose to call tools
+        Tool calls, if any, are emitted as a single event at the end of the stream.
+        """
+        ollama_tools = self._to_ollama_tools(tools)
+        content_parts: list[str] = []
+        final_tool_calls = None
+
+        for chunk in self._client.chat(
+            model=self.model,
+            messages=self._normalize_messages(messages),
+            tools=ollama_tools,
+            stream=True,
+        ):
+            msg = chunk.message
+            if msg.thinking:
+                yield ("reasoning", msg.thinking)
+            if msg.content:
+                content_parts.append(msg.content)
+                yield ("chunk", msg.content)
+            if msg.tool_calls:
+                # Tool calls arrive on the final chunk; capture and emit after the loop
+                final_tool_calls = msg.tool_calls
+
+        if final_tool_calls:
+            normalized = self._normalize_tool_calls(final_tool_calls)
+            assistant_msg = {
+                "role": "assistant",
+                "content": "".join(content_parts),
+                "tool_calls": final_tool_calls,
+            }
+            yield ("tool_calls", normalized, assistant_msg)
+            
+    def make_tool_result_message(self, tool_name: str, result: str) -> dict:
+        return {"role": "tool", "content": result, "name": tool_name}
+
     def _to_ollama_tools(self, tools: list[dict]) -> list[dict]:
         """Convert MCP tool format (input_schema) to Ollama's expected format (parameters)."""
         return [
@@ -35,71 +75,27 @@ class OllamaProvider(ChatProvider):
             for tc in tool_calls
         ]
 
-    def chat(self, messages: list[dict]) -> str:
-        response = self._client.chat(model=self.model, messages=messages)
-        return response.message.content or "No response returned."
-
-    def chat_with_tools(self, messages: list[dict], tools: list[dict]) \
-    -> tuple[str | None, list[dict], dict | None]:
-        response = self._client.chat(
-            model=self.model,
-            messages=messages,
-            tools=self._to_ollama_tools(tools),
-        )
-        msg = response.message
-
-        if msg.tool_calls:
-            normalized = self._normalize_tool_calls(msg.tool_calls)
-            assistant_msg = {"role": "assistant", "content": msg.content or "", "tool_calls": msg.tool_calls}
-            return None, normalized, assistant_msg
-
-        return msg.content or "No response returned.", [], None
-
-    def make_tool_result_message(self, tool_name: str, result: str) -> dict:
-        return {"role": "tool", "content": result, "name": tool_name}
-
-    # streaming
-    def stream_chat(self, messages: list[dict]) -> Iterator[str]:
-        for chunk in self._client.chat(model=self.model, messages=messages, stream=True):
-            if chunk.message.content:
-                yield chunk.message.content
-
-    def stream_chat_with_tools(
-        self,
-        messages: list[dict],
-        tools: list[dict],
-    ) -> Iterator[tuple]:
+    def _normalize_messages(self, messages: list[dict]) -> list[dict]:
         """
-        Stream a response with tools. Yields:
-          ("chunk", text)                              — partial text token
-          ("tool_calls", list[dict], assistant_msg)   — model chose to call tools
-        Tool calls, if any, are emitted as a single event at the end of the stream.
+        Convert the provider-agnostic content format to Ollama's native format.
+
+        The frontend sends content as a typed parts list:
+          [{"type": "text", "text": "..."}, {"type": "image_url", "url": "data:image/png;base64,..."}]
+
+        Ollama expects a plain string for content and a separate "images" list of raw base64 strings.
         """
-        ollama_tools = self._to_ollama_tools(tools)
-        content_parts: list[str] = []
-        final_tool_calls = None
-
-        for chunk in self._client.chat(
-            model=self.model,
-            messages=messages,
-            tools=ollama_tools,
-            stream=True,
-        ):
-            msg = chunk.message
-            if msg.thinking:
-                yield ("reasoning", msg.thinking)
-            if msg.content:
-                content_parts.append(msg.content)
-                yield ("chunk", msg.content)
-            if msg.tool_calls:
-                # Tool calls arrive on the final chunk; capture and emit after the loop
-                final_tool_calls = msg.tool_calls
-
-        if final_tool_calls:
-            normalized = self._normalize_tool_calls(final_tool_calls)
-            assistant_msg = {
-                "role": "assistant",
-                "content": "".join(content_parts),
-                "tool_calls": final_tool_calls,
-            }
-            yield ("tool_calls", normalized, assistant_msg)
+        result = []
+        for msg in messages:
+            content = msg.get("content")
+            if isinstance(content, list):
+                text = " ".join(p["text"] for p in content if p.get("type") == "text")
+                images = [
+                    p["url"].split(";base64,", 1)[1]
+                    for p in content
+                    if p.get("type") == "image_url" and ";base64," in p["url"]
+                ]
+                msg = {**msg, "content": text}
+                if images:
+                    msg["images"] = images
+            result.append(msg)
+        return result

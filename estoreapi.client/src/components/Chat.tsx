@@ -22,11 +22,16 @@ type ToolCallPart = {
     result?: unknown;
 };
 
-/** Union of all content part shapes yielded to the assistant-ui runtime. */
-type ContentPart =
+/** Content part shapes received from the agent and yielded to the assistant-ui runtime. */
+type IncomingContentPart =
     | { type: "reasoning"; text: string }
     | { type: "text"; text: string }
     | ToolCallPart;
+
+/** Content part shapes sent to the agent over the wire. */
+type OutgoingContentPart =
+    | { type: "text"; text: string }
+    | { type: "image_url"; url: string };
 
 /** Streaming event shapes from /agent/chat's StreamingResponse */
 type StreamEvent =
@@ -37,12 +42,20 @@ type StreamEvent =
 
 const agentAdapter: ChatModelAdapter = {
     async *run({ messages, abortSignal }) {
+        const toParts = (c: { type: string; [k: string]: unknown }): OutgoingContentPart[] => {
+            if (c.type === "text") return [{ type: "text", text: c.text as string }];
+            if (c.type === "image") return [{ type: "image_url", url: c.image as string }];
+            return [];
+        };
+
         const formatted = messages.map(m => ({
             role: m.role,
-            content: m.content
-                .filter(c => c.type === "text")
-                .map(c => (c as { type: "text"; text: string }).text)
-                .join(""),
+            content: [
+                ...m.content.flatMap(c => toParts(c as never)),
+                ...(m.role === "user"
+                    ? m.attachments.flatMap(a => (a.content ?? []).flatMap(c => toParts(c as never)))
+                    : []),
+            ],
         }));
 
         const res = await fetch("/agent/chat", {
@@ -62,7 +75,7 @@ const agentAdapter: ChatModelAdapter = {
         const toolCallMap = new Map<string, ToolCallPart>();
 
         /** Assemble the current accumulated state into an ordered content array. */
-        const buildContent = (): ContentPart[] => [
+        const buildContent = (): IncomingContentPart[] => [
             ...(reasoning ? [{ type: "reasoning" as const, text: reasoning }] : []),
             ...toolCalls,
             ...(text ? [{ type: "text" as const, text }] : []),
