@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import * as ResizablePrimitive from "react-resizable-panels"
 
 import { cn } from "src/lib/utils"
@@ -39,7 +40,10 @@ function ResizableHandle({
       {...props}
     >
       {withHandle && (
-        <div className="z-10 flex h-6 w-1 shrink-0 rounded-lg bg-border" />
+        <div className="z-10 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border bg-background">
+          <ChevronLeft className="h-3 w-3" />
+          <ChevronRight className="h-3 w-3" />
+        </div>
       )}
     </ResizablePrimitive.Separator>
   )
