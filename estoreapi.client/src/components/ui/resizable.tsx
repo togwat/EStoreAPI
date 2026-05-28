@@ -41,8 +41,8 @@ function ResizableHandle({
     >
       {withHandle && (
         <div className="z-10 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border bg-background">
-          <ChevronLeft className="h-3 w-3" />
-          <ChevronRight className="h-3 w-3" />
+          <ChevronLeft className="h-3 w-3 select-none" />
+          <ChevronRight className="h-3 w-3 select-none" />
         </div>
       )}
     </ResizablePrimitive.Separator>
