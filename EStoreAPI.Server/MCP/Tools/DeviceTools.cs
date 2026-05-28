@@ -24,7 +24,7 @@ public class DeviceTools
     }
 
     [McpServerTool, Description("Search for device models by device type.")]
-    public async Task<ICollection<OutDeviceDTO>> SearchDevicesByTypeAsync(
+    public async Task<ICollection<OutDeviceDTO>> SearchDevicesTypeAsync(
         [Description("Partial matches supported.")] string type)
     {
         ICollection<Device> devices = await _service.SearchDevicesByTypeAsync(type);
