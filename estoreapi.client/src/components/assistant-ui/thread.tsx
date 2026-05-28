@@ -17,9 +17,11 @@ import {
   ToolGroupTrigger,
 } from "src/components/assistant-ui/tool-group";
 import { ToolFallback } from "src/components/assistant-ui/tool-fallback";
+import { ToolConfirmation } from "src/components/assistant-ui/tool-confirmation";
 import { TooltipIconButton } from "src/components/assistant-ui/tooltip-icon-button";
 import { Button } from "src/components/ui/button";
 import { cn } from "src/lib/utils";
+import { usePendingConfirmations } from "src/hooks/use-pending-confirmations";
 import {
   ActionBarMorePrimitive,
   ActionBarPrimitive,
@@ -32,6 +34,7 @@ import {
   SuggestionPrimitive,
   ThreadPrimitive,
   useAuiState,
+  useComposerRuntime,
 } from "@assistant-ui/react";
 import {
   ArrowDownIcon,
@@ -154,9 +157,28 @@ const ThreadSuggestionItem: FC = () => {
   );
 };
 
+const CANCEL_ON_SEND_REASON =
+  "The user sent a new message instead of confirming, so this tool was cancelled.";
+
 const Composer: FC = () => {
+  const { hasPending, cancelAll } = usePendingConfirmations();
+  const composer = useComposerRuntime();
+
+  // Sending a message while a tool awaits confirmation is an implicit "no":
+  // cancel the pending tool(s) first, then let the send proceed. Gated on
+  // canSend so an empty submit doesn't cancel anything. Runs before send() on
+  // both Enter (form onSubmit) and the button (onClick) — see ComposerAction.
+  const cancelPendingBeforeSend = () => {
+    if (hasPending && composer.getState().canSend) {
+      cancelAll(CANCEL_ON_SEND_REASON);
+    }
+  };
+
   return (
-    <ComposerPrimitive.Root className="aui-composer-root relative flex w-full flex-col">
+    <ComposerPrimitive.Root
+      onSubmit={cancelPendingBeforeSend}
+      className="aui-composer-root relative flex w-full flex-col"
+    >
       <ComposerPrimitive.AttachmentDropzone asChild>
         <div
           data-slot="aui_composer-shell"
@@ -164,26 +186,31 @@ const Composer: FC = () => {
         >
           <ComposerAttachments />
           <ComposerPrimitive.Input
-            placeholder="Send a message..."
+            placeholder={
+              hasPending
+                ? "Sending will cancel the pending tool..."
+                : "Send a message..."
+            }
             className="aui-composer-input max-h-32 min-h-10 w-full resize-none bg-transparent px-1.75 py-1 text-sm outline-none placeholder:text-muted-foreground/80"
             rows={1}
             autoFocus
             aria-label="Message input"
           />
-          <ComposerAction />
+          <ComposerAction onBeforeSend={cancelPendingBeforeSend} />
         </div>
       </ComposerPrimitive.AttachmentDropzone>
     </ComposerPrimitive.Root>
   );
 };
 
-const ComposerAction: FC = () => {
+const ComposerAction: FC<{ onBeforeSend: () => void }> = ({ onBeforeSend }) => {
   return (
     <div className="aui-composer-action-wrapper relative flex items-center justify-between">
       <ComposerAddAttachment />
       <AuiIf condition={(s) => !s.thread.isRunning}>
         <ComposerPrimitive.Send asChild>
           <TooltipIconButton
+            onClick={onBeforeSend}
             tooltip="Send message"
             side="bottom"
             type="button"
@@ -281,6 +308,13 @@ const AssistantMessage: FC = () => {
               case "reasoning":
                 return <Reasoning {...part} />;
               case "tool-call":
+                // A gated tool call pauses in `requires-action` with no result;
+                // show the inline approve/cancel UI instead of the normal card.
+                if (
+                  part.status?.type === "requires-action" &&
+                  part.result === undefined
+                )
+                  return <ToolConfirmation {...part} />;
                 return part.toolUI ?? <ToolFallback {...part} />;
               default:
                 return null;

@@ -40,32 +40,46 @@ type StreamEvent =
     | ["chunk", string]
     | ["reasoning", string]
     | ["tool_calls", Array<{ id: string; name: string; arguments: Record<string, unknown> }>]
-    | ["tool_result", string, unknown];
+    | ["tool_result", string, unknown]
+    // The listed tool calls need user approval; the backend ends the stream here.
+    | ["confirmation_required", string[]];
+
+/** Convert a single assistant-ui content part into the agent's wire shape. */
+const toOutgoingParts = (c: { type: string; [k: string]: unknown }): OutgoingContentPart[] => {
+    if (c.type === "text") return [{ type: "text", text: c.text as string }];
+    if (c.type === "image") return [{ type: "image_url", url: c.image as string }];
+    if (c.type === "tool-call") return [{
+        type: "tool_use",
+        id: c.toolCallId as string,
+        name: c.toolName as string,
+        input: JSON.parse(c.argsText as string),
+        result: (c as ToolCallPart).result,
+    }];
+    return [];
+};
 
 const agentAdapter: ChatModelAdapter = {
-    async *run({ messages, abortSignal }) {
-        const toParts = (c: { type: string; [k: string]: unknown }): OutgoingContentPart[] => {
-            if (c.type === "text") return [{ type: "text", text: c.text as string }];
-            if (c.type === "image") return [{ type: "image_url", url: c.image as string }];
-            if (c.type === "tool-call") return [{
-                type: "tool_use",
-                id: c.toolCallId as string,
-                name: c.toolName as string,
-                input: JSON.parse(c.argsText as string),
-                result: (c as ToolCallPart).result,
-            }];
-            return [];
-        };
-
+    async *run({ messages, abortSignal, unstable_getMessage }) {
         const formatted = messages.map(m => ({
             role: m.role,
             content: [
-                ...m.content.flatMap(c => toParts(c as never)),
+                ...m.content.flatMap(c => toOutgoingParts(c as never)),
                 ...(m.role === "user"
-                    ? m.attachments.flatMap(a => (a.content ?? []).flatMap(c => toParts(c as never)))
+                    ? m.attachments.flatMap(a => (a.content ?? []).flatMap(c => toOutgoingParts(c as never)))
                     : []),
             ],
         }));
+
+        // On a roundtrip after a confirmation, the runtime passes history only up
+        // to the user message. The in-progress assistant message holds the
+        // confirmed tool call and its result, so append it for the backend.
+        const current = unstable_getMessage();
+        if (current.content.some(c => c.type === "tool-call")) {
+            formatted.push({
+                role: "assistant",
+                content: current.content.flatMap(c => toOutgoingParts(c as never)),
+            });
+        }
 
         const res = await fetch("/agent/chat", {
             method: "POST",
@@ -82,6 +96,8 @@ const agentAdapter: ChatModelAdapter = {
         let reasoning = "";
         const toolCalls: ToolCallPart[] = [];
         const toolCallMap = new Map<string, ToolCallPart>();
+        // Set when the backend pauses for confirmation; drives the final status.
+        let awaitingConfirmation = false;
 
         /** Assemble the current accumulated state into an ordered content array. */
         const buildContent = (): IncomingContentPart[] => [
@@ -111,6 +127,9 @@ const agentAdapter: ChatModelAdapter = {
                 const [id, result] = rest as [string, unknown];
                 const part = toolCallMap.get(id);
                 if (part) part.result = result;
+            } else if (type === "confirmation_required") {
+                // Tool call(s) await user approval; the stream ends after this.
+                awaitingConfirmation = true;
             }
             return true;
         };
@@ -147,9 +166,18 @@ const agentAdapter: ChatModelAdapter = {
         }
 
         // Flush any remaining bytes that arrived without a trailing newline.
-        if (buffer.trim() && processLine(buffer)) {
-            yield { content: buildContent() as never[] };
-        }
+        if (buffer.trim()) processLine(buffer);
+
+        // Final emit. When the backend paused for confirmation, mark the message
+        // `requires-action` so the runtime stops and waits — the user's decision
+        // arrives later via addToolResult, which resumes the run. Otherwise the
+        // message completes normally.
+        yield {
+            content: buildContent() as never[],
+            ...(awaitingConfirmation
+                ? { status: { type: "requires-action", reason: "tool-calls" } as const }
+                : {}),
+        };
     },
 };
 
