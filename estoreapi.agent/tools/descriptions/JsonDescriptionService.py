@@ -20,17 +20,9 @@ class JsonDescriptionService(AbstractDescriptionService):
             self._path.write_text("{}", encoding="utf-8")
 
     def get(self, tool_name: str) -> str | None:
-        """
-        If a tool name has no entry yet, get() inserts an empty string and saves,
-        creating the file if needed. Empty strings are falsy, so callers using
-        `get() or default` fall back to the default description automatically.
-        """
+        """Return the override for the given key, or None if not set."""
         data = self._load()
-        if tool_name not in data:
-            # Seed an empty placeholder so the key appears in the file.
-            data[tool_name] = ""
-            self._save(data)
-        return data[tool_name] or None
+        return data.get(tool_name) or None
 
     def update(self, tool_name: str, description: str) -> str:
         data = self._load()
