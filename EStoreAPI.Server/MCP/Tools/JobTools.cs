@@ -17,7 +17,7 @@ public class JobTools
 
     [McpServerTool, Description("Create one or more new repair jobs and add them to the database. Each job links a customer and their device to problems selected from that device's problem catalogue.")]
     public async Task<ICollection<OutJobDTO>> CreateJobsAsync(
-        [Description("Jobs to create. Each requires: CustomerId, DeviceId, and at least one ProblemId. Search the customer by name for CustomerId, search the device by name for DeviceId, then use that DeviceId to retrieve the problem catalogue and get the relevant ProblemIds. If this is a new job, collectedPrice should be empty.")] ICollection<InJobDTO> dtos)
+        [Description("Jobs to create. Each requires: CustomerId, DeviceId, and at least one ProblemId. Search the customer by name for CustomerId, search the device by name for DeviceId, then use that DeviceId to retrieve the problem catalogue and get the relevant ProblemIds. Do not write in fields the user did not specify.")] ICollection<InJobDTO> dtos)
     {
         try
         {
