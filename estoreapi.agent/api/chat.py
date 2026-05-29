@@ -7,9 +7,8 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from config import SYSTEM_PROMPT, STREAMING
-from dependencies import get_clients, get_provider, get_router
+from dependencies import get_all_tools, get_provider, get_router
 from providers.AbstractProvider import ChatProvider
-from tools.AbstractToolClient import AbstractToolClient
 from tools.confirmation import requires_confirmation
 from tools.router import ToolRouter
 
@@ -38,7 +37,7 @@ class ToolRequest(BaseModel):
 def _run_agentic_loop(
     messages: list[dict],
     provider: ChatProvider,
-    clients: list[AbstractToolClient],
+    tools: list[dict],
     tool_router: ToolRouter,
 ) -> Iterator[tuple]:
     """
@@ -55,9 +54,6 @@ def _run_agentic_loop(
     frontend approves/declines, runs approved tools via /agent/tool, and
     re-invokes this endpoint with the results carried in the message history.
     """
-    # Aggregate tool definitions from all clients for the model.
-    tools = [tool for client in clients for tool in client.list_tools()]
-
     while True:
         had_tool_calls = False
 
@@ -109,7 +105,7 @@ def _run_agentic_loop(
 def chat(
     req: ChatRequest,
     provider: ChatProvider = Depends(get_provider),
-    clients: list[AbstractToolClient] = Depends(get_clients),
+    tools: list[dict] = Depends(get_all_tools),
     tool_router: ToolRouter = Depends(get_router),
 ):
     """
@@ -120,12 +116,12 @@ def chat(
 
     if req.stream:
         def serialised() -> Iterator[str]:
-            for event in _run_agentic_loop(messages, provider, clients, tool_router):
+            for event in _run_agentic_loop(messages, provider, tools, tool_router):
                 yield json.dumps(event) + "\n"
 
         return StreamingResponse(serialised(), media_type="application/x-ndjson")
 
-    text = "".join(ev[1] for ev in _run_agentic_loop(messages, provider, clients, tool_router) if ev[0] == "chunk")
+    text = "".join(ev[1] for ev in _run_agentic_loop(messages, provider, tools, tool_router) if ev[0] == "chunk")
     return ChatResponse(response=text)
 
 

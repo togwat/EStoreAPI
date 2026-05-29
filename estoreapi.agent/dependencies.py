@@ -12,8 +12,8 @@ from tools.router import ToolRouter
 def get_provider(request: Request) -> ChatProvider:
     return request.app.state.provider
 
-def get_clients(request: Request) -> list[AbstractToolClient]:
-    return request.app.state.clients
+def get_all_tools(request: Request) -> list[dict]:
+    return request.app.state.get_all_tools()
 
 def get_router(request: Request) -> ToolRouter:
     return request.app.state.router

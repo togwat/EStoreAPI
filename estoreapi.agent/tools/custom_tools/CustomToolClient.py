@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 from tools.AbstractToolClient import AbstractToolClient
 from tools.descriptions.AbstractDescriptionService import AbstractDescriptionService
 from tools.custom_tools.registry import Registry
@@ -16,12 +18,17 @@ class CustomToolClient(AbstractToolClient):
     call_tool()  dispatches to individual tool functions by name.
     """
 
-    def __init__(self, registry: Registry, desc_service: AbstractDescriptionService):
+    def __init__(
+        self,
+        registry: Registry,
+        desc_service: AbstractDescriptionService,
+        get_all_tools: Callable[[], list[dict]] | None = None,
+    ):
         self._registry = registry
         # Map tool names to their callable handlers.
         self._handlers = {
             "get_time": get_time,
-            "update_description": make_update_description_handler(desc_service),
+            "update_description": make_update_description_handler(desc_service, get_all_tools),
         }
 
     def __contains__(self, name: str) -> bool:
