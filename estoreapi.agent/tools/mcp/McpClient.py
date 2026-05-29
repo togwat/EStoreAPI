@@ -1,11 +1,12 @@
 import asyncio
 
+from tools.AbstractToolClient import AbstractToolClient
 from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
 from mcp.types import TextContent
 
 
-class McpClient:
+class McpClient(AbstractToolClient):
     """Sync wrapper around the async MCP SDK for use in sync FastAPI endpoints."""
 
     def __init__(self, url: str):

@@ -6,14 +6,29 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.chat import router as chat_router
 from config import MCP_URL
 from providers.factory import create_provider
-from tools.mcp_client import McpClient
+from tools.descriptions.JsonDescriptionService import JsonDescriptionService
+from tools.mcp.CorrectingMcpClient import CorrectingMcpClient
+from tools.custom_tools.registry import Registry
+from tools.custom_tools.CustomToolClient import CustomToolClient
+from tools.router import ToolRouter
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialise shared services on startup; clean up on shutdown."""
+
+    desc_service = JsonDescriptionService()
+    # custom tools definition reg
+    registry = Registry(desc_service=desc_service)
+
+    clients = [
+        CustomToolClient(registry=registry, desc_service=desc_service),
+        CorrectingMcpClient(url=MCP_URL, desc_service=desc_service),
+    ]
+
     app.state.provider = create_provider()
-    app.state.mcp = McpClient(url=MCP_URL)
+    app.state.clients = clients
+    app.state.router = ToolRouter(clients=clients)
     yield
 
 

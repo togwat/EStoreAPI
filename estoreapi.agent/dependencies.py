@@ -1,7 +1,8 @@
 from fastapi import Request
 
 from providers.AbstractProvider import ChatProvider
-from tools.mcp_client import McpClient
+from tools.AbstractToolClient import AbstractToolClient
+from tools.router import ToolRouter
 
 
 # FastAPI dependency functions
@@ -11,5 +12,8 @@ from tools.mcp_client import McpClient
 def get_provider(request: Request) -> ChatProvider:
     return request.app.state.provider
 
-def get_mcp_client(request: Request) -> McpClient:
-    return request.app.state.mcp
+def get_clients(request: Request) -> list[AbstractToolClient]:
+    return request.app.state.clients
+
+def get_router(request: Request) -> ToolRouter:
+    return request.app.state.router

@@ -7,10 +7,11 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from config import SYSTEM_PROMPT, STREAMING
-from dependencies import get_mcp_client, get_provider
+from dependencies import get_clients, get_provider, get_router
 from providers.AbstractProvider import ChatProvider
+from tools.AbstractToolClient import AbstractToolClient
 from tools.confirmation import requires_confirmation
-from tools.mcp_client import McpClient
+from tools.router import ToolRouter
 
 router = APIRouter()
 
@@ -37,7 +38,8 @@ class ToolRequest(BaseModel):
 def _run_agentic_loop(
     messages: list[dict],
     provider: ChatProvider,
-    mcp: McpClient,
+    clients: list[AbstractToolClient],
+    tool_router: ToolRouter,
 ) -> Iterator[tuple]:
     """
     Core agentic loop. Yields tuples that map directly to the frontend wire protocol:
@@ -53,7 +55,8 @@ def _run_agentic_loop(
     frontend approves/declines, runs approved tools via /agent/tool, and
     re-invokes this endpoint with the results carried in the message history.
     """
-    tools = mcp.list_tools()
+    # Aggregate tool definitions from all clients for the model.
+    tools = [tool for client in clients for tool in client.list_tools()]
 
     while True:
         had_tool_calls = False
@@ -83,7 +86,7 @@ def _run_agentic_loop(
                     if requires_confirmation(call["name"]):
                         gated.append(call)
                         continue
-                    result = mcp.call_tool(call["name"], call["arguments"])
+                    result = tool_router.route(call["name"]).call_tool(call["name"], call["arguments"])
                     yield ("tool_result", call["id"], result)
                     messages.append(provider.make_tool_result_message(call["name"], result))
 
@@ -100,12 +103,14 @@ def _run_agentic_loop(
             break
 
 
-# Endpoint
+# Endpoints
+
 @router.post("/agent/chat")
 def chat(
     req: ChatRequest,
     provider: ChatProvider = Depends(get_provider),
-    mcp: McpClient = Depends(get_mcp_client),
+    clients: list[AbstractToolClient] = Depends(get_clients),
+    tool_router: ToolRouter = Depends(get_router),
 ):
     """
     Run the agentic loop. Set stream=true to receive NDJSON events (one JSON array per line),
@@ -115,27 +120,27 @@ def chat(
 
     if req.stream:
         def serialised() -> Iterator[str]:
-            for event in _run_agentic_loop(messages, provider, mcp):
+            for event in _run_agentic_loop(messages, provider, clients, tool_router):
                 yield json.dumps(event) + "\n"
 
         return StreamingResponse(serialised(), media_type="application/x-ndjson")
 
-    text = "".join(ev[1] for ev in _run_agentic_loop(messages, provider, mcp) if ev[0] == "chunk")
+    text = "".join(ev[1] for ev in _run_agentic_loop(messages, provider, clients, tool_router) if ev[0] == "chunk")
     return ChatResponse(response=text)
 
 
 @router.post("/agent/tool")
 def run_tool(
     req: ToolRequest,
-    mcp: McpClient = Depends(get_mcp_client),
+    tool_router: ToolRouter = Depends(get_router),
 ):
     """
-    Execute a single MCP tool. Called by the frontend to run a tool *after* the
-    user has approved it in the confirmation UI (see _run_agentic_loop).
+    Execute a single tool post-approval. Called by the frontend after the user
+    confirms a gated tool call in the confirmation UI (see _run_agentic_loop).
 
     Restricted to tools in the confirmation registry: this endpoint exists only
     to run gated tools post-approval, so anything else is rejected.
     """
     if not requires_confirmation(req.name):
         raise HTTPException(status_code=403, detail=f"Tool '{req.name}' is not confirmable")
-    return {"result": mcp.call_tool(req.name, req.arguments)}
+    return {"result": tool_router.route(req.name).call_tool(req.name, req.arguments)}
