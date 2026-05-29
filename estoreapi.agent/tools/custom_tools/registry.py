@@ -6,8 +6,6 @@ from tools.descriptions.AbstractDescriptionService import AbstractDescriptionSer
 @dataclass
 class CustomTool:
     """
-    Pure definition of a custom (non-MCP) tool.
-
     schema               — tool definition in {name, description, input_schema} format
                            expected by providers. The description field is a placeholder;
                            Registry.get_schemas() overlays the live value from the

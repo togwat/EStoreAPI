@@ -9,5 +9,5 @@ class AbstractToolClient(ABC):
 
     @abstractmethod
     def call_tool(self, name: str, arguments: dict) -> str:
-        """Call a named MCP tool and return the result as a string."""
+        """Call a named tool and return the result as a string."""
         pass

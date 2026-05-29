@@ -3,6 +3,11 @@ from tools.descriptions.AbstractDescriptionService import AbstractDescriptionSer
 
 
 class CorrectingMcpClient(McpClient):
+    """
+    Replaces the descriptions of MCP tools with those from description service,
+    which may be self-enhanced by the agent.
+    """
+
     def __init__(self, url: str, desc_service: AbstractDescriptionService):
         super().__init__(url)
         self._service = desc_service

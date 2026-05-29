@@ -11,9 +11,6 @@ class CustomToolClient(AbstractToolClient):
     """
     Execution layer for custom (non-MCP) tools.
 
-    Implements the same AbstractToolClient interface as McpClient so the
-    ToolRouter can treat both interchangeably.
-
     list_tools() delegates to the Registry for schema/description resolution.
     call_tool()  dispatches to individual tool functions by name.
     """
