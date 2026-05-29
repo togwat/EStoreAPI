@@ -60,7 +60,7 @@ class Registry:
         default = (
             "Overrides the description for a tool or one of its parameters."
             "Before calling this tool, verify the exact tool name and parameter name from the tool list, do not guess or infer names."
-            "Use tool_name alone to update the tool description or add parameter_name to target a specific parameter."
+            "Use tool_name alone to update the tool description. Add parameter_name to update a specific parameter's description instead."
         )
         self._tools["update_description"] = CustomTool(
             schema={
