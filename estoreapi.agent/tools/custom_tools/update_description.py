@@ -31,8 +31,6 @@ def make_update_description_handler(
                 if parameter_name not in props:
                     return f"Tool '{tool_name}' has no parameter '{parameter_name}'. No description updated."
         
-        # call update service
-        key = f"{tool_name}.{parameter_name}" if parameter_name else tool_name
-        return desc_service.update(key, description)
+        return desc_service.update(tool_name, description, parameter_name)
 
     return update_description

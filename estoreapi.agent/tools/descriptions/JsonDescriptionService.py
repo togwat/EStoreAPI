@@ -19,16 +19,17 @@ class JsonDescriptionService(AbstractDescriptionService):
             self._path.parent.mkdir(parents=True, exist_ok=True)
             self._path.write_text("{}", encoding="utf-8")
 
-    def get(self, tool_name: str) -> str | None:
+    def get(self, tool_name: str, param_name: str | None = None) -> str | None:
         """Return the override for the given key, or None if not set."""
         data = self._load()
-        return data.get(tool_name) or None
+        return data.get(self._get_key(tool_name, param_name)) or None
 
-    def update(self, tool_name: str, description: str) -> str:
+    def update(self, tool_name: str, description: str, param_name: str | None = None) -> str:
         data = self._load()
-        data[tool_name] = description
+        key = self._get_key(tool_name, param_name)
+        data[key] = description
         self._save(data)
-        return f"Updated description for '{tool_name}'"
+        return f"Updated description for '{key}'"
 
     def _load(self) -> dict[str, str]:
         if self._path.exists():
@@ -42,3 +43,14 @@ class JsonDescriptionService(AbstractDescriptionService):
             json.dumps(data, indent=2, ensure_ascii=False),
             encoding="utf-8",
         )
+
+    def _get_key(self, tool_name: str, param_name: str | None):
+        """
+        Key format is 'tool_name.param_name'
+        With just tool_name, the description is for the overall tool.
+        With param_name, the description is for the specific parameter.
+        """
+        if param_name:
+            return f"{tool_name}:{param_name}"
+        else:
+            return tool_name

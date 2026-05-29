@@ -28,7 +28,7 @@ class CorrectingMcpClient(McpClient):
         if props:
             updated = {}
             for param, param_schema in props.items():
-                override = self._service.get(f"{tool['name']}.{param}")
+                override = self._service.get(tool['name'], param)
                 if override:
                     updated[param] = {**param_schema, "description": override}
                 else:
