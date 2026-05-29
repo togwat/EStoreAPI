@@ -14,6 +14,11 @@ class JsonDescriptionService(AbstractDescriptionService):
     def __init__(self, path: Path = _DEFAULT_PATH):
         self._path = path
 
+        # create file if missing
+        if not self._path.exists():
+            self._path.parent.mkdir(parents=True, exist_ok=True)
+            self._path.write_text("{}", encoding="utf-8")
+
     def get(self, tool_name: str) -> str | None:
         """
         If a tool name has no entry yet, get() inserts an empty string and saves,
