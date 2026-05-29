@@ -58,8 +58,9 @@ class Registry:
 
     def _register_update_description(self):
         default = (
-            "Overrides the description for any tool or tool parameter. "
-            "Use tool_name alone to update the tool description, or add parameter_name to target a specific parameter."
+            "Overrides the description for a tool or one of its parameters."
+            "Before calling this tool, verify the exact tool name and parameter name from the tool list, do not guess or infer names."
+            "Use tool_name alone to update the tool description or add parameter_name to target a specific parameter."
         )
         self._tools["update_description"] = CustomTool(
             schema={
@@ -68,11 +69,17 @@ class Registry:
                 "input_schema": {
                     "type": "object",
                     "properties": {
-                        "tool_name": {"type": "string", "description": "The tool to update."},
+                        "tool_name": {
+                            "type": "string",
+                            "description": "Exact name of the tool to update, as it appears in the tool list.",
+                        },
                         "description": {"type": "string", "description": "The new description."},
                         "parameter_name": {
                             "type": "string",
-                            "description": "If provided, updates that parameter's description instead of the tool's.",
+                            "description": (
+                                "Exact name of the parameter to update, as it appears in the tool's input schema. "
+                                "If omitted, the tool-level description is updated instead."
+                            ),
                         },
                     },
                     "required": ["tool_name", "description"],
