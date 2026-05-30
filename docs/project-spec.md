@@ -12,12 +12,12 @@ EStoreAPI is a repair shop management system for internal staff use. It provides
 
 ### Goals
 
-- [ ] Provide a digital job intake form that links a customer, device, and selected problems
-- [ ] Provide an easy way for staff to manage repair pricing (add, update problems and their prices per device)
-- [ ] Generate a quote suggestion from selected problems, adjustable by the technician to account for discounts
-- [ ] Allow staff to look up customer repair history and track job status
-- [ ] Establish a clean, scalable architecture that supports future feature growth
-- [ ] **The app can be entirely managed through an AI agent if needed; A chatbox should be available with an agent that can call APIs to manage and display data if needed**
+-  Provide a digital job intake form that links a customer, device, and selected problems
+-  Provide an easy way for staff to manage repair pricing (add, update problems and their prices per device)
+-  Generate a quote suggestion from selected problems, adjustable by the technician to account for discounts
+-  Allow staff to look up customer repair history and track job status
+-  Establish a clean, scalable architecture that supports future feature growth
+-  **The app can be entirely managed through an AI agent if needed; A chatbox should be available with an agent that can call APIs to manage and display data if needed**
 
 ### Non-Goals
 
@@ -42,29 +42,28 @@ All roles require a user account with password authentication to access the syst
 
 ### 4.1 Customer Management
 
-- [ ] Create, read, update, delete customer records
-- [ ] Search customers by name or phone number
-
+- [x] Create, read, update, delete customer records
+- [x] Search customers by name or phone number
 
 ### 4.2 Device Management
 
-- [ ] Create, read, update device models
-- [ ] Search devices by name or type
-- [ ] Associate known problems with devices
+- [x] Create, read, update device models
+- [x] Search devices by name or type
+- [x] Associate known problems with devices
 - [ ] Support one-off or obscure devices without needing entry into the database
 
 ### 4.3 Problem Catalogue
 
 - [ ] Maintain a list of common problems per device model, each with a set price
-- [ ] Allow staff to add, update, and remove problems and their prices
+- [x] Allow staff to add, update, and remove problems and their prices
 
 ### 4.4 Job Management
 
-- [ ] Create a job linking a customer, a device, and one or more problems
+- [x] Create a job linking a customer, a device, and one or more problems
 - [ ] Support jobs where the problem is unknown at intake
-- [ ] Record receive time; set estimated and actual pickup times
+- [x] Record receive time; set estimated and actual pickup times
 - [ ] Capture an estimated price and a final collected price
-- [ ] Mark a job as completed
+- [x] Mark a job as completed
 - [ ] Set warranty status for a completed job based on warranty policy timeframe
 - [ ] Allow new jobs to be linked to an existing job as warranty repair
 
@@ -82,9 +81,9 @@ All roles require a user account with password authentication to access the syst
 - [ ] Customer lookup to retrieve repair history
 
 ### 4.7 AI Agent
-- [ ] A chatbox that is easily accessible from anywhere on the app
-- [ ] Have the ability to upload files, such as pictures, documents, spreadsheets, for single or bulk import of data
-- [ ] From prompts, be able to call upon provided APIs to make changes to the database
+- [x] A chatbox that is easily accessible from anywhere on the app
+- [x] Have the ability to upload files, such as pictures, documents, spreadsheets, for single or bulk import of data
+- [x] From prompts, be able to call upon provided APIs to make changes to the database
 - [ ] From prompts, be able to redirect the user to their desired pages and apply any requested filters closest to the user's request
 - [ ] A dedicated auth account will be provided to the agent, just like a human staff
 
