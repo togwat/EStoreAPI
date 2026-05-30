@@ -1,11 +1,101 @@
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import axios from 'axios';
 
+interface DeviceOption {
+    deviceId: number;
+    deviceName: string;
+    deviceType: string;
+}
+
+interface ProblemOption {
+    problemId: number;
+    problemName: string;
+    deviceId: number;
+    price: number;
+}
+
+// for estimated pickup date, which for now is today + 1
+function getTomorrow(): string {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
+}
+
 export default function JobForm() {
-    async function handleSubmit(event: React.ChangeEvent<HTMLFormElement>) {
+    const [deviceTypes, setDeviceTypes] = useState<string[]>([]);
+    const [selectedType, setSelectedType] = useState('');
+    const [deviceSuggestions, setDeviceSuggestions] = useState<DeviceOption[]>([]);
+    const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
+    const [problemSuggestions, setProblemSuggestions] = useState<ProblemOption[]>([]);
+    const [problems, setProblems] = useState<string[]>(['']);
+
+    const deviceInputRef = useRef<HTMLInputElement>(null);
+
+    // get device types for select input
+    useEffect(() => {
+        axios.get<string[]>('/api/Devices/types').then(res => {
+            setDeviceTypes(res.data);
+            if (res.data.length > 0) setSelectedType(res.data[0]);
+        });
+    }, []);
+
+    // get device models for model suggestions
+    useEffect(() => {
+        // return all devices if no type is selected
+        if (!selectedType) {
+            axios.get<DeviceOption[]>('/api/Devices').then(res => setDeviceSuggestions(res.data));
+        }
+        // get models for a specific type
+        setSelectedDeviceId(null);
+        setProblems(['']);
+        if (deviceInputRef.current) deviceInputRef.current.value = '';
+        axios.get<DeviceOption[]>('/api/Devices/searchType', { params: { type: selectedType } })
+            .then(res => setDeviceSuggestions(res.data));
+    }, [selectedType]);
+
+    // get problems of device for problem suggestions
+    useEffect(() => {
+        if (selectedDeviceId === null) {
+            setProblemSuggestions([]);
+            return;
+        }
+        axios.get<ProblemOption[]>(`/api/Problems/device/${selectedDeviceId}`)
+            .then(res => setProblemSuggestions(res.data));
+    }, [selectedDeviceId]);
+
+    // set new device id and reset problem suggestions, fetching new ones
+    function handleDeviceChange(e: React.ChangeEvent<HTMLInputElement>) {
+        // find device from device type suggestions
+        const match = deviceSuggestions.find(d => d.deviceName.toLowerCase().trim() === e.target.value.toLowerCase().trim());
+        setSelectedDeviceId(match?.deviceId ?? null);
+        setProblems(['']);
+    }
+
+    // for any problem field, if changed:
+    // replace only the problem at the given index with the new value, leaving all others unchanged
+    function handleProblemChange(index: number, value: string) {
+        setProblems(prev => prev.map((p, i) => i === index ? value : p));
+    }
+
+    // control for adding/removing problem fields
+    function addProblem() {
+        setProblems(prev => [...prev, '']);
+    }
+
+    function removeProblem() {
+        if (problems.length > 1) setProblems(prev => prev.slice(0, -1));
+    }
+
+    // Suggest estimated price as sum of inputted problem prices
+    const problemPriceMap = new Map(problemSuggestions.map(p => [p.problemName.toLowerCase().trim(), p.price]));
+    const estimatedPrice = problems.reduce((sum, name) => sum + (problemPriceMap.get(name.toLowerCase().trim()) ?? 0), 0);
+
+    async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
         // retrieve all form data
@@ -60,19 +150,63 @@ export default function JobForm() {
                     <Input id="address" name="address" />
                 </Field>
                 <Field>
-                    <FieldLabel htmlFor="device">Device</FieldLabel>
-                    <Input id="device" name="device" />
+                    <FieldLabel>Device type</FieldLabel>
+                    <Select value={selectedType} onValueChange={setSelectedType}>
+                        <SelectTrigger className="w-full">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {deviceTypes.map(type => (
+                                <SelectItem key={type} value={type}>{type}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </Field>
+                <Field>
+                    <FieldLabel htmlFor="device" className="after:content-['_*'] after:text-destructive">Device model</FieldLabel>
+                    <Input id="device" name="device" list="device-datalist" placeholder="required" required ref={deviceInputRef} onChange={handleDeviceChange} />
+                    <datalist id="device-datalist">
+                        {deviceSuggestions.map(d => (
+                            <option key={d.deviceId} value={d.deviceName} />
+                        ))}
+                    </datalist>
+                </Field>
+                <Field>
+                    <FieldLabel className="after:content-['_*'] after:text-destructive">Problems</FieldLabel>
+                    <datalist id="problem-datalist">
+                        {problemSuggestions.map(p => (
+                            <option key={p.problemId} value={p.problemName} />
+                        ))}
+                    </datalist>
+                    <div className="flex flex-col gap-2">
+                        {problems.map((problem, i) => (
+                            <Input key={i} name="problem[]" list="problem-datalist"
+                                placeholder={i === 0 ? "required" : undefined}
+                                required={i === 0}
+                                value={problem}
+                                onChange={e => handleProblemChange(i, e.target.value)}
+                            />
+                        ))}
+                    </div>
+                    <div className="flex gap-2 mt-2 justify-evenly">
+                        <Button type="button" variant="outline" size="sm" onClick={addProblem}>Add problem</Button>
+                        <Button type="button" variant="outline" size="sm" onClick={removeProblem} disabled={problems.length <= 1}>Remove problem</Button>
+                    </div>
+                </Field>
+                <Field>
+                    <FieldLabel htmlFor="price">Estimated price</FieldLabel>
+                    <Input id="price" name="price" type="number" placeholder={String(estimatedPrice)} />
+                </Field>
+                <Field>
+                    <FieldLabel htmlFor="pickup">Estimated pickup date</FieldLabel>
+                    <Input id="pickup" name="pickup" type="date" defaultValue={getTomorrow()} />
                 </Field>
                 <Field>
                     <FieldLabel htmlFor="notes">Notes</FieldLabel>
                     <Textarea id="notes" name="notes" />
                 </Field>
-                <Field>
-                    <FieldLabel htmlFor="price">Estimated price</FieldLabel>
-                    <Input id="price" name="price" />
-                </Field>
             </FieldGroup>
             <Button type="submit">Submit</Button>
         </form>
-    )
+    );
 }
