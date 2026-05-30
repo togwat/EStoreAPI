@@ -46,24 +46,25 @@ export default function JobForm() {
 
     // get device types for select input
     useEffect(() => {
-        axios.get<string[]>('/api/Devices/types').then(res => {
-            setDeviceTypes(res.data);
-            if (res.data.length > 0) setSelectedType(res.data[0]);
-        });
+        axios.get<string[]>('/api/Devices/types').then(res => 
+            setDeviceTypes(res.data)
+        );
     }, []);
 
     // get device models for model suggestions
     useEffect(() => {
+        setSelectedDeviceId(null);
+        setProblems(['']);
+        if (deviceInputRef.current) deviceInputRef.current.value = '';
         // return all devices if no type is selected
         if (!selectedType) {
             axios.get<DeviceOption[]>('/api/Devices').then(res => setDeviceSuggestions(res.data));
         }
         // get models for a specific type
-        setSelectedDeviceId(null);
-        setProblems(['']);
-        if (deviceInputRef.current) deviceInputRef.current.value = '';
-        axios.get<DeviceOption[]>('/api/Devices/searchType', { params: { type: selectedType } })
+        else {
+            axios.get<DeviceOption[]>('/api/Devices/searchType', { params: { type: selectedType } })
             .then(res => setDeviceSuggestions(res.data));
+        }
     }, [selectedType]);
 
     // get problems of device for problem suggestions
@@ -72,8 +73,10 @@ export default function JobForm() {
             setProblemSuggestions([]);
             return;
         }
-        axios.get<ProblemOption[]>(`/api/Problems/device/${selectedDeviceId}`)
+        else {
+            axios.get<ProblemOption[]>(`/api/Problems/device/${selectedDeviceId}`)
             .then(res => setProblemSuggestions(res.data));
+        }
     }, [selectedDeviceId]);
 
     // set new device id and reset problem suggestions, fetching new ones
