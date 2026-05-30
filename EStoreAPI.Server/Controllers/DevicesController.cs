@@ -35,6 +35,14 @@ namespace EStoreAPI.Server.Controllers
             return device is null ? NotFound() : Ok(OutDeviceDTO.FromModel(device));
         }
 
+        // GET: api/Devices/types
+        [HttpGet("types")]
+        public async Task<ActionResult<ICollection<string>>> GetDeviceTypesAsync()
+        {
+            ICollection<string> types = await _service.GetDeviceTypesAsync();
+            return Ok(types);
+        }
+
         // GET: api/Devices/searchName?name=
         [HttpGet("searchName")]
         public async Task<ActionResult<ICollection<OutDeviceDTO>>> SearchDevicesNameAsync([FromQuery] string name)

@@ -17,6 +17,7 @@ namespace EStoreAPI.Server.Data
         // device operations
         Task<Device?> GetDeviceByIdAsync(int id);
         Task<ICollection<Device>> GetDevicesAsync();
+        Task<ICollection<string>> GetDeviceTypesAsync();
         Task<ICollection<Device>> GetDevicesByNameAsync(string name);
         Task<ICollection<Device>> GetDevicesByTypeAsync(string type);
         Task<Device> AddDeviceAsync(Device device);

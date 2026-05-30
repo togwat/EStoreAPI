@@ -118,6 +118,12 @@ namespace EStoreAPI.Server.Data
             return devices;
         }
 
+        public async Task<ICollection<string>> GetDeviceTypesAsync()
+        {
+            ICollection<string> types = await _dbContext.Devices.Select(d => d.DeviceType).Distinct().ToListAsync();
+            return types;
+        }
+
         public async Task<ICollection<Device>> GetDevicesByNameAsync(string name)
         {
             name = name.ToLower();

@@ -22,6 +22,11 @@ namespace EStoreAPI.Server.Services
             return _repo.GetDeviceByIdAsync(id);
         }
 
+        public Task<ICollection<string>> GetDeviceTypesAsync()
+        {
+            return _repo.GetDeviceTypesAsync();
+        }
+
         public Task<ICollection<Device>> SearchDevicesByNameAsync(string name)
         {
             return _repo.GetDevicesByNameAsync(name);
