@@ -9,16 +9,11 @@ namespace EStoreAPI.Server.DTOs
         // regex pattern ensures phone numbers are just a string of digits
         [GeneratedRegex(@"\D")]
         private static partial Regex NonDigits();
-
         public string? CustomerName { get; set; }
-
         [Required]
-        public string PhoneNumber { get; set; }
-
+        public required string PhoneNumber { get; set; }
         public string? PhoneNumberSecondary { get; set; }
-
         public string? Email { get; set; }
-
         public string? Address { get; set; }
 
         public Customer ToModel() => new()

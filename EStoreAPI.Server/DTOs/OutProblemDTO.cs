@@ -5,7 +5,7 @@ namespace EStoreAPI.Server.DTOs
     public class OutProblemDTO
     {
         public int ProblemId { get; set; }
-        public string ProblemName { get; set; }
+        public required string ProblemName { get; set; }
         public int DeviceId { get; set; }
         public decimal Price { get; set; }
 

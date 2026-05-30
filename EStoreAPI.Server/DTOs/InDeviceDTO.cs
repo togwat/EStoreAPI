@@ -6,10 +6,9 @@ namespace EStoreAPI.Server.DTOs
     public class InDeviceDTO
     {
         [Required]
-        public string DeviceName { get; set; }
-
+        public required string DeviceName { get; set; }
         [Required]
-        public string DeviceType { get; set; }
+        public required string DeviceType { get; set; }
 
         public Device ToModel() => new()
         {
