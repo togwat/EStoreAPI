@@ -23,6 +23,7 @@ builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IDeviceService, DeviceService>();
 builder.Services.AddScoped<IJobService, JobService>();
 builder.Services.AddScoped<IProblemService, ProblemService>();
+builder.Services.AddScoped<IFormService, FormService>();
 
 // MCP services
 builder.Services.AddMcpServer()

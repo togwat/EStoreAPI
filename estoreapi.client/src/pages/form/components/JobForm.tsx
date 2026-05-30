@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { CheckCircle2Icon, AlertCircleIcon } from 'lucide-react';
 import axios from 'axios';
 
 interface DeviceOption {
@@ -33,6 +35,12 @@ export default function JobForm() {
     const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
     const [problemSuggestions, setProblemSuggestions] = useState<ProblemOption[]>([]);
     const [problems, setProblems] = useState<string[]>(['']);
+    const [submitting, setSubmitting] = useState(false);
+    const [submitResult, setSubmitResult] = useState<
+        | { success: true; jobId: number }
+        | { success: false; message: string } 
+        | null
+    >(null);
 
     const deviceInputRef = useRef<HTMLInputElement>(null);
 
@@ -107,23 +115,40 @@ export default function JobForm() {
         const email = formData.get("email")?.toString().trim();
         const address = formData.get("address")?.toString().trim();
         const device = formData.get("device")?.toString().trim();
+        // filter for non-empty problems
+        const problemNames = problems.filter(p => p.trim() !== '');
+        // convert to postgre friendly format
+        const pickupRaw = formData.get("pickup")?.toString();
+        const estPickupDate = pickupRaw ? new Date(pickupRaw + 'T00:00:00Z').toISOString() : null;
+        // convert to js number, or null if empty
+        const estPrice = parseFloat(formData.get("price")?.toString() ?? '') || null;
         const notes = formData.get("notes")?.toString().trim();
-        // const price = formData.get("price")?.toString().trim(); // might get rid of this field
                 
-        // add/assign customer
-        // check if an existing customer matches (using primary phone number)
-        await axios.get('/api/Customers/search', {
-            withCredentials: false,
-            params: {
-                query: phone
-            }
-        }).then((response) => {
-            alert(response.data);
-        }).catch((error) => {
-            alert(error);
-        });
-        // TODO: add new job
-        console.log(`${name} ${phone} ${phone2} ${email} ${address}, ${device}, ${notes}`);
+        setSubmitting(true);
+        setSubmitResult(null);
+        try {
+            // call api
+            const response = await axios.post('/api/Form/submit', {
+                name,
+                phoneNumber: phone,
+                phoneNumberSecondary: phone2,
+                email,
+                address,
+                deviceName: device,
+                problems: problemNames,
+                estimatedPickupTime: estPickupDate,
+                estimatedPrice: estPrice,
+                note: notes,
+            });
+            setSubmitResult({ success: true, jobId: response.data.jobId });
+        } catch (error) {
+            const message = axios.isAxiosError(error)
+                ? error.response?.data ?? error.message
+                : 'An unexpected error occurred.';
+            setSubmitResult({ success: false, message });
+        } finally {
+            setSubmitting(false);
+        }
     }
 
     return (
@@ -199,14 +224,31 @@ export default function JobForm() {
                 </Field>
                 <Field>
                     <FieldLabel htmlFor="pickup">Estimated pickup date</FieldLabel>
-                    <Input id="pickup" name="pickup" type="date" defaultValue={getTomorrow()} />
+                    <Input id="pickup" name="pickup" type="date" min={new Date().toISOString().split('T')[0]} defaultValue={getTomorrow()} />
                 </Field>
                 <Field>
                     <FieldLabel htmlFor="notes">Notes</FieldLabel>
                     <Textarea id="notes" name="notes" />
                 </Field>
             </FieldGroup>
-            <Button type="submit">Submit</Button>
+            <Button type="submit" disabled={submitting}>
+                {submitting ? 'Submitting...' : 'Submit'}
+            </Button>
+            {submitResult && (
+                submitResult.success ? (
+                    <Alert>
+                        <CheckCircle2Icon />
+                        <AlertTitle>Success</AlertTitle>
+                        <AlertDescription className="overflow-x-hidden overflow-y-auto max-h-32 w-full break-words">Job {submitResult.jobId} has been created.</AlertDescription>
+                    </Alert>
+                ) : (
+                    <Alert variant="destructive">
+                        <AlertCircleIcon />
+                        <AlertTitle>Submission failed</AlertTitle>
+                        <AlertDescription className="overflow-x-hidden overflow-y-auto max-h-32 w-full break-words">{submitResult.message}</AlertDescription>
+                    </Alert>
+                )
+            )}
         </form>
     );
 }
