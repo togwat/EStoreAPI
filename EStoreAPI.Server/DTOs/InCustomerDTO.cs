@@ -10,8 +10,7 @@ namespace EStoreAPI.Server.DTOs
         [GeneratedRegex(@"\D")]
         private static partial Regex NonDigits();
 
-        [Required]
-        public string CustomerName { get; set; }
+        public string? CustomerName { get; set; }
 
         [Required]
         public string PhoneNumber { get; set; }

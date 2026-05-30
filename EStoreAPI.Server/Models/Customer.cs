@@ -7,8 +7,7 @@ namespace EStoreAPI.Server.Models
         [Key]
         public int CustomerId { get; set; }
 
-        [Required]
-        public string CustomerName { get; set; }
+        public string? CustomerName { get; set; }
 
         [Required]
         public string PhoneNumber { get; set; }
