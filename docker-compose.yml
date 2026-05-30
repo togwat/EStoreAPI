@@ -33,6 +33,8 @@ services:
       AGENT_PORT: 8000
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    volumes:
+      - agent_descriptions:/app/tools/descriptions
     depends_on:
       api:
         condition: service_started
@@ -48,3 +50,4 @@ services:
 
 volumes:
   postgres_data:
+  agent_descriptions:
