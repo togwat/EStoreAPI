@@ -26,9 +26,9 @@ namespace EStoreAPI.Server.Controllers
             return problem is null ? NotFound() : Ok(OutProblemDTO.FromModel(problem));
         }
 
-        // GET: api/Problems?deviceId=
-        [HttpGet]
-        public async Task<ActionResult<ICollection<OutProblemDTO>>> GetDeviceProblemsAsync([FromQuery] int deviceId)
+        // GET: api/Problems/device/{deviceId}
+        [HttpGet("device/{deviceId}")]
+        public async Task<ActionResult<ICollection<OutProblemDTO>>> GetDeviceProblemsAsync(int deviceId)
         {
             try
             {
