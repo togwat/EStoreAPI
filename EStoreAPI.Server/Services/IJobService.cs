@@ -7,6 +7,7 @@ namespace EStoreAPI.Server.Services
     {
         Task<ICollection<Job>> GetAllJobsAsync();
         Task<Job?> GetJobAsync(int id);
+        Task<ICollection<Job>> GetCustomerJobsAsync(int customerId);
         Task<Job> CreateJobAsync(InJobDTO dto);
         Task<ICollection<Job>> CreateJobsAsync(ICollection<InJobDTO> dtos);
         Task UpdateJobAsync(int id, InJobDTO dto);

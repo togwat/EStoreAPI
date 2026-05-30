@@ -15,6 +15,22 @@ public class JobTools
         _service = service;
     }
 
+    [McpServerTool, Description("Get the repair jobs a customer has.")]
+    public async Task<ICollection<OutJobDTO>> GetCustomerJobsAsync(
+        [Description("The ID of the customer. Retrieve this by searching for the customer first.")] int customerId)
+    {
+        try
+        {
+            ICollection<Job> jobs = await _service.GetCustomerJobsAsync(customerId);
+            return jobs.Select(OutJobDTO.FromModel).ToList();
+             
+        }
+        catch (KeyNotFoundException ex)
+        {
+            throw new Exception($"Customer not found: {ex.Message}");
+        }
+    }
+
     [McpServerTool, Description("Create one or more new repair jobs and add them to the database. Each job links a customer and their device to problems selected from that device's problem catalogue.")]
     public async Task<ICollection<OutJobDTO>> CreateJobsAsync(
         [Description("Jobs to create. Each requires: CustomerId, DeviceId, and at least one ProblemId. Search the customer by name for CustomerId, search the device by name for DeviceId, then use that DeviceId to retrieve the problem catalogue and get the relevant ProblemIds. Do not write in fields the user did not specify.")] ICollection<InJobDTO> dtos)

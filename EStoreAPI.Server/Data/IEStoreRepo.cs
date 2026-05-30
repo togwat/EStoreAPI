@@ -36,7 +36,7 @@ namespace EStoreAPI.Server.Data
         // job operations
         Task<Job?> GetJobByIdAsync(int id);
         Task<ICollection<Job>> GetJobsAsync();
-        Task<Job> GetJobByQueryAsync(string query);
+        Task<ICollection<Job>> GetJobsOfCustomerAsync(int customerId);
         Task<Job> AddJobAsync(Job job);
         // bulk
         Task<ICollection<Job>> AddJobsAsync(ICollection<Job> jobs);

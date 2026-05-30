@@ -295,9 +295,10 @@ namespace EStoreAPI.Server.Data
             return jobs;
         }
 
-        public async Task<Job> GetJobByQueryAsync(string query)
+        public async Task<ICollection<Job>> GetJobsOfCustomerAsync(int customerId)
         {
-            throw new NotImplementedException();
+            ICollection<Job> jobs = await _dbContext.Jobs.Where(j => j.CustomerId == customerId).ToListAsync();
+            return jobs;
         }
 
         public async Task<Job> AddJobAsync(Job job)

@@ -22,6 +22,21 @@ namespace EStoreAPI.Server.Services
             return _repo.GetJobByIdAsync(id);
         }
 
+        public async Task<ICollection<Job>> GetCustomerJobsAsync(int customerId)
+        {
+            // check if customer exists
+            Customer? customer = await _repo.GetCustomerByIdAsync(customerId);
+
+            if (customer is null)
+            {
+                throw new KeyNotFoundException($"Customer {customer} not found.");
+            }
+            else
+            {
+                return await _repo.GetJobsOfCustomerAsync(customerId);
+            }
+        }
+
         public async Task<Job> CreateJobAsync(InJobDTO dto)
         {
             // validate number of problems

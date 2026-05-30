@@ -34,6 +34,21 @@ namespace EStoreAPI.Server.Controllers
             return job is null ? NotFound() : Ok(OutJobDTO.FromModel(job));
         }
 
+        // GET: api/Jobs/customer/{customerId}
+        [HttpGet("customer/{customerId}")]
+        public async Task<ActionResult<ICollection<OutJobDTO>>> GetCustomerJobsAsync(int customerId)
+        {
+            try
+            {
+                ICollection<Job> jobs = await _service.GetCustomerJobsAsync(customerId);
+                return Ok(jobs.Select(OutJobDTO.FromModel).ToList());
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+        }
+
         // POST: api/Jobs/create
         [HttpPost("create")]
         public async Task<ActionResult<OutJobDTO>> CreateJobAsync(InJobDTO dto)
