@@ -73,6 +73,38 @@ namespace EStoreAPI.Tests.APITests
             }
         }
 
+        // GET: api/Devices/types
+        [Fact]
+        public async Task TestGetDeviceTypes()
+        {
+            // arrange
+            var types = new List<string> { "phone", "tablet", "laptop" };
+            _service.Setup(s => s.GetDeviceTypesAsync()).ReturnsAsync(types);
+
+            // act
+            var result = await _controller.GetDeviceTypesAsync();
+
+            // assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
+            var typesResult = Assert.IsAssignableFrom<ICollection<string>>(okResult.Value);
+            Assert.Equal(3, typesResult.Count); // returns 3 types
+        }
+
+        [Fact]
+        public async Task TestGetEmptyDeviceTypes()
+        {
+            // arrange
+            _service.Setup(s => s.GetDeviceTypesAsync()).ReturnsAsync(new List<string>());
+
+            // act
+            var result = await _controller.GetDeviceTypesAsync();
+
+            // assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
+            var typesResult = Assert.IsAssignableFrom<ICollection<string>>(okResult.Value);
+            Assert.Empty(typesResult);  // returns empty list
+        }
+
         // GET: api/Devices/searchName?name=
         [Theory]
         [InlineData("phone")]   // valid

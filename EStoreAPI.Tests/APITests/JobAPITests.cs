@@ -228,5 +228,45 @@ namespace EStoreAPI.Tests.APITests
                 [2, false],     // invalid id, valid data
                 [1, true],      // valid id, invalid data (no problems)
             ];
+
+        // GET: api/Jobs/customer/{customerId}
+        [Theory]
+        [InlineData(1, true)]   // valid customer, has jobs
+        [InlineData(1, false)]  // valid customer, no jobs
+        [InlineData(2, false)]  // invalid customer
+        public async Task TestGetCustomerJobs(int customerId, bool hasJobs)
+        {
+            // arrange
+            var jobs = _fixture.CreateMany<Job>(3).ToList();
+
+            if (customerId == 1 && hasJobs)
+                _service.Setup(s => s.GetCustomerJobsAsync(1)).ReturnsAsync(jobs);
+            else if (customerId == 1)
+                _service.Setup(s => s.GetCustomerJobsAsync(1)).ReturnsAsync(new List<Job>());
+            else
+                _service.Setup(s => s.GetCustomerJobsAsync(2)).ThrowsAsync(new KeyNotFoundException("Customer not found."));
+
+            // act
+            var result = await _controller.GetCustomerJobsAsync(customerId);
+
+            // assert
+            if (customerId == 1 && hasJobs)
+            {
+                var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
+                var jobsResult = Assert.IsAssignableFrom<ICollection<OutJobDTO>>(okResult.Value);
+                Assert.Equal(3, jobsResult.Count);  // returns 3 jobs
+            }
+            else if (customerId == 1)
+            {
+                var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
+                var jobsResult = Assert.IsAssignableFrom<ICollection<OutJobDTO>>(okResult.Value);
+                Assert.Empty(jobsResult);   // returns empty list
+            }
+            else
+            {
+                var notFoundResult = Assert.IsType<NotFoundObjectResult>(result.Result);    // returns 404 not found
+                Assert.Equal("Customer not found.", notFoundResult.Value);
+            }
+        }
     }
 }
