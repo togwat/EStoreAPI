@@ -5,7 +5,7 @@
   --foreground: hsl(28, 39%, 12%);       /* #2a1d12 ink brown */
 
   /* cards / surfaces — sit brighter than page */
-  --card: hsl(50, 85%, 97%);             /* #fffdf2 */
+  --card: hsl(50, 85%, 97%);            /* #fefcf1 */
   --card-foreground: hsl(28, 39%, 12%);
   --popover: hsl(50, 85%, 97%);
   --popover-foreground: hsl(28, 39%, 12%);
@@ -30,7 +30,7 @@
 
   /* borders / inputs / focus rings */
   --border: hsl(46, 49%, 78%);           /* #e3d6ad */
-  --input: hsl(50, 85%, 97%); /*card*/
+  --input: hsl(50, 85%, 97%);            /* #fefcf1 */
   --ring: hsl(19, 72%, 42%);
 
   --radius: 0.375rem;
