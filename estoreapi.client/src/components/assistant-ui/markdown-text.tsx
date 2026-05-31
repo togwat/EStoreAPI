@@ -165,7 +165,7 @@ const defaultComponents = memoizeMarkdownComponents({
   ol: ({ className, ...props }) => (
     <ol
       className={cn(
-        "aui-md-ol my-2 ms-4 list-decimal marker:text-muted-foreground [&>li]:mt-1",
+        "aui-md-ol my-2 ms-4 list-decimal list-inside marker:text-muted-foreground [&>li]:mt-1",
         className,
       )}
       {...props}
