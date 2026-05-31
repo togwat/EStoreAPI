@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { columns, Device } from './components/DeviceColumns';
+import { DeviceCard, Device } from './components/DeviceCard';
 import axios from 'axios';
-import { DataTable } from '@/components/ui/data-table';
 
 async function getDevices(): Promise<Device[]> {
     const response = await axios.get('/api/devices');
@@ -24,7 +23,21 @@ export default function DevicesPage({ title }: { title: string }) {
     return (
         <div>
             { !isMobile && <h1>{title}</h1> }
-            <DataTable columns={columns} data={devices} />
+
+            {isMobile
+                // mobile 1 column layout
+                ? <div className="py-4 flex flex-col gap-4">
+                    {devices.map(device => (
+                        <DeviceCard key={device.id} device={device} />
+                    ))}
+                  </div>
+                // desktop grid layout
+                : <div className="py-4 grid grid-cols-[repeat(auto-fill,_minmax(18rem,_1fr))] gap-4">
+                    {devices.map(device => (
+                        <DeviceCard key={device.id} device={device} />
+                    ))}
+                  </div>
+            }
         </div>
     );
 }
