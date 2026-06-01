@@ -24,11 +24,15 @@ export default function DevicesPage({ title }: { title: string }) {
     const [deviceTypes, setDeviceTypes] = useState<string[]>([]);
     const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
     const [selectedType, setSelectedType] = useState('all');
+    const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
         getDevices().then(setDevices);
         getDeviceTypes().then(setDeviceTypes);
     }, []);
+
+    // reset edit mode when the selected device changes
+    useEffect(() => { setIsEditing(false); }, [selectedDevice?.id]);
 
     const filteredDevices = selectedType !== 'all' ? devices.filter(d => d.type === selectedType) : devices;
 
@@ -45,12 +49,12 @@ export default function DevicesPage({ title }: { title: string }) {
                     <div className={`flex items-center justify-between ${isMobile ? "p-4" : "pb-4"} border-b`}>
                         <div className="flex items-center justify-start gap-2">
                             <span className="text-base font-medium">{selectedDevice.name}</span>
-                            <Button variant="ghost" size="icon"><PencilIcon /></Button>
+                            <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)}><PencilIcon /></Button>
                         </div>
                         <Button variant="outline" size="icon" onClick={() => setSelectedDevice(null)}><X /></Button>
                     </div>
 
-                    <DeviceEdit deviceId={selectedDevice.id} />
+                    <DeviceEdit deviceId={selectedDevice.id} isEditing={isEditing} onEditingChange={setIsEditing} />
                 </div>
             )}
         >
