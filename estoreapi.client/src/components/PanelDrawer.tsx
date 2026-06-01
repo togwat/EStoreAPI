@@ -19,7 +19,7 @@ export function PanelDrawer({ open, drawerContent, children }: PanelDrawerProps)
                 <div
                     className={cn(
                         "absolute inset-0 z-4 bg-background overflow-auto transition-transform top-12",
-                        open ? "translate-y-0" : "translate-y-full"
+                        open ? "translate-y-0" : "translate-y-full h-0"
                     )}
                 >
                     {drawerContent}

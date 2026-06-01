@@ -7,7 +7,7 @@ import axios from 'axios';
 import { Filter, FilterSearch, FilterSelect } from '@/components/Filter';
 import { getDeviceTypes } from '@/api/devices';
 import { Button } from '@/components/ui/button';
-import { PencilIcon, X } from 'lucide-react';
+import { PencilIcon, PlusIcon, X } from 'lucide-react';
 
 async function getDevices(): Promise<Device[]> {
     const response = await axios.get('/api/devices');
@@ -62,14 +62,26 @@ export default function DevicesPage({ title }: { title: string }) {
         >
             {isMobile
                 // mobile 1 column layout
-                ? <div className="flex flex-col gap-2">{cards}</div>
+                ? <div className="flex flex-col gap-2">
+                    <div className="flex flex-row items-center justify-between">
+                        <Filter>
+                            <FilterSearch placeholder="Search devices..." />
+                            <FilterSelect label="Device type" options={deviceTypes} value={selectedType} onChange={setSelectedType} />
+                        </Filter>
+                        <Button size="icon-lg"><PlusIcon /></Button>
+                    </div>
+                    {cards}
+                </div>
                 // desktop grid layout
                 : <div className="p-8">
                     <h1>{title}</h1>
-                    <Filter>
-                        <FilterSearch placeholder="Search devices..." />
-                        <FilterSelect label="Device type" options={deviceTypes} value={selectedType} onChange={setSelectedType} />
-                    </Filter>
+                    <div className="flex flex-row items-center justify-between">
+                        <Filter>
+                            <FilterSearch placeholder="Search devices..." />
+                            <FilterSelect label="Device type" options={deviceTypes} value={selectedType} onChange={setSelectedType} />
+                        </Filter>
+                        <Button size="lg"><PlusIcon />Add device</Button>
+                    </div>
                     <div className="py-4 grid grid-cols-[repeat(auto-fill,_minmax(18rem,_1fr))] gap-4">{cards}</div>
                   </div>
             }
