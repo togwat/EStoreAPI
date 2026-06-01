@@ -65,7 +65,7 @@ export default function DevicesPage({ title }: { title: string }) {
                 ? <div className="flex flex-col gap-2">
                     <div className="flex flex-row items-center justify-between">
                         <Filter>
-                            <FilterSearch placeholder="Search devices..." />
+                            <FilterSearch placeholder={`Search ${devices.length} devices...`} />
                             <FilterSelect label="Device type" options={deviceTypes} value={selectedType} onChange={setSelectedType} />
                         </Filter>
                         <Button size="icon-lg"><PlusIcon /></Button>
@@ -82,6 +82,7 @@ export default function DevicesPage({ title }: { title: string }) {
                         </Filter>
                         <Button size="lg"><PlusIcon />Add device</Button>
                     </div>
+                    <span className="pl-1 text-muted-foreground">{devices.length} results</span>
                     <div className="py-4 grid grid-cols-[repeat(auto-fill,_minmax(18rem,_1fr))] gap-4">{cards}</div>
                   </div>
             }
