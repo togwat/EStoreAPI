@@ -7,7 +7,7 @@ import axios from 'axios';
 import { Filter, FilterSearch, FilterSelect } from '@/components/Filter';
 import { getDeviceTypes } from '@/api/devices';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { PencilIcon, X } from 'lucide-react';
 
 async function getDevices(): Promise<Device[]> {
     const response = await axios.get('/api/devices');
@@ -43,10 +43,13 @@ export default function DevicesPage({ title }: { title: string }) {
                 <div className="w-full h-full overflow-auto">
                     {/** header */}
                     <div className={`flex items-center justify-between ${isMobile ? "p-4" : "pb-4"} border-b`}>
-                        <span className="text-base font-medium">{selectedDevice.name}</span>
+                        <div className="flex items-center justify-start gap-2">
+                            <span className="text-base font-medium">{selectedDevice.name}</span>
+                            <Button variant="ghost" size="icon"><PencilIcon /></Button>
+                        </div>
                         <Button variant="outline" size="icon" onClick={() => setSelectedDevice(null)}><X /></Button>
                     </div>
-                    
+
                     <DeviceEdit deviceId={selectedDevice.id} />
                 </div>
             )}
