@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { PanelDrawer } from '@/components/PanelDrawer';
 import { DeviceCard, Device } from './components/DeviceCard';
+import DeviceEdit from './components/DeviceEdit';
 import axios from 'axios';
 
 async function getDevices(): Promise<Device[]> {
@@ -15,29 +17,32 @@ async function getDevices(): Promise<Device[]> {
 export default function DevicesPage({ title }: { title: string }) {
     const isMobile = useIsMobile();
     const [devices, setDevices] = useState<Device[]>([]);
+    const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
 
     useEffect(() => {
         getDevices().then(setDevices);
     }, []);
 
-    return (
-        <div>
-            { !isMobile && <h1>{title}</h1> }
+    const cards = devices.map(device => (
+        <DeviceCard key={device.id} device={device} onClick={() => setSelectedDevice(device)} />
+    ))
 
+    return (
+        <PanelDrawer
+            open={selectedDevice !== null}
+            onClose={() => setSelectedDevice(null)}
+            title={selectedDevice?.name}
+            drawerContent={selectedDevice && <DeviceEdit deviceId={parseInt(selectedDevice.id)} />}
+        >
             {isMobile
                 // mobile 1 column layout
-                ? <div className="py-4 flex flex-col gap-4">
-                    {devices.map(device => (
-                        <DeviceCard key={device.id} device={device} />
-                    ))}
-                  </div>
+                ? <div className="flex flex-col gap-2">{cards}</div>
                 // desktop grid layout
-                : <div className="py-4 grid grid-cols-[repeat(auto-fill,_minmax(18rem,_1fr))] gap-4">
-                    {devices.map(device => (
-                        <DeviceCard key={device.id} device={device} />
-                    ))}
+                : <div>
+                    <h1>{title}</h1>
+                    <div className="py-4 grid grid-cols-[repeat(auto-fill,_minmax(18rem,_1fr))] gap-4">{cards}</div>
                   </div>
             }
-        </div>
+        </PanelDrawer>
     );
 }

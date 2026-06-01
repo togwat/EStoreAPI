@@ -24,7 +24,7 @@ export function DeviceCard({ device, onClick }: { device: Device; onClick?: () =
             onClick={onClick}
             role={"button"}
             tabIndex={0}
-            // onKeyDown={(e) => { if (e.key === "Enter") onClick() }}
+            onKeyDown={(e) => { if (e.key === "Enter") onClick }}
         >
             <CardHeader className={cn(isMobile && "flex! flex-row gap-2")}>
                 <CardTitle>{device.name}</CardTitle>
