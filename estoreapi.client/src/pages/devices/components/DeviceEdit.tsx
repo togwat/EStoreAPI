@@ -2,26 +2,17 @@ import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import axios from 'axios';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
 import { DataTable } from '@/components/ui/data-table';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { formatPrice } from '@/lib/formatPrice';
+import { getProblems } from '@/api/problems';
 
 // follow OutProblemDTO
 export type Problem = {
     id: string
     name: string
     price: number
-}
-
-async function getProblems(deviceId: string): Promise<Problem[]> {
-    const response = await axios.get(`/api/problems/device/${deviceId}`);
-    return response.data.map((d: { problemId: string; problemName: string; price: string }) => ({
-        id: d.problemId,
-        name: d.problemName,
-        price: parseFloat(d.price)
-    }));
 }
 
 async function deleteProblem(problemId: string) {
@@ -116,17 +107,18 @@ export default function DeviceEdit({ deviceId, isEditing, onEditingChange }: {
         }] : [])
     ], [isEditing, handleEditName, handleEditPrice]);
 
-    function handleConfirm() {
-        // set new table
+    async function handleConfirm() {
         const updated = problems.map(p => ({
             ...p,
             name: editedProblems[p.id] || p.name,
             price: editedPrices[p.id] ? parseFloat(editedPrices[p.id]) : p.price
         }));
-        setProblems(updated);
 
         // call update API
-        updateProblems(updated);
+        await updateProblems(updated);
+
+        // set new values from API to confirm the update went through
+        setProblems(await getProblems(deviceId));
 
         // finally "cancel" to exit edit mode
         handleCancel();
