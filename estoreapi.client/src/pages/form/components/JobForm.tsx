@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { CheckCircle2Icon, AlertCircleIcon } from 'lucide-react';
 import axios from 'axios';
+import { getDeviceTypes } from '@/api/devices';
 
 interface DeviceOption {
     deviceId: number;
@@ -46,9 +47,7 @@ export default function JobForm() {
 
     // get device types for select input
     useEffect(() => {
-        axios.get<string[]>('/api/Devices/types').then(res => 
-            setDeviceTypes(res.data)
-        );
+        getDeviceTypes().then(setDeviceTypes);
     }, []);
 
     // get device models for model suggestions

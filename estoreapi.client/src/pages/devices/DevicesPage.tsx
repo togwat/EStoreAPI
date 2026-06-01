@@ -4,7 +4,8 @@ import { PanelDrawer } from '@/components/PanelDrawer';
 import { DeviceCard, Device } from './components/DeviceCard';
 import DeviceEdit from './components/DeviceEdit';
 import axios from 'axios';
-import Filter from '@/components/Filter';
+import { Filter, FilterSearch, FilterSelect } from '@/components/Filter';
+import { getDeviceTypes } from '@/api/devices';
 
 async function getDevices(): Promise<Device[]> {
     const response = await axios.get('/api/devices');
@@ -18,13 +19,18 @@ async function getDevices(): Promise<Device[]> {
 export default function DevicesPage({ title }: { title: string }) {
     const isMobile = useIsMobile();
     const [devices, setDevices] = useState<Device[]>([]);
+    const [deviceTypes, setDeviceTypes] = useState<string[]>([]);
     const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
+    const [selectedType, setSelectedType] = useState('all');
 
     useEffect(() => {
         getDevices().then(setDevices);
+        getDeviceTypes().then(setDeviceTypes);
     }, []);
 
-    const cards = devices.map(device => (
+    const filteredDevices = selectedType !== 'all' ? devices.filter(d => d.type === selectedType) : devices;
+
+    const cards = filteredDevices.map(device => (
         <DeviceCard key={device.id} device={device} isSelected={selectedDevice?.id === device.id} onClick={() => setSelectedDevice(device)} />
     ))
 
@@ -41,7 +47,10 @@ export default function DevicesPage({ title }: { title: string }) {
                 // desktop grid layout
                 : <div className="p-8">
                     <h1>{title}</h1>
-                    <Filter inputPlaceholder="Search devices..."/>
+                    <Filter>
+                        <FilterSearch placeholder="Search devices..." />
+                        <FilterSelect label="Device type" options={deviceTypes} value={selectedType} onChange={setSelectedType} />
+                    </Filter>
                     <div className="py-4 grid grid-cols-[repeat(auto-fill,_minmax(18rem,_1fr))] gap-4">{cards}</div>
                   </div>
             }
