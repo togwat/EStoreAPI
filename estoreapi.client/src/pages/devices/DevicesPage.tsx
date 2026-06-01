@@ -4,6 +4,7 @@ import { PanelDrawer } from '@/components/PanelDrawer';
 import { DeviceCard, Device } from './components/DeviceCard';
 import DeviceEdit from './components/DeviceEdit';
 import axios from 'axios';
+import Filter from '@/components/Filter';
 
 async function getDevices(): Promise<Device[]> {
     const response = await axios.get('/api/devices');
@@ -40,6 +41,7 @@ export default function DevicesPage({ title }: { title: string }) {
                 // desktop grid layout
                 : <div className="p-8">
                     <h1>{title}</h1>
+                    <Filter inputPlaceholder="Search devices..."/>
                     <div className="py-4 grid grid-cols-[repeat(auto-fill,_minmax(18rem,_1fr))] gap-4">{cards}</div>
                   </div>
             }
