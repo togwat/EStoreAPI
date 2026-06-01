@@ -24,7 +24,7 @@ export default function DevicesPage({ title }: { title: string }) {
     }, []);
 
     const cards = devices.map(device => (
-        <DeviceCard key={device.id} device={device} onClick={() => setSelectedDevice(device)} />
+        <DeviceCard key={device.id} device={device} isSelected={selectedDevice?.id === device.id} onClick={() => setSelectedDevice(device)} />
     ))
 
     return (

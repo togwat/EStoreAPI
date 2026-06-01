@@ -14,13 +14,22 @@ export type Device = {
     type: string
 }
 
-export function DeviceCard({ device, onClick }: { device: Device; onClick?: () => void }) {
+interface DeviceCardProps {
+    device: Device;
+    isSelected?: boolean;
+    onClick?: () => void;
+}
+
+export function DeviceCard({ device, isSelected, onClick }: DeviceCardProps ) {
     const isMobile = useIsMobile();
 
     return (
         <Card
             size="sm"
-            className={cn("w-full border border-border cursor-pointer hover:border-foreground/50 transition-all focus:bg-accent focus:border-ring focus:ring-2 focus:ring-ring/50 focus:text-accent-foreground")}
+            className={cn(
+                "w-full border border-border cursor-pointer hover:border-foreground/50 transition-all",
+                isSelected && "bg-accent border-ring ring-2 ring-ring/50 text-accent-foreground"
+            )}
             onClick={onClick}
             role={"button"}
             tabIndex={0}
