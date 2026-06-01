@@ -49,7 +49,9 @@ export default function DevicesPage({ title }: { title: string }) {
                     <div className={`flex items-center justify-between ${isMobile ? "p-4" : "pb-4"} border-b`}>
                         <div className="flex items-center justify-start gap-2">
                             <span className="text-base font-medium">{selectedDevice.name}</span>
-                            <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)}><PencilIcon /></Button>
+                            {!isEditing && 
+                                <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)}><PencilIcon /></Button>
+                            }
                         </div>
                         <Button variant="outline" size="icon" onClick={() => setSelectedDevice(null)}><X /></Button>
                     </div>
