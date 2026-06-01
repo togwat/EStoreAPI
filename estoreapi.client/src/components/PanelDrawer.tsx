@@ -1,18 +1,14 @@
 import type { ReactNode } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import { Button } from './ui/button';
-import { X } from 'lucide-react';
 
 type PanelDrawerProps = {
     open: boolean;
-    onClose: () => void;
-    title?: string;
     drawerContent: ReactNode;
     children: ReactNode;
 };
 
-export function PanelDrawer({ open, onClose, title, drawerContent, children }: PanelDrawerProps) {
+export function PanelDrawer({ open, drawerContent, children }: PanelDrawerProps) {
     const isMobile = useIsMobile();
 
     if (isMobile) {
@@ -26,11 +22,6 @@ export function PanelDrawer({ open, onClose, title, drawerContent, children }: P
                         open ? "translate-y-0" : "translate-y-full"
                     )}
                 >
-                    {/** header */}
-                    <div className="flex items-center justify-between p-4 border-b">
-                        <span className="text-base font-medium">{title}</span>
-                        <Button variant="outline" size="icon" onClick={onClose}><X /></Button>
-                    </div>
                     {drawerContent}
                 </div>
             </div>
@@ -46,14 +37,7 @@ export function PanelDrawer({ open, onClose, title, drawerContent, children }: P
             </div>
             {/** drawer - sticky on the outer wrapper so it follows scroll; overflow-hidden clips the width transition */}
             <div className={cn("w-0 overflow-hidden transition-all sticky top-0 h-screen bg-background", open && "w-[min(30rem,55%)] p-8 border-l border-border")}>
-                <div className="w-full h-full overflow-auto">
-                    {/** header */}
-                    <div className="flex items-center justify-between pb-4 border-b">
-                        <span className="text-base font-medium">{title}</span>
-                        <Button variant="outline" size="icon" onClick={onClose}><X /></Button>
-                    </div>
-                    {drawerContent}
-                </div>
+                {drawerContent}
             </div>
         </div>
     );
