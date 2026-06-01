@@ -55,7 +55,7 @@ export default function DeviceEdit({ deviceId }: { deviceId: number }) {
     
     useEffect(() => {
         getProblems(deviceId).then(setProblems);
-    }, []);
+    }, [deviceId]);
 
     return (
         <div className={`container mx-auto ${isMobile ? "p-4" : "py-4"}`}>
