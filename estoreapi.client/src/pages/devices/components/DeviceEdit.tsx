@@ -1,16 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-// import { Button } from "@/components/ui/button";
-// import {
-//   DropdownMenu,
-//   DropdownMenuContent,
-//   DropdownMenuItem,
-//   DropdownMenuLabel,
-//   DropdownMenuSeparator,
-//   DropdownMenuTrigger,
-// } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import axios from 'axios';
-// import { Trash2Icon } from 'lucide-react';
+import { Trash2Icon } from 'lucide-react';
 import { DataTable } from '@/components/ui/data-table';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -37,10 +29,24 @@ const columns: ColumnDef<Problem>[] = [
 
             return <div className="text-right font-medium">{formattedPrice}</div>
         }
+    },
+    {
+        id: "actions",
+        cell: ({ row }) => {
+            const problem = row.original;   // get data of selected row
+
+            return (
+                <div className="flex justify-end">
+                    <Button variant="ghost" size="icon" className="text-destructive text-right p-0" onClick={() => deleteProblem(problem.id)}>
+                        <Trash2Icon />
+                    </Button>
+                </div>
+            )
+        }
     }
 ]
 
-async function getProblems(deviceId: number): Promise<Problem[]> {
+async function getProblems(deviceId: string): Promise<Problem[]> {
     const response = await axios.get(`/api/problems/device/${deviceId}`);
     return response.data.map((d: { problemId: string; problemName: string; price: string }) => ({
         id: d.problemId,
@@ -49,7 +55,12 @@ async function getProblems(deviceId: number): Promise<Problem[]> {
     }));
 }
 
-export default function DeviceEdit({ deviceId }: { deviceId: number }) {
+async function deleteProblem(problemId: string) {
+    // TODO
+    console.log(problemId);
+}
+
+export default function DeviceEdit({ deviceId }: { deviceId: string }) {
     const [problems, setProblems] = useState<Problem[]>([]);
     const isMobile = useIsMobile();
     

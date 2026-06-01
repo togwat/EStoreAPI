@@ -32,7 +32,7 @@ export default function DevicesPage({ title }: { title: string }) {
             open={selectedDevice !== null}
             onClose={() => setSelectedDevice(null)}
             title={selectedDevice?.name}
-            drawerContent={selectedDevice && <DeviceEdit deviceId={parseInt(selectedDevice.id)} />}
+            drawerContent={selectedDevice && <DeviceEdit deviceId={selectedDevice.id} />}
         >
             {isMobile
                 // mobile 1 column layout
