@@ -38,7 +38,7 @@ export default function DevicesPage({ title }: { title: string }) {
                 // mobile 1 column layout
                 ? <div className="flex flex-col gap-2">{cards}</div>
                 // desktop grid layout
-                : <div>
+                : <div className="p-8">
                     <h1>{title}</h1>
                     <div className="py-4 grid grid-cols-[repeat(auto-fill,_minmax(18rem,_1fr))] gap-4">{cards}</div>
                   </div>

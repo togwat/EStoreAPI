@@ -55,7 +55,7 @@ export function Navbar({ title, children }: NavbarProps) {
                     <NavItem to="/devices" icon={<TabletSmartphone className="h-4.5 w-4.5" />} label="Devices" />
                 </nav>
             </aside>
-            <main className="flex-1 overflow-auto p-8">{children}</main>
+            <main className="flex-1 overflow-auto">{children}</main>
         </div>
     );
 }
