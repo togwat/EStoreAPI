@@ -60,8 +60,9 @@ const ProblemEdit = forwardRef<ProblemEditHandle, {
     const isMobile = useIsMobile();
     const newProblemCounter = useRef(0);
 
+    // only retrieve problems if not in add mode (there is device id)
     useEffect(() => {
-        getProblems(deviceId).then(setProblems);
+        if (deviceId) getProblems(deviceId).then(setProblems);
     }, [deviceId]);
 
     // useState setters are stable, so these callbacks never change — columns only rebuild when isEditing flips

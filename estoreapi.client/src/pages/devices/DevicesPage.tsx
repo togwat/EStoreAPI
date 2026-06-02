@@ -5,7 +5,7 @@ import { WorkingPagination } from '@/components/WorkingPagination';
 import { DeviceCard } from './components/DeviceCard';
 import ProblemEdit, { ProblemEditHandle } from './components/ProblemEdit';
 import { Filter, FilterSearch, FilterSelect } from '@/components/Filter';
-import { Device, getDevices, getDeviceTypes } from '@/api/devices';
+import { Device, addDevice, updateDevice, getDevices, getDeviceTypes } from '@/api/devices';
 import { updateProblems } from '@/api/problems';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,8 @@ export default function DevicesPage({ title }: { title: string }) {
     const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
     const [selectedType, setSelectedType] = useState('all');
     const [isEditing, setIsEditing] = useState(false);
+    const [editedName, setEditedName] = useState('');
+    const [editedType, setEditedType] = useState('');
     const [page, setPage] = useState(1);
 
     useEffect(() => {
@@ -25,8 +27,12 @@ export default function DevicesPage({ title }: { title: string }) {
         getDeviceTypes().then(setDeviceTypes);
     }, []);
 
-    // reset edit mode when the selected device changes
-    useEffect(() => { setIsEditing(false); }, [selectedDevice?.id]);
+    // reset edit mode and name/type inputs when switching devices; skip isEditing reset for add mode (id is "" or empty)
+    useEffect(() => {
+        if (selectedDevice?.id) setIsEditing(false);
+        setEditedName('');
+        setEditedType('');
+    }, [selectedDevice?.id]);
 
     // reset to page 1 whenever the filter or layout changes
     useEffect(() => { setPage(1); }, [selectedType]);
@@ -46,22 +52,47 @@ export default function DevicesPage({ title }: { title: string }) {
     const problemEditRef = useRef<ProblemEditHandle>(null);
 
     async function handleConfirm() {
-        // confirming device changes
-        // if id exists, then call UpdateDevice
-        // if no id, add new device
+        const updatedProblems = problemEditRef.current!.getUpdatedProblems();
+        const name = editedName || selectedDevice!.name;
+        const type = editedType || selectedDevice!.type;
 
-        // confirming problem changes
-        const updated = problemEditRef.current!.getUpdatedProblems();
-        await updateProblems(selectedDevice!.id, updated);
-        // resets ProblemEdit's local edit state and refetches
-        await problemEditRef.current!.cancel(); 
-        setIsEditing(false);
+        if (!selectedDevice!.id) {
+            // add mode
+            const newDevice = await addDevice({ id: '', name, type });
+            await updateProblems(newDevice.id, updatedProblems);
+            setDevices(await getDevices());
+            // triggers useEffect: resets isEditing + name/type; ProblemEdit refetches via deviceId change
+            setSelectedDevice(newDevice);
+        } else {
+            // update mode
+            await updateDevice(selectedDevice!.id, { id: selectedDevice!.id, name, type });
+            await updateProblems(selectedDevice!.id, updatedProblems);
+            // get latest data to refresh
+            const refreshed = await getDevices();
+            setDevices(refreshed);
+            setSelectedDevice(refreshed.find(d => d.id === selectedDevice!.id) ?? selectedDevice!);
+            await problemEditRef.current!.cancel();
+            setIsEditing(false);
+        }
     }
 
     async function handleCancel() {
-        await problemEditRef.current!.cancel(); // reset problem table
+        // reset problem table if not adding new device (there is a device id)
+        if (selectedDevice?.id) {
+            await problemEditRef.current!.cancel(); // reset problem table
+        }
+        setEditedName('');
+        setEditedType('');
         setIsEditing(false);
     }
+
+    // adding a device: create a device with no name, no type, set isEditing to true
+    function handleAddDevice() {
+        const newDevice: Device = { id: "", name: "", type: "" }
+        setSelectedDevice(newDevice);
+        setIsEditing(true);
+    }
+
     return (
         <PanelDrawer
             open={selectedDevice !== null}
@@ -72,8 +103,8 @@ export default function DevicesPage({ title }: { title: string }) {
                         <div className="flex items-center justify-start gap-2">
                             {isEditing ?
                                 <div className="flex flex-row justify-start gap-2">
-                                    <Input className="w-28" placeholder={selectedDevice.name} />
-                                    <Input className="w-28" list="type-datalist" placeholder={selectedDevice.type} />
+                                    <Input className="w-28" placeholder={selectedDevice.name} value={editedName} onChange={e => setEditedName(e.target.value)} />
+                                    <Input className="w-28" list="type-datalist" placeholder={selectedDevice.type} value={editedType} onChange={e => setEditedType(e.target.value)} />
                                     <datalist id="type-datalist">
                                         {deviceTypes.map(type => (
                                             <option value={type} />
@@ -109,7 +140,7 @@ export default function DevicesPage({ title }: { title: string }) {
                             <FilterSearch placeholder={`Search ${devices.length} devices...`} />
                             <FilterSelect label="Device type" options={deviceTypes} value={selectedType} onChange={setSelectedType} />
                         </Filter>
-                        <Button size="icon-lg"><PlusIcon /></Button>
+                        <Button size="icon-lg" onClick={handleAddDevice}><PlusIcon /></Button>
                     </div>
                     {cards}
                     {pagination}
@@ -122,7 +153,7 @@ export default function DevicesPage({ title }: { title: string }) {
                             <FilterSearch placeholder="Search devices..." />
                             <FilterSelect label="Device type" options={deviceTypes} value={selectedType} onChange={setSelectedType} />
                         </Filter>
-                        <Button size="lg"><PlusIcon />Add device</Button>
+                        <Button size="lg" onClick={handleAddDevice}><PlusIcon />Add device</Button>
                     </div>
                     <span className="pl-1 text-muted-foreground">{filteredDevices.length} results</span>
                     <div className="py-4 grid grid-cols-[repeat(auto-fill,_minmax(18rem,_1fr))] gap-4">{cards}</div>
