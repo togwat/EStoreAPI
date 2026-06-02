@@ -36,7 +36,7 @@ const EditablePriceCell = memo(function EditablePriceCell({ problem, onEdit }: {
     );
 });
 
-export default function DeviceEdit({ deviceId, isEditing, onEditingChange }: {
+export default function ProblemEdit({ deviceId, isEditing, onEditingChange }: {
     deviceId: string;
     isEditing: boolean;
     onEditingChange: (v: boolean) => void;

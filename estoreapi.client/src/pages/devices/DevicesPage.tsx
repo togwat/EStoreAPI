@@ -3,7 +3,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { PanelDrawer } from '@/components/PanelDrawer';
 import { WorkingPagination } from '@/components/WorkingPagination';
 import { DeviceCard } from './components/DeviceCard';
-import DeviceEdit from './components/DeviceEdit';
+import ProblemEdit from './components/ProblemEdit';
 import { Filter, FilterSearch, FilterSelect } from '@/components/Filter';
 import { Device, getDevices, getDeviceTypes } from '@/api/devices';
 import { Button } from '@/components/ui/button';
@@ -56,7 +56,7 @@ export default function DevicesPage({ title }: { title: string }) {
                         <Button variant="outline" size="icon" onClick={() => setSelectedDevice(null)}><X /></Button>
                     </div>
 
-                    <DeviceEdit deviceId={selectedDevice.id} isEditing={isEditing} onEditingChange={setIsEditing} />
+                    <ProblemEdit deviceId={selectedDevice.id} isEditing={isEditing} onEditingChange={setIsEditing} />
                 </div>
             )}
         >
