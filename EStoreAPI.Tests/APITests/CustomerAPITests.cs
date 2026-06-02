@@ -192,7 +192,8 @@ namespace EStoreAPI.Tests.APITests
         [Theory]
         [InlineData("a", "123")]    // valid customer
         [InlineData(null, "123")]   // invalid name
-        [InlineData("b", null)]     // invalid phone
+        [InlineData("b", null)]     // invalid phone: null
+        [InlineData("a", "abc")]    // invalid phone: no digits
         [InlineData(null, null)]    // invalid name and phone
         public async Task TestCreateCustomer(string name, string phone)
         {
@@ -234,21 +235,27 @@ namespace EStoreAPI.Tests.APITests
 
         // POST: api/Customers/create-bulk
         [Theory]
-        [InlineData(-1)]    // all valid
-        [InlineData(0)]     // customer at index 0 is invalid
-        [InlineData(1)]     // customer at index 1 is invalid
-        public async Task TestCreateCustomers(int invalidIndex)
+        [InlineData(-1, "123")]     // all valid
+        [InlineData(0, "123")]      // customer at index 0 is invalid
+        [InlineData(1, "123")]      // customer at index 1 is invalid
+        [InlineData(-1, "abc")]     // invalid phone: no digits
+        public async Task TestCreateCustomers(int invalidIndex, string phone)
         {
             // arrange
             var dtos = _fixture.Build<InCustomerDTO>()
                                 .With(d => d.CustomerName, "name")
-                                .With(d => d.PhoneNumber, "123")
+                                .With(d => d.PhoneNumber, phone)
                                 .CreateMany(3).ToList();
 
             if (invalidIndex >= 0)
             {
                 _service.Setup(s => s.CreateCustomersAsync(It.IsAny<ICollection<InCustomerDTO>>()))
                         .ThrowsAsync(new ValidationException($"Customer at index {invalidIndex} is missing required fields."));
+            }
+            else if (phone != "123")
+            {
+                _service.Setup(s => s.CreateCustomersAsync(It.IsAny<ICollection<InCustomerDTO>>()))
+                        .ThrowsAsync(new ValidationException("Phone number must contain only numbers."));
             }
             else
             {
@@ -266,7 +273,7 @@ namespace EStoreAPI.Tests.APITests
             var result = await _controller.CreateCustomersAsync(dtos);
 
             // assert
-            if (invalidIndex < 0)
+            if (invalidIndex < 0 && phone == "123")
             {
                 var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
                 var createdCustomers = Assert.IsAssignableFrom<ICollection<OutCustomerDTO>>(createdResult.Value);
@@ -275,17 +282,22 @@ namespace EStoreAPI.Tests.APITests
                 for (int i = 0; i < createdList.Count; i++)
                     Assert.Equal(i + 1, createdList[i].CustomerId);
             }
-            else
+            else if (invalidIndex >= 0)
             {
                 var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);    // returns 400 with message
                 Assert.Contains($"index {invalidIndex}", badRequestResult.Value!.ToString());
+            }
+            else
+            {
+                Assert.IsType<BadRequestObjectResult>(result.Result);   // returns 400 bad request
             }
         }
 
         // PUT: api/Customers/update/{id}
         [Theory]
         [InlineData(1, "newname", "123")]    // valid id, valid data
-        [InlineData(1, null, null)]          // valid id, invalid data
+        [InlineData(1, null, null)]          // valid id, invalid data: null phone
+        [InlineData(1, "newname", "abc")]    // valid id, invalid data: non-digit phone
         [InlineData(2, "newname", "123")]    // invalid id, valid data
         [InlineData(2, null, null)]          // invalid id, invalid data
         public async Task TestUpdateCustomer(int id, string name, string phone)

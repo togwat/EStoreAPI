@@ -11,7 +11,9 @@ namespace EStoreAPI.Server.DTOs
         private static partial Regex NonDigits();
         public string? CustomerName { get; set; }
         [Required]
+        [RegularExpression(@".*[0-9].*", ErrorMessage = "Phone number must contain only numbers.")]
         public required string PhoneNumber { get; set; }
+        [RegularExpression(@".*[0-9].*", ErrorMessage = "Phone number must contain only numbers.")]
         public string? PhoneNumberSecondary { get; set; }
         public string? Email { get; set; }
         public string? Address { get; set; }

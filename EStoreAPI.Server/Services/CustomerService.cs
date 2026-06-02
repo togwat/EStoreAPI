@@ -1,6 +1,7 @@
 using EStoreAPI.Server.Data;
 using EStoreAPI.Server.DTOs;
 using EStoreAPI.Server.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Server.Services
 {
@@ -29,6 +30,7 @@ namespace EStoreAPI.Server.Services
 
         public async Task<Customer> CreateCustomerAsync(InCustomerDTO dto)
         {
+            Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true);
             Customer customer = dto.ToModel();
 
             return await _repo.AddCustomerAsync(customer);
@@ -36,6 +38,11 @@ namespace EStoreAPI.Server.Services
 
         public async Task<ICollection<Customer>> CreateCustomersAsync(ICollection<InCustomerDTO> dtos)
         {
+            foreach (InCustomerDTO dto in dtos)
+            {
+                Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true); 
+            }
+
             ICollection<Customer> customers = dtos.Select(dto => dto.ToModel()).ToList();
 
             return await _repo.AddCustomersAsync(customers);
@@ -43,6 +50,8 @@ namespace EStoreAPI.Server.Services
 
         public async Task UpdateCustomerAsync(int id, InCustomerDTO dto)
         {
+            Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true);
+
             // set up new customer
             Customer customer = dto.ToModel();
 

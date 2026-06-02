@@ -19,7 +19,9 @@ export async function submitJob(payload: SubmitJobPayload): Promise<{ jobId: num
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
-            throw new Error(error.response?.data ?? error.message);
+            const data = error.response?.data;
+            const message = typeof data === 'string' ? data : (data?.title ?? error.message);
+            throw new Error(message);
         }
         throw error;
     }
