@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,29 +6,8 @@ import { PlusIcon, Trash2Icon } from 'lucide-react';
 import { DataTable } from '@/components/ui/data-table';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { formatPrice } from '@/lib/formatPrice';
-import { getProblems } from '@/api/problems';
+import { Problem, getProblems, updateProblems } from '@/api/problems';
 
-// follow OutProblemDTO
-export type Problem = {
-    id: string
-    name: string
-    price: number
-}
-
-async function deleteProblem(problemId: string) {
-    // TODO
-    console.log(`DELETE ${problemId}`);
-}
-
-async function updateProblems(problems: Problem[]) {
-    // TODO
-    console.log(`UPDATE ${problems}`);
-}
-
-// async function addProblems(problems: Problem[]) {
-//     // TODO
-//     console.log(`ADD ${problems}`);
-// }
 
 // Own local state so the parent's editedProblems/editedPrices updates don't rebuild columns and remount cells
 const EditableNameCell = memo(function EditableNameCell({ problem, onEdit }: {
@@ -66,6 +45,7 @@ export default function DeviceEdit({ deviceId, isEditing, onEditingChange }: {
     const [editedProblems, setEditedProblems] = useState<Record<string, string>>({});
     const [editedPrices, setEditedPrices] = useState<Record<string, string>>({});
     const isMobile = useIsMobile();
+    const newProblemCounter = useRef(0);
 
     useEffect(() => {
         getProblems(deviceId).then(setProblems);
@@ -79,6 +59,14 @@ export default function DeviceEdit({ deviceId, isEditing, onEditingChange }: {
     const handleEditPrice = useCallback((id: string, value: string) => {
         setEditedPrices(prev => ({ ...prev, [id]: value }));
     }, []);
+
+    const handleDeleteProblem = useCallback((problemId: string) => {
+        setProblems(prev => prev.filter(p => p.id !== problemId));
+    }, []);
+
+    function handleAddProblem() {
+        setProblems(prev => [...prev, { id: `new-${newProblemCounter.current++}`, name: '', price: 0 }]);
+    }
 
     const columns = useMemo<ColumnDef<Problem>[]>(() => [
         {
@@ -99,32 +87,33 @@ export default function DeviceEdit({ deviceId, isEditing, onEditingChange }: {
             id: "actions",
             cell: ({ row }: { row: { original: Problem } }) => (
                 <div className="flex justify-end">
-                    <Button variant="ghost" size="icon" className="text-destructive p-0" onClick={() => deleteProblem(row.original.id)}>
+                    <Button variant="ghost" size="icon" className="text-destructive p-0" onClick={() => handleDeleteProblem(row.original.id)}>
                         <Trash2Icon />
                     </Button>
                 </div>
             )
         }] : [])
-    ], [isEditing, handleEditName, handleEditPrice]);
+    ], [isEditing, handleEditName, handleEditPrice, handleDeleteProblem]);
 
     async function handleConfirm() {
         const updated = problems.map(p => ({
             ...p,
+            id: p.id.startsWith('new-') ? '' : p.id,    // if it is a 'new' id, send it as none
             name: editedProblems[p.id] || p.name,
             price: editedPrices[p.id] ? parseFloat(editedPrices[p.id]) : p.price
         }));
 
         // call update API
-        await updateProblems(updated);
-
-        // set new values from API to confirm the update went through
-        setProblems(await getProblems(deviceId));
+        await updateProblems(deviceId, updated);
 
         // finally "cancel" to exit edit mode
-        handleCancel();
+        await handleCancel();
     }
 
-    function handleCancel() {
+    async function handleCancel() {
+        // set new values from API to get back latest data
+        setProblems(await getProblems(deviceId));
+
         setEditedProblems({});
         setEditedPrices({});
         onEditingChange(false);
@@ -135,8 +124,7 @@ export default function DeviceEdit({ deviceId, isEditing, onEditingChange }: {
             <DataTable columns={columns} data={problems} />
             {isEditing && (
                 <div>
-                    <Button variant="outline" className="mt-1 w-full bg-
-                    transparent border border-dashed border-foreground/50"><PlusIcon />Add a problem...</Button>
+                    <Button variant="outline" className="mt-1 w-full bg-transparent border border-dashed border-foreground/50" onClick={handleAddProblem}><PlusIcon />Add a problem...</Button>
                     <div className="flex justify-end gap-2 pt-4">
                         <Button variant="outline" onClick={handleCancel}>Cancel</Button>
                         <Button onClick={handleConfirm}>Confirm</Button>

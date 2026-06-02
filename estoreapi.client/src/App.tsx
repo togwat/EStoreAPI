@@ -6,6 +6,7 @@ import DevicesPage from './pages/devices/DevicesPage';
 import Chat from './components/Chat';
 import { Navbar } from './components/Navbar';
 import { TooltipProvider } from './components/ui/tooltip';
+import { ToastContainer } from 'react-toastify';
 
 const pageTitles: Record<string, string> = {
     '/': '',
@@ -38,6 +39,7 @@ export default function App() {
             <TooltipProvider>
                 <AppContent />
             </TooltipProvider>
+            <ToastContainer />
         </BrowserRouter>
     );
 }
