@@ -7,6 +7,7 @@ import ProblemEdit from './components/ProblemEdit';
 import { Filter, FilterSearch, FilterSelect } from '@/components/Filter';
 import { Device, getDevices, getDeviceTypes } from '@/api/devices';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { PencilIcon, PlusIcon, X } from 'lucide-react';
 
 export default function DevicesPage({ title }: { title: string }) {
@@ -48,9 +49,22 @@ export default function DevicesPage({ title }: { title: string }) {
                     {/** header */}
                     <div className={`flex items-center justify-between ${isMobile ? "p-4" : "pb-4"} border-b`}>
                         <div className="flex items-center justify-start gap-2">
-                            <span className="text-base font-medium">{selectedDevice.name}</span>
-                            {!isEditing &&
-                                <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)}><PencilIcon /></Button>
+                            {isEditing ?
+                                <div className="flex flex-row justify-start gap-2">
+                                    <Input className="w-28" placeholder={selectedDevice.name} />
+                                    <Input className="w-28" list="type-datalist" placeholder={selectedDevice.type} />
+                                    <datalist id="type-datalist">
+                                        {deviceTypes.map(type => (
+                                            <option value={type} />
+                                        ))}
+                                    </datalist>
+                                </div>
+                            :
+                                <div className="flex flex-row items-end justify-start gap-2">
+                                    <span className="text-base font-medium">{selectedDevice.name}</span>
+                                    <span className="text-sm text-muted-foreground">{selectedDevice.type}</span>
+                                    <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)}><PencilIcon /></Button>
+                                </div>
                             }
                         </div>
                         <Button variant="outline" size="icon" onClick={() => setSelectedDevice(null)}><X /></Button>
