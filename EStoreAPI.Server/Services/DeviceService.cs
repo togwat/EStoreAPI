@@ -1,6 +1,7 @@
 using EStoreAPI.Server.Data;
 using EStoreAPI.Server.DTOs;
 using EStoreAPI.Server.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Server.Services
 {
@@ -39,6 +40,7 @@ namespace EStoreAPI.Server.Services
 
         public async Task<Device> CreateDeviceAsync(InDeviceDTO dto)
         {
+            Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true); 
             Device device = dto.ToModel();
 
             return await _repo.AddDeviceAsync(device);
@@ -46,6 +48,11 @@ namespace EStoreAPI.Server.Services
 
         public async Task<ICollection<Device>> CreateDevicesAsync(ICollection<InDeviceDTO> dtos)
         {
+            foreach (InDeviceDTO dto in dtos)
+            {
+                Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true); 
+            }
+
             ICollection<Device> devices = dtos.Select(dto => dto.ToModel()).ToList();
 
             return await _repo.AddDevicesAsync(devices);
@@ -53,6 +60,8 @@ namespace EStoreAPI.Server.Services
 
         public async Task UpdateDeviceAsync(int id, InDeviceDTO dto)
         {
+            Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true); 
+            
             // set up new device
             Device device = dto.ToModel();
 

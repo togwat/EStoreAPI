@@ -1,6 +1,7 @@
 using EStoreAPI.Server.Data;
 using EStoreAPI.Server.DTOs;
 using EStoreAPI.Server.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Server.Services
 {
@@ -39,6 +40,8 @@ namespace EStoreAPI.Server.Services
 
         public async Task<Job> CreateJobAsync(InJobDTO dto)
         {
+            Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true); 
+
             // validate number of problems
             ICollection<Problem> problems = await _repo.GetProblemsByIdsAsync(dto.ProblemIds);
             if (problems.Count != dto.ProblemIds.Count)
@@ -56,6 +59,8 @@ namespace EStoreAPI.Server.Services
             List<Job> jobs = new();
             foreach (InJobDTO dto in dtos)
             {
+                Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true); 
+
                 // validate number of problems
                 ICollection<Problem> problems = await _repo.GetProblemsByIdsAsync(dto.ProblemIds);
                 if (problems.Count != dto.ProblemIds.Count)
@@ -71,6 +76,8 @@ namespace EStoreAPI.Server.Services
 
         public async Task UpdateJobAsync(int id, InJobDTO dto)
         {
+            Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true); 
+            
             // validate number of problems
             ICollection<Problem> problems = await _repo.GetProblemsByIdsAsync(dto.ProblemIds);
             if (problems.Count != dto.ProblemIds.Count)

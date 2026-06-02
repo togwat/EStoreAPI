@@ -1,6 +1,7 @@
 using EStoreAPI.Server.Data;
 using EStoreAPI.Server.DTOs;
 using EStoreAPI.Server.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Server.Services
 {
@@ -34,6 +35,7 @@ namespace EStoreAPI.Server.Services
 
         public async Task<Problem> CreateProblemAsync(InProblemDTO dto)
         {
+            Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true); 
             Problem problem = dto.ToModel();
 
             return await _repo.AddProblemAsync(problem);
@@ -48,6 +50,8 @@ namespace EStoreAPI.Server.Services
 
         public async Task UpdateProblemAsync(int id, InProblemDTO dto)
         {
+            Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true); 
+
             // set new problem
             Problem problem = dto.ToModel();
 
@@ -56,6 +60,11 @@ namespace EStoreAPI.Server.Services
 
         public async Task UpdateProblemsAsync(int deviceId, ICollection<InProblemDTO> dtos)
         {
+            foreach (InProblemDTO dto in dtos)
+            {
+                Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true); 
+            }
+
             ICollection<Problem> existingProblems = await _repo.GetProblemsOfDeviceAsync(deviceId);
             ICollection<int> existingIds = existingProblems.Select(p => p.ProblemId).ToHashSet();
             // get all incoming ids, excluding dtos without ids
