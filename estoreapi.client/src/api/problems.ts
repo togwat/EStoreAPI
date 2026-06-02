@@ -32,18 +32,18 @@ export async function updateProblems(deviceId: string, problems: Problem[]) {
 
     try {
         await axios.put(`/api/problems/device/${deviceId}`, body);
-    } catch (e) {
+    } catch (error) {
         let message;
 
-        if (axios.isAxiosError(e)) {
-            const data = e.response?.data;
+        if (axios.isAxiosError(error)) {
+            const data = error.response?.data;
             const text = typeof data === 'string' ? data : null;
 
-            if (e.response?.status === 409) {
+            if (error.response?.status === 409) {
                 message = text ?? "One or more problems are in use by a job and cannot be deleted.";
-            } else if (e.response?.status === 404) {
+            } else if (error.response?.status === 404) {
                 message = text ?? "Device not found.";
-            } else if (e.response?.status === 400) {
+            } else if (error.response?.status === 400) {
                 message = text ?? "One or more validation errors occurred.";
             }
         }
