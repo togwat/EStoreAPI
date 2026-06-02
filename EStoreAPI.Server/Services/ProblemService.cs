@@ -53,5 +53,30 @@ namespace EStoreAPI.Server.Services
 
             await _repo.UpdateProblemAsync(problem);
         }
+
+        public async Task UpdateProblemsAsync(int deviceId, ICollection<InProblemDTO> dtos)
+        {
+            ICollection<Problem> existingProblems = await _repo.GetProblemsOfDeviceAsync(deviceId);
+            ICollection<int> existingIds = existingProblems.Select(p => p.ProblemId).ToHashSet();
+            // get all incoming ids, excluding dtos without ids
+            ICollection<int> incomingIds = dtos.Where(d => d.ProblemId.HasValue)
+                .Select(d => d.ProblemId!.Value).ToHashSet();
+
+            // split dto into 3 collections: toDelete, toUpdate, toAdd
+            // delete all devices in existing but not in incoming
+            List<Problem> toDelete = existingProblems.Where(p => !incomingIds.Contains(p.ProblemId)).ToList();
+
+            // update all devices in existing and in incoming
+            List<Problem> toUpdate = dtos.Where(d => d.ProblemId.HasValue && existingIds.Contains(d.ProblemId.Value))   // find intersection
+                .Select(d => { Problem p = d.ToModel(); p.DeviceId = deviceId; return p; })  // convert to domain model object
+                .ToList();
+
+            // add devices not in existing but in incoming
+            List<Problem> toAdd = dtos.Where(d => !d.ProblemId.HasValue)    // find dtos with no id
+                .Select(d => { Problem p = d.ToModel(); p.DeviceId = deviceId; return p; })
+                .ToList();
+
+            await _repo.UpdateDeviceProblemsAsync(toDelete, toUpdate, toAdd);
+        }
     }
 }

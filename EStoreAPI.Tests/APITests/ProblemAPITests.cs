@@ -178,6 +178,54 @@ namespace EStoreAPI.Tests.APITests
             }
         }
 
+        // PUT: api/Problems/device/{deviceId}
+        [Theory]
+        [InlineData(1, false)]   // valid device, no conflict → 204
+        [InlineData(2, false)]   // device not found → 404
+        [InlineData(1, true)]    // valid device, problem in use by a job → 409
+        public async Task TestUpdateDeviceProblems(int deviceId, bool hasConflict)
+        {
+            // arrange
+            var dtos = _fixture.Build<InProblemDTO>()
+                                .With(p => p.ProblemName, "name")
+                                .With(p => p.Price, 100.00m)
+                                .CreateMany(3).ToList();
+
+            if (deviceId != 1)
+            {
+                _service.Setup(s => s.UpdateProblemsAsync(deviceId, It.IsAny<ICollection<InProblemDTO>>()))
+                        .ThrowsAsync(new KeyNotFoundException($"Device {deviceId} not found."));
+            }
+            else if (hasConflict)
+            {
+                _service.Setup(s => s.UpdateProblemsAsync(deviceId, It.IsAny<ICollection<InProblemDTO>>()))
+                        .ThrowsAsync(new InvalidOperationException("One or more problems are in use by a job and cannot be deleted."));
+            }
+            else
+            {
+                _service.Setup(s => s.UpdateProblemsAsync(deviceId, It.IsAny<ICollection<InProblemDTO>>()))
+                        .Returns(Task.CompletedTask);
+            }
+
+            // act
+            var result = await _controller.UpdateDeviceProblemsAsync(deviceId, dtos);
+
+            // assert
+            if (deviceId != 1)
+            {
+                var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);   // returns 404 not found
+                Assert.Equal($"Device {deviceId} not found.", notFoundResult.Value);
+            }
+            else if (hasConflict)
+            {
+                Assert.IsType<ConflictObjectResult>(result);    // returns 409 conflict
+            }
+            else
+            {
+                Assert.IsType<NoContentResult>(result); // returns 204 no content
+            }
+        }
+
         // PUT: api/Problems/update/{id}
         [Theory]
         [MemberData(nameof(UpdateProblemData))]

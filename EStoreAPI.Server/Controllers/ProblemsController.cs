@@ -92,5 +92,24 @@ namespace EStoreAPI.Server.Controllers
                 return BadRequest();
             }
         }
+
+        // PUT: api/Problems/device/{deviceId}
+        [HttpPut("device/{deviceId}")]
+        public async Task<ActionResult> UpdateDeviceProblemsAsync(int deviceId, ICollection<InProblemDTO> dtos)
+        {
+            try
+            {
+                await _service.UpdateProblemsAsync(deviceId, dtos);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
+        }
     }
 }

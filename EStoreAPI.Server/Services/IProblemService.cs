@@ -10,5 +10,6 @@ namespace EStoreAPI.Server.Services
         Task<Problem> CreateProblemAsync(InProblemDTO dto);
         Task<ICollection<Problem>> CreateProblemsAsync(ICollection<InProblemDTO> dtos);
         Task UpdateProblemAsync(int id, InProblemDTO dto);
+        Task UpdateProblemsAsync(int deviceId, ICollection<InProblemDTO> dtos);
     }
 }

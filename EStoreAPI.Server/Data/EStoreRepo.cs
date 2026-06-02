@@ -239,20 +239,7 @@ namespace EStoreAPI.Server.Data
         {
             // validation
             var problemList = problems.ToList();
-            for (int i = 0; i < problemList.Count; i++)
-            {
-                Problem problem = problemList[i];
-
-                Device? device = await GetDeviceByIdAsync(problem.DeviceId);
-                if (problem.ProblemName == null)
-                {
-                    throw new ValidationException($"Problem at index {i} is missing a name.");
-                }
-                if (device == null)
-                {
-                    throw new ValidationException($"Problem at index {i} is missing a valid device.");
-                }
-            }
+            await ValidateNewProblems(problemList);
 
             await _dbContext.Problems.AddRangeAsync(problemList);
             await _dbContext.SaveChangesAsync();
@@ -285,6 +272,52 @@ namespace EStoreAPI.Server.Data
             else
             {
                 throw new KeyNotFoundException("Problem not found.");
+            }
+        }
+        public async Task UpdateDeviceProblemsAsync(ICollection<Problem> toDelete, ICollection<Problem> toUpdate, ICollection<Problem> toAdd)
+        {
+                _dbContext.Problems.RemoveRange(toDelete);
+
+                foreach (Problem problem in toUpdate)
+                {
+                    Problem? existing = await _dbContext.Problems.FindAsync(problem.ProblemId);
+                    if (existing is not null)
+                    {
+                        existing.ProblemName = problem.ProblemName;
+                        existing.Price = problem.Price;
+                    }
+                }
+
+                var toAddList = toAdd.ToList();
+                await ValidateNewProblems(toAddList);
+                await _dbContext.Problems.AddRangeAsync(toAddList);
+
+                try
+                {
+                    await _dbContext.SaveChangesAsync();
+                }
+                // make sure no deleted problem is being used in a job.
+                catch (DbUpdateException ex)
+                {
+                    throw new InvalidOperationException($"Database update error. {ex.Message}");
+                }
+        }
+
+        private async Task ValidateNewProblems(List<Problem> problems)
+        {
+            for (int i = 0; i < problems.Count; i++)
+            {
+                Problem problem = problems[i];
+
+                Device? device = await GetDeviceByIdAsync(problem.DeviceId);
+                if (problem.ProblemName == null)
+                {
+                    throw new ValidationException($"Problem at index {i} is missing a name.");
+                }
+                if (device == null)
+                {
+                    throw new ValidationException($"Problem at index {i} is missing a valid device.");
+                }
             }
         }
 

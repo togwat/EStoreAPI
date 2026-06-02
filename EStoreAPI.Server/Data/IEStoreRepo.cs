@@ -33,6 +33,7 @@ namespace EStoreAPI.Server.Data
         // bulk
         Task<ICollection<Problem>> AddProblemsAsync(ICollection<Problem> problems);
         Task UpdateProblemAsync(Problem problem);
+        Task UpdateDeviceProblemsAsync(ICollection<Problem> toDelete, ICollection<Problem> toUpdate, ICollection<Problem> toAdd);
 
         // job operations
         Task<Job?> GetJobByIdAsync(int id);
