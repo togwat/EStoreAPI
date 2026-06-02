@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,8 +6,21 @@ import { PlusIcon, Trash2Icon } from 'lucide-react';
 import { DataTable } from '@/components/ui/data-table';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { formatPrice } from '@/lib/formatPrice';
-import { Problem, getProblems, updateProblems } from '@/api/problems';
+import { Problem, getProblems } from '@/api/problems';
 
+// The Confirm/Cancel buttons live in DevicesPage (the parent), but they need to trigger
+// actions that depend on state inside this component (problems, edits).
+//
+// The React way to let a parent call a child's functions is:
+//   1. forwardRef  — allows the parent to pass a `ref` prop to this component
+//   2. useImperativeHandle — lets us choose exactly which functions that ref exposes
+//
+// The parent creates a ref with useRef<ProblemEditHandle>(), passes it as ref={...},
+// then calls ref.current.getUpdatedProblems() / ref.current.cancel() from its buttons.
+export interface ProblemEditHandle {
+    getUpdatedProblems: () => Problem[];
+    cancel: () => Promise<void>;
+}
 
 // Own local state so the parent's editedProblems/editedPrices updates don't rebuild columns and remount cells
 const EditableNameCell = memo(function EditableNameCell({ problem, onEdit }: {
@@ -36,11 +49,11 @@ const EditablePriceCell = memo(function EditablePriceCell({ problem, onEdit }: {
     );
 });
 
-export default function ProblemEdit({ deviceId, isEditing, onEditingChange }: {
+// forwardRef wraps the component so it can accept a ref prop from the parent
+const ProblemEdit = forwardRef<ProblemEditHandle, {
     deviceId: string;
     isEditing: boolean;
-    onEditingChange: (v: boolean) => void;
-}) {
+}>(function ProblemEdit({ deviceId, isEditing }, ref) {
     const [problems, setProblems] = useState<Problem[]>([]);
     const [editedProblems, setEditedProblems] = useState<Record<string, string>>({});
     const [editedPrices, setEditedPrices] = useState<Record<string, string>>({});
@@ -67,6 +80,23 @@ export default function ProblemEdit({ deviceId, isEditing, onEditingChange }: {
     function handleAddProblem() {
         setProblems(prev => [...prev, { id: `new-${newProblemCounter.current++}`, name: '', price: 0 }]);
     }
+
+    // Expose these two functions to the parent via the forwarded ref.
+    // The dependency array works like useMemo — re-creates the handle whenever the
+    // closed-over state changes so the parent always gets fresh data.
+    useImperativeHandle(ref, () => ({
+        getUpdatedProblems: () => problems.map(p => ({
+            ...p,
+            id: p.id.startsWith('new-') ? '' : p.id,    // if it is a 'new' id, send it as none
+            name: editedProblems[p.id] || p.name,
+            price: editedPrices[p.id] ? parseFloat(editedPrices[p.id]) : p.price,
+        })),
+        cancel: async () => {
+            setProblems(await getProblems(deviceId));
+            setEditedProblems({});
+            setEditedPrices({});
+        },
+    }), [problems, editedProblems, editedPrices, deviceId]);
 
     const columns = useMemo<ColumnDef<Problem>[]>(() => [
         {
@@ -95,42 +125,16 @@ export default function ProblemEdit({ deviceId, isEditing, onEditingChange }: {
         }] : [])
     ], [isEditing, handleEditName, handleEditPrice, handleDeleteProblem]);
 
-    async function handleConfirm() {
-        const updated = problems.map(p => ({
-            ...p,
-            id: p.id.startsWith('new-') ? '' : p.id,    // if it is a 'new' id, send it as none
-            name: editedProblems[p.id] || p.name,
-            price: editedPrices[p.id] ? parseFloat(editedPrices[p.id]) : p.price
-        }));
-
-        // call update API
-        await updateProblems(deviceId, updated);
-
-        // finally "cancel" to exit edit mode
-        await handleCancel();
-    }
-
-    async function handleCancel() {
-        // set new values from API to get back latest data
-        setProblems(await getProblems(deviceId));
-
-        setEditedProblems({});
-        setEditedPrices({});
-        onEditingChange(false);
-    }
-
     return (
         <div className={`container mx-auto ${isMobile ? "p-4" : "py-4"}`}>
             <DataTable columns={columns} data={problems} />
             {isEditing && (
-                <div>
-                    <Button variant="outline" className="mt-1 w-full bg-transparent border border-dashed border-foreground/50" onClick={handleAddProblem}><PlusIcon />Add a problem...</Button>
-                    <div className="flex justify-end gap-2 pt-4">
-                        <Button variant="outline" onClick={handleCancel}>Cancel</Button>
-                        <Button onClick={handleConfirm}>Confirm</Button>
-                    </div>
-                </div>
+                <Button variant="outline" className="mt-1 w-full bg-transparent border border-dashed border-foreground/50" onClick={handleAddProblem}>
+                    <PlusIcon />Add a problem...
+                </Button>
             )}
         </div>
     );
-}
+});
+
+export default ProblemEdit;

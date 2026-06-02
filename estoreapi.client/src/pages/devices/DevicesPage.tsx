@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PanelDrawer } from '@/components/PanelDrawer';
 import { WorkingPagination } from '@/components/WorkingPagination';
 import { DeviceCard } from './components/DeviceCard';
-import ProblemEdit from './components/ProblemEdit';
+import ProblemEdit, { ProblemEditHandle } from './components/ProblemEdit';
 import { Filter, FilterSearch, FilterSelect } from '@/components/Filter';
 import { Device, getDevices, getDeviceTypes } from '@/api/devices';
+import { updateProblems } from '@/api/problems';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PencilIcon, PlusIcon, X } from 'lucide-react';
@@ -41,6 +42,26 @@ export default function DevicesPage({ title }: { title: string }) {
 
     const pagination = <WorkingPagination className="mt-4" page={page} totalItems={devices.length} itemsPerPage={itemsPerPage} onPageChange={setPage} />;
 
+    // problemEditRef lets us call into ProblemEdit's internal state from the Confirm/Cancel buttons here
+    const problemEditRef = useRef<ProblemEditHandle>(null);
+
+    async function handleConfirm() {
+        // confirming device changes
+        // if id exists, then call UpdateDevice
+        // if no id, add new device
+
+        // confirming problem changes
+        const updated = problemEditRef.current!.getUpdatedProblems();
+        await updateProblems(selectedDevice!.id, updated);
+        // resets ProblemEdit's local edit state and refetches
+        await problemEditRef.current!.cancel(); 
+        setIsEditing(false);
+    }
+
+    async function handleCancel() {
+        await problemEditRef.current!.cancel(); // reset problem table
+        setIsEditing(false);
+    }
     return (
         <PanelDrawer
             open={selectedDevice !== null}
@@ -69,11 +90,17 @@ export default function DevicesPage({ title }: { title: string }) {
                         </div>
                         <Button variant="outline" size="icon" onClick={() => setSelectedDevice(null)}><X /></Button>
                     </div>
-
-                    <ProblemEdit deviceId={selectedDevice.id} isEditing={isEditing} onEditingChange={setIsEditing} />
+                    <ProblemEdit ref={problemEditRef} deviceId={selectedDevice.id} isEditing={isEditing} />
+                    {isEditing && 
+                        <div className="flex justify-end gap-2 pt-4">
+                                <Button variant="outline" onClick={handleCancel}>Cancel</Button>
+                                <Button onClick={handleConfirm}>Confirm</Button>
+                        </div>
+                    }
                 </div>
             )}
         >
+            {/** main body */}
             {isMobile
                 // mobile 1 column layout
                 ? <div className="flex flex-col gap-2">
