@@ -2,22 +2,12 @@ import { useEffect, useState } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PanelDrawer } from '@/components/PanelDrawer';
 import { WorkingPagination } from '@/components/WorkingPagination';
-import { DeviceCard, Device } from './components/DeviceCard';
+import { DeviceCard } from './components/DeviceCard';
 import DeviceEdit from './components/DeviceEdit';
-import axios from 'axios';
 import { Filter, FilterSearch, FilterSelect } from '@/components/Filter';
-import { getDeviceTypes } from '@/api/devices';
+import { Device, getDevices, getDeviceTypes } from '@/api/devices';
 import { Button } from '@/components/ui/button';
 import { PencilIcon, PlusIcon, X } from 'lucide-react';
-
-async function getDevices(): Promise<Device[]> {
-    const response = await axios.get('/api/devices');
-    return response.data.map((d: { deviceId: string; deviceName: string; deviceType: string }) => ({
-        id: d.deviceId,
-        name: d.deviceName,
-        type: d.deviceType,
-    }));
-}
 
 export default function DevicesPage({ title }: { title: string }) {
     const isMobile = useIsMobile();

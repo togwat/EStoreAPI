@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { toast } from '@/components/CustomToast';
 
 // follow OutProblemDTO
@@ -8,8 +8,7 @@ export type Problem = {
     price: number
 }
 
-export async function getProblems(deviceId: string): Promise<Problem[]> {
-    const response = await axios.get(`/api/problems/device/${deviceId}`);
+function _mapProblem(response: AxiosResponse) {
     return response.data.map((d: { problemId: string; problemName: string; price: string }) => ({
         id: String(d.problemId),
         name: d.problemName,
@@ -17,9 +16,15 @@ export async function getProblems(deviceId: string): Promise<Problem[]> {
     }));
 }
 
+export async function getProblems(deviceId: string): Promise<Problem[]> {
+    const response = await axios.get(`/api/problems/device/${deviceId}`);
+    return _mapProblem(response);
+}
+
 export async function updateProblems(deviceId: string, problems: Problem[]) {
+    // InProblemDTO body
     const body = problems.map(p => ({
-        problemId: p.id ? parseInt(p.id) : null,
+        problemId: p.id ? parseInt(p.id) : null,    // null id means to add
         problemName: p.name,
         deviceId: parseInt(deviceId),
         price: p.price

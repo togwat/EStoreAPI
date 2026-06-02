@@ -4,22 +4,10 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import axios from 'axios';
-import { getDeviceTypes } from '@/api/devices';
+import { Device, getDevices, getDeviceTypes, searchDeviceType } from '@/api/devices';
+import { Problem, getProblems } from '@/api/problems';
+import { submitJob } from '@/api/jobs';
 import { toast } from '@/components/CustomToast';
-
-interface DeviceOption {
-    deviceId: number;
-    deviceName: string;
-    deviceType: string;
-}
-
-interface ProblemOption {
-    problemId: number;
-    problemName: string;
-    deviceId: number;
-    price: number;
-}
 
 // for estimated pickup date, which for now is today + 1
 function getTomorrow(): string {
@@ -31,9 +19,9 @@ function getTomorrow(): string {
 export default function JobForm() {
     const [deviceTypes, setDeviceTypes] = useState<string[]>([]);
     const [selectedType, setSelectedType] = useState('');
-    const [deviceSuggestions, setDeviceSuggestions] = useState<DeviceOption[]>([]);
-    const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
-    const [problemSuggestions, setProblemSuggestions] = useState<ProblemOption[]>([]);
+    const [deviceSuggestions, setDeviceSuggestions] = useState<Device[]>([]);
+    const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
+    const [problemSuggestions, setProblemSuggestions] = useState<Problem[]>([]);
     const [problems, setProblems] = useState<string[]>(['']);
     const [submitting, setSubmitting] = useState(false);
 
@@ -51,12 +39,11 @@ export default function JobForm() {
         if (deviceInputRef.current) deviceInputRef.current.value = '';
         // return all devices if no type is selected
         if (!selectedType) {
-            axios.get<DeviceOption[]>('/api/Devices').then(res => setDeviceSuggestions(res.data));
+            getDevices().then(setDeviceSuggestions);
         }
         // get models for a specific type
         else {
-            axios.get<DeviceOption[]>('/api/Devices/searchType', { params: { type: selectedType } })
-            .then(res => setDeviceSuggestions(res.data));
+            searchDeviceType(selectedType).then(setDeviceSuggestions);
         }
     }, [selectedType]);
 
@@ -66,17 +53,14 @@ export default function JobForm() {
             setProblemSuggestions([]);
             return;
         }
-        else {
-            axios.get<ProblemOption[]>(`/api/Problems/device/${selectedDeviceId}`)
-            .then(res => setProblemSuggestions(res.data));
-        }
+        getProblems(selectedDeviceId).then(setProblemSuggestions);
     }, [selectedDeviceId]);
 
     // set new device id and reset problem suggestions, fetching new ones
     function handleDeviceChange(e: React.ChangeEvent<HTMLInputElement>) {
         // find device from device type suggestions
-        const match = deviceSuggestions.find(d => d.deviceName.toLowerCase().trim() === e.target.value.toLowerCase().trim());
-        setSelectedDeviceId(match?.deviceId ?? null);
+        const match = deviceSuggestions.find(d => d.name.toLowerCase().trim() === e.target.value.toLowerCase().trim());
+        setSelectedDeviceId(match?.id ?? null);
         setProblems(['']);
     }
 
@@ -96,7 +80,7 @@ export default function JobForm() {
     }
 
     // Suggest estimated price as sum of inputted problem prices
-    const problemPriceMap = new Map(problemSuggestions.map(p => [p.problemName.toLowerCase().trim(), p.price]));
+    const problemPriceMap = new Map(problemSuggestions.map(p => [p.name.toLowerCase().trim(), p.price]));
     const estimatedPrice = problems.reduce((sum, name) => sum + (problemPriceMap.get(name.toLowerCase().trim()) ?? 0), 0);
 
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -104,7 +88,7 @@ export default function JobForm() {
 
         // retrieve all form data
         const formData = new FormData(event.currentTarget);
-        
+
         const name = formData.get("name")?.toString().trim();
         const phone = formData.get("phone")!.toString().trim();
         const phone2 = formData.get("phone2")?.toString().trim();
@@ -119,11 +103,10 @@ export default function JobForm() {
         // convert to js number, or null if empty
         const estPrice = parseFloat(formData.get("price")?.toString() ?? '') || null;
         const notes = formData.get("notes")?.toString().trim();
-                
+
         setSubmitting(true);
         try {
-            // call api
-            const response = await axios.post('/api/Form/submit', {
+            const result = await submitJob({
                 name,
                 phoneNumber: phone,
                 phoneNumberSecondary: phone2,
@@ -135,12 +118,9 @@ export default function JobForm() {
                 estimatedPrice: estPrice,
                 note: notes,
             });
-            toast.success("Success", `Job ${response.data.jobId} has been created.`);
+            toast.success("Success", `Job ${result.jobId} has been created.`);
         } catch (error) {
-            const message = axios.isAxiosError(error)
-                ? error.response?.data ?? error.message
-                : 'An unexpected error occurred.';
-            toast.error("Submission failed", message);
+            toast.error("Submission failed", error instanceof Error ? error.message : 'An unexpected error occurred.');
         } finally {
             setSubmitting(false);
         }
@@ -187,7 +167,7 @@ export default function JobForm() {
                     <Input id="device" name="device" list="device-datalist" placeholder="required" required ref={deviceInputRef} onChange={handleDeviceChange} />
                     <datalist id="device-datalist">
                         {deviceSuggestions.map(d => (
-                            <option key={d.deviceId} value={d.deviceName} />
+                            <option key={d.id} value={d.name} />
                         ))}
                     </datalist>
                 </Field>
@@ -195,7 +175,7 @@ export default function JobForm() {
                     <FieldLabel className="after:content-['_*'] after:text-destructive">Problems</FieldLabel>
                     <datalist id="problem-datalist">
                         {problemSuggestions.map(p => (
-                            <option key={p.problemId} value={p.problemName} />
+                            <option key={p.id} value={p.name} />
                         ))}
                     </datalist>
                     <div className="flex flex-col gap-2">

@@ -6,13 +6,7 @@ import {
 } from "@/components/ui/card";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-
-// follow OutDeviceDTO
-export type Device = {
-    id: string
-    name: string
-    type: string
-}
+import { Device } from "@/api/devices";
 
 interface DeviceCardProps {
     device: Device;
