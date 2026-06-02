@@ -77,13 +77,14 @@ namespace EStoreAPI.Server.Services
         public async Task UpdateJobAsync(int id, InJobDTO dto)
         {
             Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true); 
-            
+
             // validate number of problems
             ICollection<Problem> problems = await _repo.GetProblemsByIdsAsync(dto.ProblemIds);
             if (problems.Count != dto.ProblemIds.Count)
                 throw new KeyNotFoundException("One or more problem IDs are invalid.");
 
             Job job = dto.ToModel(problems);
+            job.JobId = id;
 
             await _repo.UpdateJobAsync(job);
         }

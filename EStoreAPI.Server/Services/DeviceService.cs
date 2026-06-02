@@ -62,8 +62,8 @@ namespace EStoreAPI.Server.Services
         {
             Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true); 
             
-            // set up new device
             Device device = dto.ToModel();
+            device.DeviceId = id;
 
             await _repo.UpdateDeviceAsync(device);
         }

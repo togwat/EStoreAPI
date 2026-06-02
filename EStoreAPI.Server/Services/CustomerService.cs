@@ -54,6 +54,7 @@ namespace EStoreAPI.Server.Services
 
             // set up new customer
             Customer customer = dto.ToModel();
+            customer.CustomerId = id;
 
             await _repo.UpdateCustomerAsync(customer);
         }

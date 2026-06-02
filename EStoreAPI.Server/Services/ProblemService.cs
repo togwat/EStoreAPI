@@ -54,6 +54,7 @@ namespace EStoreAPI.Server.Services
 
             // set new problem
             Problem problem = dto.ToModel();
+            problem.ProblemId = id;
 
             await _repo.UpdateProblemAsync(problem);
         }
