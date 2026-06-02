@@ -1,7 +1,9 @@
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search } from 'lucide-react';
+import { Search, ArrowUp, ArrowDown } from 'lucide-react';
 import { ReactElement } from 'react'
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button-group';
 
 interface FilterSearchProps {
     placeholder: string
@@ -41,6 +43,36 @@ export function FilterSelect({ label, options, value, onChange }: FilterSelectPr
     )
 }
 
+interface FilterSortProps {
+    label: string
+    options: string[]
+    value: string
+    onChange: (value: string) => void
+    direction: "asc" | "desc"
+    onDirectionChange: (direction: "asc" | "desc") => void
+}
+
+// assuming asc/desc
+export function FilterSort({ label, options, value, onChange, direction, onDirectionChange }: FilterSortProps) {
+    return (
+        <ButtonGroup>
+            <Select value={value} onValueChange={onChange}>
+                <SelectTrigger>
+                    <SelectValue placeholder={label} />
+                </SelectTrigger>
+                <SelectContent position="popper">
+                    {options.map(type => (
+                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <Button variant="outline" size="icon" onClick={
+                () => onDirectionChange(direction === "asc" ? "desc" : "asc")
+            }>{direction === "asc" ? <ArrowUp /> : <ArrowDown />}</Button>
+        </ButtonGroup>
+    )
+}
+
 // only allow Filter to have filter variants as children
 type FilterChild = 
     | ReactElement<FilterSearchProps, typeof FilterSearch>
@@ -52,7 +84,7 @@ interface FilterProps {
 
 export function Filter({ children }: FilterProps) {
     return (
-        <div className="py-4 flex flex-row justify-start gap-2">
+        <div>
             {children}
         </div>
     )

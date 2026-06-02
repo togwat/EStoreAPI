@@ -4,12 +4,13 @@ import { PanelDrawer } from '@/components/PanelDrawer';
 import { WorkingPagination } from '@/components/WorkingPagination';
 import { DeviceCard } from './components/DeviceCard';
 import ProblemEdit, { ProblemEditHandle } from './components/ProblemEdit';
-import { Filter, FilterSearch, FilterSelect } from '@/components/Filter';
+import { Filter, FilterSearch, FilterSelect, FilterSort } from '@/components/Filter';
 import { Device, addDevice, updateDevice, getDevices, getDeviceTypes } from '@/api/devices';
 import { updateProblems } from '@/api/problems';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PencilIcon, PlusIcon, X } from 'lucide-react';
+import { sortByField } from '@/lib/sort';
 
 export default function DevicesPage({ title }: { title: string }) {
     const isMobile = useIsMobile();
@@ -21,6 +22,9 @@ export default function DevicesPage({ title }: { title: string }) {
     const [editedName, setEditedName] = useState('');
     const [editedType, setEditedType] = useState('');
     const [page, setPage] = useState(1);
+    // filter sort
+    const [direction, setDirection] = useState<'asc' | 'desc'>('asc');
+    const [sortBy, setSortBy] = useState<'id' | 'name' | 'type'>('type');
 
     useEffect(() => {
         getDevices().then(setDevices);
@@ -40,7 +44,10 @@ export default function DevicesPage({ title }: { title: string }) {
     const itemsPerPage = isMobile ? 10 : 32;
 
     const filteredDevices = selectedType !== 'all' ? devices.filter(d => d.type === selectedType) : devices;
-    const pagedDevices = filteredDevices.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+
+    const sortedDevices = sortByField(filteredDevices, sortBy, direction);
+
+    const pagedDevices = sortedDevices.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
     const cards = pagedDevices.map(device => (
         <DeviceCard key={device.id} device={device} isSelected={selectedDevice?.id === device.id} onClick={() => setSelectedDevice(device)} />
@@ -135,11 +142,23 @@ export default function DevicesPage({ title }: { title: string }) {
             {isMobile
                 // mobile 1 column layout
                 ? <div className="flex flex-col gap-2">
-                    <div className="flex flex-row items-center justify-between">
-                        <Filter>
-                            <FilterSearch placeholder={`Search ${devices.length} devices...`} />
-                            <FilterSelect label="Device type" options={deviceTypes} value={selectedType} onChange={setSelectedType} />
-                        </Filter>
+                    <div className="flex flex-row items-start justify-between">
+                        <div className="pb-4">
+                            <Filter>
+                                <FilterSearch placeholder={`Search ${devices.length} devices...`} />
+                                <div className="flex flex-row items-center justify-start gap-2 pt-2">
+                                    <FilterSelect label="Device type" options={deviceTypes} value={selectedType} onChange={setSelectedType} />
+                                    <FilterSort
+                                        label="Sort by"
+                                        options={["id", "name", "type"]}    // device attributes
+                                        value={sortBy}
+                                        onChange={v => setSortBy(v as "id" | "name" | "type")}
+                                        direction={direction}
+                                        onDirectionChange={setDirection}
+                                    />
+                                </div>
+                            </Filter>
+                        </div>
                         <Button size="icon-lg" onClick={handleAddDevice}><PlusIcon /></Button>
                     </div>
                     {cards}
@@ -150,12 +169,22 @@ export default function DevicesPage({ title }: { title: string }) {
                     <h1>{title}</h1>
                     <div className="flex flex-row items-center justify-between">
                         <Filter>
-                            <FilterSearch placeholder="Search devices..." />
-                            <FilterSelect label="Device type" options={deviceTypes} value={selectedType} onChange={setSelectedType} />
+                            <div className="py-4 flex flex-row justify-start gap-2">
+                                <FilterSearch placeholder="Search devices..." />
+                                <FilterSelect label="Device type" options={deviceTypes} value={selectedType} onChange={setSelectedType} />
+                                <FilterSort
+                                    label="Sort by"
+                                    options={["id", "name", "type"]}    // device attributes
+                                    value={sortBy}
+                                    onChange={v => setSortBy(v as "id" | "name" | "type")}
+                                    direction={direction}
+                                    onDirectionChange={setDirection}
+                                />
+                            </div>
                         </Filter>
                         <Button size="lg" onClick={handleAddDevice}><PlusIcon />Add device</Button>
                     </div>
-                    <span className="pl-1 text-muted-foreground">{filteredDevices.length} results</span>
+                    <span className="pl-1 text-muted-foreground">{sortedDevices.length} results</span>
                     <div className="py-4 grid grid-cols-[repeat(auto-fill,_minmax(18rem,_1fr))] gap-4">{cards}</div>
                     {pagination}
                   </div>
