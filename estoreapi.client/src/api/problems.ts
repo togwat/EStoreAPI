@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/CustomToast';
 
 // follow OutProblemDTO
 export type Problem = {
@@ -42,14 +42,7 @@ export async function updateProblems(deviceId: string, problems: Problem[]) {
                 message = text ?? "One or more validation errors occurred.";
             }
         }
-        else {
-            message = "Something went wrong.";
-        }
 
-        toast.error(message, {
-            position: "top-center",
-            autoClose: false,
-            className: "border border-border bg-card! text-destructive!"
-        });
+        toast.error(message ?? "Something went wrong.");
     }
 }
