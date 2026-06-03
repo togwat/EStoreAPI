@@ -336,7 +336,7 @@ namespace EStoreAPI.Server.Data
 
         public async Task<ICollection<Job>> GetJobsOfCustomerAsync(int customerId)
         {
-            ICollection<Job> jobs = await _dbContext.Jobs.Where(j => j.CustomerId == customerId).ToListAsync();
+            ICollection<Job> jobs = await _dbContext.Jobs.Include(j => j.Problems).Where(j => j.CustomerId == customerId).ToListAsync();
             return jobs;
         }
 
