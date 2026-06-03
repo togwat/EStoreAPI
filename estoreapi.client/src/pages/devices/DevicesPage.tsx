@@ -88,6 +88,10 @@ export default function DevicesPage({ title }: { title: string }) {
         if (selectedDevice?.id) {
             await problemEditRef.current!.cancel(); // reset problem table
         }
+        // if in add mode, close the panel
+        else {
+            setSelectedDevice(null);
+        }
         setEditedName('');
         setEditedType('');
         setIsEditing(false);
