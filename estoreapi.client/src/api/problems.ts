@@ -8,7 +8,7 @@ export type Problem = {
     price: number
 }
 
-function _mapProblem(response: AxiosResponse) {
+function _mapProblems(response: AxiosResponse) {
     return response.data.map((d: { problemId: string; problemName: string; price: string }) => ({
         id: String(d.problemId),
         name: d.problemName,
@@ -18,7 +18,7 @@ function _mapProblem(response: AxiosResponse) {
 
 export async function getProblems(deviceId: string): Promise<Problem[]> {
     const response = await axios.get(`/api/problems/device/${deviceId}`);
-    return _mapProblem(response);
+    return _mapProblems(response);
 }
 
 export async function updateProblems(deviceId: string, problems: Problem[]) {
