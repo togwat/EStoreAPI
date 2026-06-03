@@ -4,6 +4,7 @@ import { Search, ArrowUp, ArrowDown } from 'lucide-react';
 import { ReactElement } from 'react'
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
+import { cn } from "@/lib/utils"
 
 interface FilterSearchProps {
     placeholder: string
@@ -80,11 +81,12 @@ type FilterChild =
 
 interface FilterProps {
     children: FilterChild | FilterChild[]
+    className?: string
 }
 
-export function Filter({ children }: FilterProps) {
+export function Filter({ children, className }: FilterProps) {
     return (
-        <div>
+        <div className={cn(className)}>
             {children}
         </div>
     )

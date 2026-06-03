@@ -147,34 +147,9 @@ export default function DevicesPage({ title }: { title: string }) {
                 // mobile 1 column layout
                 ? <div className="flex flex-col gap-2">
                     <div className="flex flex-row items-start justify-between">
-                        <div className="pb-4">
-                            <Filter>
-                                <FilterSearch placeholder={`Search ${devices.length} devices...`} />
-                                <div className="flex flex-row items-center justify-start gap-2 pt-2">
-                                    <FilterSelect label="Device type" options={deviceTypes} value={selectedType} onChange={setSelectedType} />
-                                    <FilterSort
-                                        label="Sort by"
-                                        options={["id", "name", "type"]}    // device attributes
-                                        value={sortBy}
-                                        onChange={v => setSortBy(v as "id" | "name" | "type")}
-                                        direction={direction}
-                                        onDirectionChange={setDirection}
-                                    />
-                                </div>
-                            </Filter>
-                        </div>
-                        <Button size="icon-lg" onClick={handleAddDevice}><PlusIcon /></Button>
-                    </div>
-                    {cards}
-                    {pagination}
-                </div>
-                // desktop grid layout
-                : <div className="p-8">
-                    <h1>{title}</h1>
-                    <div className="flex flex-row items-center justify-between">
-                        <Filter>
-                            <div className="py-4 flex flex-row justify-start gap-2">
-                                <FilterSearch placeholder="Search devices..." />
+                        <Filter className="pb-4">
+                            <FilterSearch placeholder={`Search ${devices.length} devices...`} />
+                            <div className="flex flex-row items-center justify-start gap-2 pt-2">
                                 <FilterSelect label="Device type" options={deviceTypes} value={selectedType} onChange={setSelectedType} />
                                 <FilterSort
                                     label="Sort by"
@@ -185,6 +160,27 @@ export default function DevicesPage({ title }: { title: string }) {
                                     onDirectionChange={setDirection}
                                 />
                             </div>
+                        </Filter>
+                        <Button size="icon-lg" onClick={handleAddDevice}><PlusIcon /></Button>
+                    </div>
+                    {cards}
+                    {pagination}
+                </div>
+                // desktop grid layout
+                : <div className="p-8">
+                    <h1>{title}</h1>
+                    <div className="flex flex-row items-center justify-between">
+                        <Filter className="py-4 flex flex-row justify-start gap-2">
+                            <FilterSearch placeholder="Search devices..." />
+                            <FilterSelect label="Device type" options={deviceTypes} value={selectedType} onChange={setSelectedType} />
+                            <FilterSort
+                                label="Sort by"
+                                options={["id", "name", "type"]}    // device attributes
+                                value={sortBy}
+                                onChange={v => setSortBy(v as "id" | "name" | "type")}
+                                direction={direction}
+                                onDirectionChange={setDirection}
+                            />
                         </Filter>
                         <Button size="lg" onClick={handleAddDevice}><PlusIcon />Add device</Button>
                     </div>
