@@ -11,7 +11,7 @@ import { Device } from "@/api/devices";
 interface DeviceCardProps {
     device: Device;
     isSelected?: boolean;
-    onClick?: () => void;
+    onClick: () => void;
 }
 
 export function DeviceCard({ device, isSelected, onClick }: DeviceCardProps ) {
@@ -27,7 +27,7 @@ export function DeviceCard({ device, isSelected, onClick }: DeviceCardProps ) {
             onClick={onClick}
             role={"button"}
             tabIndex={0}
-            onKeyDown={(e) => { if (e.key === "Enter") onClick }}
+            onKeyDown={(e) => { if (e.key === "Enter") onClick() }}
         >
             <CardHeader className={cn(isMobile && "flex! flex-row gap-2")}>
                 <CardTitle>{device.name}</CardTitle>
