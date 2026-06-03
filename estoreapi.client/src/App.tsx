@@ -3,6 +3,7 @@ import HomePage from './pages/home/HomePage';
 import FormPage from './pages/form/FormPage';
 import JobsPage from './pages/jobs/JobsPage';
 import DevicesPage from './pages/devices/DevicesPage';
+import NotFoundPage from './pages/404/NotFoundPage';
 import Chat from './components/Chat';
 import { Navbar } from './components/Navbar';
 import { TooltipProvider } from './components/ui/tooltip';
@@ -27,6 +28,7 @@ function AppContent() {
                     <Route path="/form" element={<FormPage title={title} />} />
                     <Route path="/jobs" element={<JobsPage title={title} />} />
                     <Route path="/devices" element={<DevicesPage title={title} />} />
+                    <Route path="*" element={<NotFoundPage />} />
                 </Routes>
             </Navbar>
         </Chat>
