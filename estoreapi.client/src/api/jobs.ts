@@ -1,5 +1,60 @@
-import axios from "axios";
+import axios  from "axios";
+import { Problem } from "./problems";
 
+// follow OutJobDTO
+export type Job = {
+    jobId: string
+    customerId: string
+    deviceId: string
+    receiveTime: string
+    pickupTime: string
+    estimatedPickupTime: string
+    note: string
+    problems: Problem[]
+    estimatedPrice: string
+    collectedPrice: string
+    isFinished: boolean
+}
+
+function _mapJob(j: {
+    jobId: number;
+    customerId: number;
+    deviceId: number;
+    receiveTime: string;
+    pickupTime: string;
+    estimatedPickupTime: string;
+    note: string;
+    problems: { problemId: number; problemName: string; deviceId: number; price: number }[];
+    estimatedPrice: number;
+    collectedPrice: number;
+    isFinished: boolean;
+}): Job {
+    return {
+        jobId: String(j.jobId),
+        customerId: String(j.customerId),   // change Job type to customerId: string
+        deviceId: String(j.deviceId),       // change Job type to deviceId: string
+        receiveTime: j.receiveTime,
+        pickupTime: j.pickupTime,
+        estimatedPickupTime: j.estimatedPickupTime,
+        note: j.note,
+        problems: j.problems.map(p => ({
+            id: String(p.problemId),
+            name: p.problemName,
+            price: p.price
+        })),
+        estimatedPrice: String(j.estimatedPrice),
+        collectedPrice: String(j.collectedPrice),
+        isFinished: j.isFinished,
+    };
+}
+
+
+export async function getJobs(): Promise<Job[]> {
+    const response = await axios.get('/api/devices');
+    return response.data.map(_mapJob);
+}
+
+// follow job form
 type SubmitJobPayload = {
     name?: string;
     phoneNumber: string;

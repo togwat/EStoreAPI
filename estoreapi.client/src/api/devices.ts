@@ -16,6 +16,27 @@ function _mapDevice(d: { deviceId: string; deviceName: string; deviceType: strin
     };
 }
 
+export async function getDevice(id: string): Promise<Device> {
+    try {
+        const response = await axios.get(`/api/Devices/${id}`);
+        return _mapDevice(response.data);
+    } catch (error) {
+        let message;
+
+        if (axios.isAxiosError(error)) {
+            const data = error.response?.data;
+            const text = typeof data === 'string' ? data : null;
+
+            if (error.response?.status === 404) {
+                message = text ?? "Device not found.";
+            }
+        }
+
+        toast.error(message ?? "Something went wrong.");
+        throw error;
+    }
+}
+
 export async function getDevices(): Promise<Device[]> {
     const response = await axios.get('/api/devices');
     return response.data.map(_mapDevice);
