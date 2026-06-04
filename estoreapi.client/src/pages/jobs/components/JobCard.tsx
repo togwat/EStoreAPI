@@ -62,7 +62,7 @@ export function JobCard({ job, customer, device, isSelected, onClick }: JobCardP
         <Card
             size="sm"
             className={cn(
-                "max-w-4xl border border-border cursor-pointer hover:border-foreground/50 transition-all",
+                "w-full border border-border cursor-pointer hover:border-foreground/50 transition-all",
                 isSelected && "bg-accent border-ring ring-2 ring-ring/50 text-accent-foreground"
             )}
             onClick={onClick}

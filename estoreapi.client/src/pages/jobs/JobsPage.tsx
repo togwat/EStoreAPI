@@ -6,6 +6,7 @@ import { getCustomers, Customer } from '@/api/customers';
 import { getDevices, Device } from '@/api/devices';
 import { JobCard } from './components/JobCard';
 import { Filter, FilterSearch, FilterSelect } from '@/components/Filter';
+import { CircleCheckIcon, Inbox } from 'lucide-react';
 
 export default function JobsPage({ title }: { title: string }) {
     const isMobile = useIsMobile();
@@ -21,12 +22,11 @@ export default function JobsPage({ title }: { title: string }) {
         getCustomers().then(list => setCustomers(Object.fromEntries(list.map(c => [c.id, c]))));
         getDevices().then(list => setDevices(Object.fromEntries(list.map(d => [d.id, d]))));
     }, []);
-    
-    const filteredJobs = selectedFinish === 'Finished' ? jobs.filter(j => j.isFinished)
-        : selectedFinish === 'In progress' ? jobs.filter(j => !j.isFinished)
-        : jobs;
 
-    const cards = filteredJobs.map(job => (
+    const inProgressJobs = jobs.filter(j => !j.isFinished);
+    const finishedJobs = jobs.filter(j => j.isFinished);
+    
+    const inProgressCards = inProgressJobs.map(job => (
         <JobCard
             key={job.jobId}
             job={job}
@@ -36,6 +36,40 @@ export default function JobsPage({ title }: { title: string }) {
             onClick={() => setSelectedJob(job)}
         />
     ));
+
+    const finishedCards = finishedJobs.map(job => (
+        <JobCard
+            key={job.jobId}
+            job={job}
+            customer={customers[job.customerId] ?? null}
+            device={devices[job.deviceId] ?? null}
+            isSelected={selectedJob?.jobId === job.jobId}
+            onClick={() => setSelectedJob(job)}
+        />
+    ));
+
+    const cards = (
+        <div className="flex flex-col gap-4 max-w-4xl">
+            <div className="flex flex-col gap-2">
+                <div className="flex flex-row items-center gap-2">
+                    <Inbox className="text-primary" size={16} />
+                    <span className="text-primary font-medium">IN PROGRESS</span>
+                    <span className="text-muted-foreground">{inProgressCards.length}</span>
+                    <hr className="flex-1 border-t border-border" />
+                </div>
+                {inProgressCards}
+            </div>
+            <div className="flex flex-col gap-2">
+                <div className="flex flex-row items-center gap-2">
+                    <CircleCheckIcon className="text-foreground" size={16} />
+                    <span className="text-foreground font-medium">FINISHED</span>
+                    <span className="text-muted-foreground">{finishedCards.length}</span>
+                    <hr className="flex-1 border-t border-border" />
+                </div>
+                {finishedCards}
+            </div>
+        </div>
+    );
 
     return (
         <PanelDrawer
@@ -62,9 +96,7 @@ export default function JobsPage({ title }: { title: string }) {
                         <FilterSearch placeholder={"Search by customer name or phone..."} />
                         <FilterSelect label="Is finished" options={["In progress", "Finished"]} value={selectedFinish} onChange={setSelectedFinish} />
                     </Filter>
-                    <div className="flex flex-col gap-2">
-                       {cards}
-                    </div>
+                    {cards}
                 </div>
             }
         </PanelDrawer>
