@@ -22,6 +22,7 @@ export default function DevicesPage({ title }: { title: string }) {
     const [editedName, setEditedName] = useState('');
     const [editedType, setEditedType] = useState('');
     const [page, setPage] = useState(1);
+    const [searchQuery, setSearchQuery] = useState('');
     // filter sort
     const [direction, setDirection] = useState<'asc' | 'desc'>('asc');
     const [sortBy, setSortBy] = useState<'id' | 'name' | 'type'>('type');
@@ -43,7 +44,10 @@ export default function DevicesPage({ title }: { title: string }) {
     useEffect(() => { setPage(1); }, [isMobile]);
     const itemsPerPage = isMobile ? 10 : 32;
 
-    const filteredDevices = selectedType !== 'all' ? devices.filter(d => d.type === selectedType) : devices;
+    // type & search filters
+    const filteredDevices = devices
+        .filter(d => selectedType === 'all' || d.type === selectedType)
+        .filter(d => !searchQuery || d.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const sortedDevices = sortByField(filteredDevices, sortBy, direction);
 
@@ -148,7 +152,7 @@ export default function DevicesPage({ title }: { title: string }) {
                 ? <div className="flex flex-col gap-2">
                     <div className="flex flex-row items-start justify-between">
                         <Filter className="pb-4">
-                            <FilterSearch placeholder={`Search ${devices.length} devices...`} />
+                            <FilterSearch placeholder={`Search ${devices.length} devices...`} onChange={setSearchQuery} />
                             <div className="flex flex-row items-center justify-start gap-2 pt-2">
                                 <FilterSelect label="Device type" options={deviceTypes} value={selectedType} onChange={setSelectedType} />
                                 <FilterSort
@@ -171,7 +175,7 @@ export default function DevicesPage({ title }: { title: string }) {
                     <h1>{title}</h1>
                     <div className="flex flex-row items-center justify-between">
                         <Filter className="py-4 flex flex-row justify-start gap-2">
-                            <FilterSearch placeholder="Search devices..." />
+                            <FilterSearch placeholder="Search devices..." onChange={setSearchQuery} />
                             <FilterSelect label="Device type" options={deviceTypes} value={selectedType} onChange={setSelectedType} />
                             <FilterSort
                                 label="Sort by"

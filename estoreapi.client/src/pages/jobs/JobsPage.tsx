@@ -16,6 +16,7 @@ export default function JobsPage({ title }: { title: string }) {
     const [devices, setDevices] = useState<Record<string, Device>>({});
     // filters
     const [selectedFinish, setSelectedFinish] = useState('all');
+    const [searchQuery, setSearchQuery] = useState('');
 
     // async makes sure all 3 fetches happen together, so no issues like jobs proceeding before customers are fetched
     useEffect(() => {
@@ -32,8 +33,19 @@ export default function JobsPage({ title }: { title: string }) {
         load();
     }, []);
 
-    const inProgressJobs = jobs.filter(j => !j.isFinished);
-    const finishedJobs = jobs.filter(j => j.isFinished);
+    // check if the job's customer matches the search query
+    function matchesSearch(job: Job) {
+        // skip search with no query
+        if (!searchQuery) return true;
+
+        const customer = customers[job.customerId];
+        const query = searchQuery.toLowerCase();
+        // search by customer name or phone
+        return customer?.name.toLowerCase().includes(query) || customer?.phone.includes(query);
+    }
+
+    const inProgressJobs = jobs.filter(j => !j.isFinished && matchesSearch(j));
+    const finishedJobs = jobs.filter(j => j.isFinished && matchesSearch(j));
     
     const inProgressCards = inProgressJobs.map(job => (
         <JobCard
@@ -97,7 +109,7 @@ export default function JobsPage({ title }: { title: string }) {
                 // mobile
                 ? <div className="flex flex-col gap-2">
                     <Filter className="pb-4 flex flex-col gap-2">
-                        <FilterSearch placeholder={"Search by customer name or phone..."} />
+                        <FilterSearch placeholder={"Search by customer name or phone..."} onChange={setSearchQuery} />
                         <FilterSelect label="Is finished" options={["In progress", "Finished"]} value={selectedFinish} onChange={setSelectedFinish} />
                     </Filter>
                     {cards}
@@ -106,7 +118,7 @@ export default function JobsPage({ title }: { title: string }) {
                 : <div className="p-8">
                     <h1>{title}</h1>
                     <Filter className="py-4 flex flex-row justify-start gap-2">
-                        <FilterSearch placeholder={"Search by customer name or phone..."} />
+                        <FilterSearch placeholder={"Search by customer name or phone..."} onChange={setSearchQuery} />
                         <FilterSelect label="Is finished" options={["In progress", "Finished"]} value={selectedFinish} onChange={setSelectedFinish} />
                     </Filter>
                     {cards}

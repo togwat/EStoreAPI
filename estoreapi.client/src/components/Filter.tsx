@@ -8,12 +8,13 @@ import { cn } from "@/lib/utils"
 
 interface FilterSearchProps {
     placeholder: string
+    onChange: (value: string) => void
 }
 
-export function FilterSearch({ placeholder }: FilterSearchProps) {
+export function FilterSearch({ placeholder, onChange }: FilterSearchProps) {
     return (
         <InputGroup className="max-w-xs">
-            <InputGroupInput placeholder={placeholder} />
+            <InputGroupInput placeholder={placeholder} onChange={e => onChange(e.target.value)} />
             <InputGroupAddon>
                 <Search />
             </InputGroupAddon>
