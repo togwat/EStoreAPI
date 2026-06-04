@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PanelDrawer } from '@/components/PanelDrawer';
+import { Button } from '@/components/ui/button';
 import { getJobs, Job } from '@/api/jobs';
 import { getCustomers, Customer } from '@/api/customers';
 import { getDevices, Device } from '@/api/devices';
-import { JobCard } from './components/JobCard';
+import { JobCard, formatPhone } from './components/JobCard';
 import { Filter, FilterSearch, FilterSelect } from '@/components/Filter';
-import { CircleCheckIcon, Inbox } from 'lucide-react';
+import { CircleCheckIcon, Inbox, X, PencilIcon, PhoneIcon, MapPinIcon, MailIcon, type LucideIcon } from 'lucide-react';
 import { WorkingPagination } from '@/components/WorkingPagination';
+import { formatPrice } from '@/lib/formatPrice';
 
 export default function JobsPage({ title }: { title: string }) {
     const isMobile = useIsMobile();
@@ -35,6 +37,11 @@ export default function JobsPage({ title }: { title: string }) {
         }
         load();
     }, []);
+
+    // reset edit mode when switiching selected job
+    useEffect(() => {
+        
+    });
 
     // reset to page 1 whenever the filter or layout changes
     useEffect(() => { setPage(1); }, [isMobile]);
@@ -65,7 +72,11 @@ export default function JobsPage({ title }: { title: string }) {
         });
 
     const pagedJobs = filteredJobs.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-    
+
+    // changes when selectedJob changes
+    const selectedCustomer = selectedJob ? customers[selectedJob.customerId] ?? null : null;
+    const selectedDevice = selectedJob ? devices[selectedJob.deviceId] ?? null : null;
+
     const toCard = (job: Job) => (
         <JobCard
             key={job.jobId}
@@ -109,11 +120,55 @@ export default function JobsPage({ title }: { title: string }) {
         </div>
     );
 
+    // for in panels like customer info, device info
+    const InfoRow = ({ icon: Icon, children }: { icon?: LucideIcon, children: React.ReactNode }) => (
+        <span className="flex flex-row items-center gap-2">
+            {/** w-4 placeholder if no icon for indentation */}
+            {Icon ? <Icon className="text-muted-foreground" size={16} /> : <span className="w-4" />}
+            {children}
+        </span>
+    );
+    
     return (
         <PanelDrawer
             open={selectedJob !== null}
             drawerContent={selectedJob && (
                 <div className="w-full h-full overflow-auto">
+                    {/** header */}
+                    <div className={`flex items-center justify-between ${isMobile ? "p-4" : "pb-4"} border-b`}>
+                        <div className="flex items-center justify-start gap-2">
+                            <span className="text-lg text-primary font-mono">#{selectedJob.jobId}</span>
+                            <span className="text-lg text-foreground font-bold">{selectedCustomer?.name}</span>
+                            <Button variant="ghost" size="icon"><PencilIcon /></Button>
+                        </div>
+                        <Button variant="outline" size="icon" onClick={() => setSelectedJob(null)}><X /></Button>
+                    </div>
+                    {/** customer section */}
+                    <div className="border-b py-4 flex flex-col gap-2">
+                        <span className="text-muted-foreground">CUSTOMER</span>
+                        <InfoRow icon={PhoneIcon}>{formatPhone(selectedCustomer?.phone)}</InfoRow>
+                        {selectedCustomer?.secondPhone && <InfoRow>{formatPhone(selectedCustomer.secondPhone)}</InfoRow>}
+                        {selectedCustomer?.email && <InfoRow icon={MailIcon}>{selectedCustomer.email}</InfoRow>}
+                        {selectedCustomer?.address && <InfoRow icon={MapPinIcon}>{selectedCustomer.address}</InfoRow>}
+                    </div>
+                    {/** job's device info */}
+                    <div className="border-b py-4 flex flex-col gap-2">
+                        <span className="text-muted-foreground">DEVICE</span>
+                        <div className="flex flex-row items-center gap-2">
+                            <span>{selectedDevice?.name}</span>
+                            <span className="text-muted-foreground text-sm">{selectedDevice?.type}</span>
+                        </div>
+                        <span className="text-muted-foreground">PROBLEMS</span>
+                        <div className="flex flex-row flex-wrap gap-2">
+                            {selectedJob.problems.map(p => (
+                                <div className="flex flew-row gap-4 bg-muted text-muted-foreground px-1 rounded-lg">
+                                    <span>{p.name}</span>
+                                    <span>{formatPrice(p.price)}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
                 </div>
             )}
         >

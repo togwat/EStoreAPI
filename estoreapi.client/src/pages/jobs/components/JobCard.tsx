@@ -13,7 +13,9 @@ import { PhoneIcon, ClockIcon, CircleCheckIcon } from "lucide-react";
 
 // takes continuous string of digits and formats it into phone no. with spaces
 // e.g. 0221234567 -> 022 123 4567
-function formatPhone(phone: string): string {
+export function formatPhone(phone?: string): string | null {
+    if (!phone) return null;
+
   const digits = phone.replace(/\D/g, "")
 
     // +64 international prefix -> replace with leading 0
