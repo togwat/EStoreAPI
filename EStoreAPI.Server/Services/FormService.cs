@@ -38,8 +38,7 @@ namespace EStoreAPI.Server.Services
 
             // validate customer (keep as last validation)
             // look for customer via phone, use if found
-            ICollection<Customer> customers = await _customerService.SearchCustomersAsync(dto.PhoneNumber);
-            Customer customer = customers.FirstOrDefault()
+            Customer customer = await _customerService.GetCustomerByPhoneAsync(dto.PhoneNumber)
             // create new customer if not found
             ?? await _customerService.CreateCustomerAsync(new InCustomerDTO
             {

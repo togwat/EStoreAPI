@@ -22,6 +22,11 @@ namespace EStoreAPI.Server.Services
         {
             return _repo.GetCustomerByIdAsync(id);
         }
+        
+        public Task<Customer?> GetCustomerByPhoneAsync(string phone)
+        {
+            return _repo.GetCustomerByPhoneAsync(phone);
+        }
 
         public Task<ICollection<Customer>> SearchCustomersAsync(string? query)
         {

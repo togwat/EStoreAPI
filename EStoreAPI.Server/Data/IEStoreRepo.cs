@@ -6,6 +6,7 @@ namespace EStoreAPI.Server.Data
     {
         // customer operations
         Task<Customer?> GetCustomerByIdAsync(int id);
+        Task<Customer?> GetCustomerByPhoneAsync(string phone);
         Task<ICollection<Customer>> GetCustomersAsync();
         // query by name, phone, or email
         Task<ICollection<Customer>> GetCustomersByQueryAsync(string query);

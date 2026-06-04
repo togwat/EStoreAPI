@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 
 namespace EStoreAPI.Server.Data
 {
@@ -19,6 +20,13 @@ namespace EStoreAPI.Server.Data
         {
             Customer? customer = await _dbContext.Customers.FirstOrDefaultAsync(c => c.CustomerId == id);
             return customer;
+        }
+
+        public async Task<Customer?> GetCustomerByPhoneAsync(string phone)
+        {
+            // strip all spaces from phone
+            string digits = Regex.Replace(phone, @"\D", "");
+            return await _dbContext.Customers.FirstOrDefaultAsync(c => c.PhoneNumber == digits);
         }
 
         public async Task<ICollection<Customer>> GetCustomersAsync()

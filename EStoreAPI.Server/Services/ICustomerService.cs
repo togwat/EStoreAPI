@@ -7,6 +7,7 @@ namespace EStoreAPI.Server.Services
     {
         Task<ICollection<Customer>> GetAllCustomersAsync();
         Task<Customer?> GetCustomerAsync(int id);
+        Task<Customer?> GetCustomerByPhoneAsync(string phone);
         Task<ICollection<Customer>> SearchCustomersAsync(string? query);
         Task<Customer> CreateCustomerAsync(InCustomerDTO dto);
         Task<ICollection<Customer>> CreateCustomersAsync(ICollection<InCustomerDTO> dtos);
