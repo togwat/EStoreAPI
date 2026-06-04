@@ -11,8 +11,8 @@ export type Job = {
     estimatedPickupTime: string
     note: string
     problems: Problem[]
-    estimatedPrice: string
-    collectedPrice: string
+    estimatedPrice: string | null
+    collectedPrice: string | null
     isFinished: boolean
 }
 
@@ -42,8 +42,8 @@ function _mapJob(j: {
             name: p.problemName,
             price: p.price
         })),
-        estimatedPrice: String(j.estimatedPrice),
-        collectedPrice: String(j.collectedPrice),
+        estimatedPrice: j.estimatedPrice != null ? String(j.estimatedPrice) : null,
+        collectedPrice: j.collectedPrice != null ? String(j.collectedPrice) : null,
         isFinished: j.isFinished,
     };
 }

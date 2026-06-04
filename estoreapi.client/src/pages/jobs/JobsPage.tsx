@@ -130,7 +130,7 @@ export default function JobsPage({ title }: { title: string }) {
     );
 
     // for in panels like estimations
-    const InfoGridItem = ({ title, children }: {title: string, children: React.ReactNode}) => (
+    const InfoItem = ({ title, children }: {title: string, children: React.ReactNode}) => (
         <div className="flex flex-col align-start">
             <span className="text-muted-foreground">{title}</span>
             {children}
@@ -147,17 +147,24 @@ export default function JobsPage({ title }: { title: string }) {
                         <div className="flex items-center justify-start gap-2">
                             <span className="text-lg text-primary font-mono">#{selectedJob.jobId}</span>
                             <span className="text-lg text-foreground font-bold">{selectedCustomer?.name}</span>
-                            <Button variant="ghost" size="icon"><PencilIcon /></Button>
                         </div>
                         <Button variant="outline" size="icon" onClick={() => setSelectedJob(null)}><X /></Button>
                     </div>
                     {/** customer section */}
                     <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
                         <span className="text-muted-foreground">CUSTOMER</span>
-                        <InfoRow icon={PhoneIcon}>{formatPhone(selectedCustomer?.phone)}</InfoRow>
-                        {selectedCustomer?.secondPhone && <InfoRow>{formatPhone(selectedCustomer.secondPhone)}</InfoRow>}
-                        {selectedCustomer?.email && <InfoRow icon={MailIcon}>{selectedCustomer.email}</InfoRow>}
-                        {selectedCustomer?.address && <InfoRow icon={MapPinIcon}>{selectedCustomer.address}</InfoRow>}
+                        <InfoRow icon={PhoneIcon}>
+                            <span>{formatPhone(selectedCustomer?.phone)}</span>
+                        </InfoRow>
+                        {selectedCustomer?.secondPhone && <InfoRow>
+                            <span>{formatPhone(selectedCustomer.secondPhone)}</span>
+                        </InfoRow>}
+                        {selectedCustomer?.email && <InfoRow icon={MailIcon}>
+                            <span>{selectedCustomer.email}</span>
+                        </InfoRow>}
+                        {selectedCustomer?.address && <InfoRow icon={MapPinIcon}>
+                            <span>{selectedCustomer.address}</span>
+                        </InfoRow>}
                     </div>
                     {/** job's device info */}
                     <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
@@ -179,13 +186,36 @@ export default function JobsPage({ title }: { title: string }) {
                     {/** Estimation info */}
                     <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
                         <div className="grid grid-cols-2 gap-2">
-                            <InfoGridItem title={"RECEIVED"}>{formatDate(selectedJob.pickupTime, { year: false, time: true })}</InfoGridItem>
-                            {selectedJob.estimatedPickupTime && <InfoGridItem title="EST. PICKUP">{formatDate(selectedJob.estimatedPickupTime, { year: false, time: true })}</InfoGridItem>}
-                            {selectedJob.estimatedPrice && <InfoGridItem title="EST. PRICE">{formatPrice(parseFloat(selectedJob.estimatedPrice))}</InfoGridItem>}
+                            <InfoItem title={"RECEIVED"}>
+                                <span>{formatDate(selectedJob.pickupTime, { year: false, time: true })}</span>
+                            </InfoItem>
+                            {selectedJob.estimatedPickupTime && <InfoItem title="EST. PICKUP">
+                                <span>{formatDate(selectedJob.estimatedPickupTime, { year: false, time: true })}</span>
+                            </InfoItem>}
+                            {selectedJob.estimatedPrice && <InfoItem title="EST. PRICE">
+                                <span>{formatPrice(parseFloat(selectedJob.estimatedPrice))}</span>
+                            </InfoItem>}
                         </div>
                     </div>
                     {/** editable info */}
-                    
+                    <div className={`py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
+                        <div className="flex items-center justify-start gap-2">
+                            <span className="text-primary">UPDATE</span>
+                            <Button variant="ghost" size="icon"><PencilIcon /></Button>
+                        </div>
+                        <InfoItem title={"STATUS"}>
+                            <span>{selectedJob.isFinished ? "Finished" : "In progress"}</span>
+                        </InfoItem>
+                        <InfoItem title={"PICKUP TIME"}>
+                            {selectedJob.pickupTime ? <span>{formatDate(selectedJob.pickupTime, { time: true })}</span> : <span className="text-muted-foreground">Not picked up yet</span>}
+                        </InfoItem>
+                        <InfoItem title={"COLLECTED PRICE"}>
+                            {selectedJob.collectedPrice ? <span>{formatPrice(parseInt(selectedJob.collectedPrice))}</span> : <span className="text-muted-foreground">---</span>}
+                        </InfoItem>
+                        <InfoItem title={"NOTES"}>
+                            {selectedJob.note ? <p>{selectedJob.note}</p> : <span className="text-muted-foreground">---</span>}
+                        </InfoItem>
+                    </div>
                 </div>
             )}
         >
