@@ -7,6 +7,7 @@ import { getDevices, Device } from '@/api/devices';
 import { JobCard } from './components/JobCard';
 import { Filter, FilterSearch, FilterSelect } from '@/components/Filter';
 import { CircleCheckIcon, Inbox } from 'lucide-react';
+import { WorkingPagination } from '@/components/WorkingPagination';
 
 export default function JobsPage({ title }: { title: string }) {
     const isMobile = useIsMobile();
@@ -17,6 +18,8 @@ export default function JobsPage({ title }: { title: string }) {
     // filters
     const [selectedFinish, setSelectedFinish] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
+    // pagination
+    const [page, setPage] = useState(1);
 
     // async makes sure all 3 fetches happen together, so no issues like jobs proceeding before customers are fetched
     useEffect(() => {
@@ -33,6 +36,11 @@ export default function JobsPage({ title }: { title: string }) {
         load();
     }, []);
 
+    // reset to page 1 whenever the filter or layout changes
+    useEffect(() => { setPage(1); }, [isMobile]);
+    useEffect(() => { setPage(1); }, [searchQuery]);
+    const itemsPerPage = 8;
+
     // check if the job's customer matches the search query
     function matchesSearch(job: Job) {
         // skip search with no query
@@ -44,21 +52,21 @@ export default function JobsPage({ title }: { title: string }) {
         return customer?.name.toLowerCase().includes(query) || customer?.phone.includes(query);
     }
 
-    const inProgressJobs = jobs.filter(j => !j.isFinished && matchesSearch(j));
-    const finishedJobs = jobs.filter(j => j.isFinished && matchesSearch(j));
-    
-    const inProgressCards = inProgressJobs.map(job => (
-        <JobCard
-            key={job.jobId}
-            job={job}
-            customer={customers[job.customerId] ?? null}
-            device={devices[job.deviceId] ?? null}
-            isSelected={selectedJob?.jobId === job.jobId}
-            onClick={() => setSelectedJob(job)}
-        />
-    ));
+    // sort the jobs by putting finished jobs after unfinished jobs, 
+    // but still retain id asc sort for each section
+    const filteredJobs = jobs
+        .filter(j => matchesSearch(j))  // match search query (if any) first so search still works
+        .sort((a, b) => {   // compare two jobs:
+            if (a.isFinished !== b.isFinished) {    // split into in progress & finished sections
+                return a.isFinished ? 1 : -1;   // move finished section below in progress section
+            } else {
+                return a.jobId.localeCompare(b.jobId);  // sort by id within each section
+            }
+        });
 
-    const finishedCards = finishedJobs.map(job => (
+    const pagedJobs = filteredJobs.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+    
+    const toCard = (job: Job) => (
         <JobCard
             key={job.jobId}
             job={job}
@@ -67,11 +75,16 @@ export default function JobsPage({ title }: { title: string }) {
             isSelected={selectedJob?.jobId === job.jobId}
             onClick={() => setSelectedJob(job)}
         />
-    ));
+    );
+
+    const inProgressCards = pagedJobs.filter(j => !j.isFinished).map(toCard);
+    const finishedCards   = pagedJobs.filter(j =>  j.isFinished).map(toCard);
+
+    const pagination = <WorkingPagination className="mt-4" page={page} totalItems={filteredJobs.length} itemsPerPage={itemsPerPage} onPageChange={setPage} />
 
     const cards = (
         <div className="flex flex-col gap-4 max-w-4xl">
-            {(selectedFinish === 'all' || selectedFinish === 'In progress') && (
+            {(selectedFinish === 'all' || selectedFinish === 'In progress') && inProgressCards.length > 0 && (
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-row items-center gap-2">
                         <Inbox className="text-primary" size={16} />
@@ -82,7 +95,7 @@ export default function JobsPage({ title }: { title: string }) {
                     {inProgressCards}
                 </div>
             )}
-            {(selectedFinish === 'all' || selectedFinish === 'Finished') && (
+            {(selectedFinish === 'all' || selectedFinish === 'Finished') && finishedCards.length > 0 && (
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-row items-center gap-2">
                         <CircleCheckIcon className="text-foreground" size={16} />
@@ -124,6 +137,7 @@ export default function JobsPage({ title }: { title: string }) {
                     {cards}
                 </div>
             }
+            {pagination}
         </PanelDrawer>
     );
 }
