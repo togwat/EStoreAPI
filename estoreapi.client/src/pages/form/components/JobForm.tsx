@@ -104,6 +104,7 @@ export default function JobForm() {
         const estPrice = parseFloat(formData.get("price")?.toString() ?? '') || null;
         const notes = formData.get("notes")?.toString().trim();
 
+        const form = event.currentTarget;
         setSubmitting(true);
         try {
             const result = await submitJob({
@@ -118,6 +119,11 @@ export default function JobForm() {
                 estimatedPrice: estPrice,
                 note: notes,
             });
+
+            // reset form
+            form.reset();
+            setSelectedType('');
+
             toast.success("Success", `Job ${result.jobId} has been created.`);
         } catch (error) {
             toast.error("Submission failed", error instanceof Error ? error.message : 'An unexpected error occurred.');
