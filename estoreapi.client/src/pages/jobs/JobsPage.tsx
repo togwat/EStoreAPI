@@ -144,7 +144,7 @@ export default function JobsPage({ title }: { title: string }) {
                         <Button variant="outline" size="icon" onClick={() => setSelectedJob(null)}><X /></Button>
                     </div>
                     {/** customer section */}
-                    <div className="border-b py-4 flex flex-col gap-2">
+                    <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
                         <span className="text-muted-foreground">CUSTOMER</span>
                         <InfoRow icon={PhoneIcon}>{formatPhone(selectedCustomer?.phone)}</InfoRow>
                         {selectedCustomer?.secondPhone && <InfoRow>{formatPhone(selectedCustomer.secondPhone)}</InfoRow>}
@@ -152,7 +152,7 @@ export default function JobsPage({ title }: { title: string }) {
                         {selectedCustomer?.address && <InfoRow icon={MapPinIcon}>{selectedCustomer.address}</InfoRow>}
                     </div>
                     {/** job's device info */}
-                    <div className="border-b py-4 flex flex-col gap-2">
+                    <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
                         <span className="text-muted-foreground">DEVICE</span>
                         <div className="flex flex-row items-center gap-2">
                             <span>{selectedDevice?.name}</span>
