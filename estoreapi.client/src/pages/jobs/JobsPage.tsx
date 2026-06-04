@@ -5,7 +5,7 @@ import { getJobs, Job } from '@/api/jobs';
 import { getCustomers, Customer } from '@/api/customers';
 import { getDevices, Device } from '@/api/devices';
 import { JobCard } from './components/JobCard';
-import { Filter, FilterSearch } from '@/components/Filter';
+import { Filter, FilterSearch, FilterSelect } from '@/components/Filter';
 
 export default function JobsPage({ title }: { title: string }) {
     const isMobile = useIsMobile();
@@ -13,6 +13,8 @@ export default function JobsPage({ title }: { title: string }) {
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
     const [customers, setCustomers] = useState<Record<string, Customer>>({});
     const [devices, setDevices] = useState<Record<string, Device>>({});
+    // filters
+    const [selectedFinish, setSelectedFinish] = useState('all');
 
     useEffect(() => {
         getJobs().then(setJobs);
@@ -20,7 +22,11 @@ export default function JobsPage({ title }: { title: string }) {
         getDevices().then(list => setDevices(Object.fromEntries(list.map(d => [d.id, d]))));
     }, []);
     
-    const cards = jobs.map(job => (
+    const filteredJobs = selectedFinish === 'Finished' ? jobs.filter(j => j.isFinished)
+        : selectedFinish === 'In progress' ? jobs.filter(j => !j.isFinished)
+        : jobs;
+
+    const cards = filteredJobs.map(job => (
         <JobCard
             key={job.jobId}
             job={job}
@@ -43,8 +49,9 @@ export default function JobsPage({ title }: { title: string }) {
             {isMobile
                 // mobile
                 ? <div className="flex flex-col gap-2">
-                    <Filter className="pb-4">
+                    <Filter className="pb-4 flex flex-col gap-2">
                         <FilterSearch placeholder={"Search by customer name or phone..."} />
+                        <FilterSelect label="Is finished" options={["In progress", "Finished"]} value={selectedFinish} onChange={setSelectedFinish} />
                     </Filter>
                     {cards}
                 </div>
@@ -53,6 +60,7 @@ export default function JobsPage({ title }: { title: string }) {
                     <h1>{title}</h1>
                     <Filter className="py-4 flex flex-row justify-start gap-2">
                         <FilterSearch placeholder={"Search by customer name or phone..."} />
+                        <FilterSelect label="Is finished" options={["In progress", "Finished"]} value={selectedFinish} onChange={setSelectedFinish} />
                     </Filter>
                     <div className="flex flex-col gap-2">
                        {cards}
