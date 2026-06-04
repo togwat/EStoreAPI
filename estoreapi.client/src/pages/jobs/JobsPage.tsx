@@ -60,7 +60,7 @@ export default function JobsPage({ title }: { title: string }) {
             if (a.isFinished !== b.isFinished) {    // split into in progress & finished sections
                 return a.isFinished ? 1 : -1;   // move finished section below in progress section
             } else {
-                return a.jobId.localeCompare(b.jobId);  // sort by id within each section
+                return parseInt(a.jobId) - parseInt(b.jobId);  // sort by id within each section
             }
         });
 
