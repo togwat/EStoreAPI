@@ -17,10 +17,19 @@ export default function JobsPage({ title }: { title: string }) {
     // filters
     const [selectedFinish, setSelectedFinish] = useState('all');
 
+    // async makes sure all 3 fetches happen together, so no issues like jobs proceeding before customers are fetched
     useEffect(() => {
-        getJobs().then(setJobs);
-        getCustomers().then(list => setCustomers(Object.fromEntries(list.map(c => [c.id, c]))));
-        getDevices().then(list => setDevices(Object.fromEntries(list.map(d => [d.id, d]))));
+        async function load() {
+            const [jobsList, customersList, devicesList] = await Promise.all([
+                getJobs(),
+                getCustomers(),
+                getDevices(),
+            ]);
+            setJobs(jobsList);
+            setCustomers(Object.fromEntries(customersList.map(c => [c.id, c])));
+            setDevices(Object.fromEntries(devicesList.map(d => [d.id, d])));
+        }
+        load();
     }, []);
 
     const inProgressJobs = jobs.filter(j => !j.isFinished);
@@ -50,24 +59,28 @@ export default function JobsPage({ title }: { title: string }) {
 
     const cards = (
         <div className="flex flex-col gap-4 max-w-4xl">
-            <div className="flex flex-col gap-2">
-                <div className="flex flex-row items-center gap-2">
-                    <Inbox className="text-primary" size={16} />
-                    <span className="text-primary font-medium">IN PROGRESS</span>
-                    <span className="text-muted-foreground">{inProgressCards.length}</span>
-                    <hr className="flex-1 border-t border-border" />
+            {(selectedFinish === 'all' || selectedFinish === 'In progress') && (
+                <div className="flex flex-col gap-2">
+                    <div className="flex flex-row items-center gap-2">
+                        <Inbox className="text-primary" size={16} />
+                        <span className="text-primary font-medium">IN PROGRESS</span>
+                        <span className="text-muted-foreground">{inProgressCards.length}</span>
+                        <hr className="flex-1 border-t border-border" />
+                    </div>
+                    {inProgressCards}
                 </div>
-                {inProgressCards}
-            </div>
-            <div className="flex flex-col gap-2">
-                <div className="flex flex-row items-center gap-2">
-                    <CircleCheckIcon className="text-foreground" size={16} />
-                    <span className="text-foreground font-medium">FINISHED</span>
-                    <span className="text-muted-foreground">{finishedCards.length}</span>
-                    <hr className="flex-1 border-t border-border" />
+            )}
+            {(selectedFinish === 'all' || selectedFinish === 'Finished') && (
+                <div className="flex flex-col gap-2">
+                    <div className="flex flex-row items-center gap-2">
+                        <CircleCheckIcon className="text-foreground" size={16} />
+                        <span className="text-foreground font-medium">FINISHED</span>
+                        <span className="text-muted-foreground">{finishedCards.length}</span>
+                        <hr className="flex-1 border-t border-border" />
+                    </div>
+                    {finishedCards}
                 </div>
-                {finishedCards}
-            </div>
+            )}
         </div>
     );
 

@@ -73,7 +73,7 @@ export function JobCard({ job, customer, device, isSelected, onClick }: JobCardP
                 <CardTitle className="flex flew-row items-center justify-between">
                     <div className="flex flex-row items-center gap-2">
                         <span className="text-primary text-lg font-mono">#{job.jobId}</span>
-                        <span className="font-bold text-lg">{customer?.name}</span>
+                        <span className="font-bold text-lg">{customer.name}</span>
                         <span className="text-muted-foreground flex flex-row items-center gap-1"><PhoneIcon size={12}/>{formatPhone(customer.phone)}</span>
                     </div>
                     {job.collectedPrice && !isNaN(parseFloat(job.collectedPrice)) ?
