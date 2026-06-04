@@ -22,6 +22,11 @@ function _mapCustomer(c: { customerId: string; customerName: string; phoneNumber
     };
 }
 
+export async function getCustomers(): Promise<Customer[]> {
+    const response = await axios.get('api/Customers');
+    return response.data.map(_mapCustomer);
+}
+
 export async function getCustomer(id: string): Promise<Customer> {
     try {
         const response = await axios.get(`api/Customers/${id}`);
