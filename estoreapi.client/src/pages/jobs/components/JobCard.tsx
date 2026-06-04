@@ -41,12 +41,13 @@ export function formatPhone(phone?: string): string | null {
     return phone;   // unrecognised, return as-is
 }
 
-function formatDate(date: string): string {
-    return new Date(date).toLocaleDateString("en-NZ", {
+export function formatDate(date: string, { year = true, time = false } = {}): string {
+    return new Date(date).toLocaleString("en-NZ", {
         day: "numeric",
         month: "short",
-        year: "numeric"
-    })
+        ...(year && { year: "numeric" }),
+        ...(time && { hour: "numeric", minute: "2-digit", hour12: true }),
+    });
 }
 
 interface JobCardProps {

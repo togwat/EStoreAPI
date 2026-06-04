@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { getJobs, Job } from '@/api/jobs';
 import { getCustomers, Customer } from '@/api/customers';
 import { getDevices, Device } from '@/api/devices';
-import { JobCard, formatPhone } from './components/JobCard';
+import { JobCard, formatPhone, formatDate } from './components/JobCard';
 import { Filter, FilterSearch, FilterSelect } from '@/components/Filter';
 import { CircleCheckIcon, Inbox, X, PencilIcon, PhoneIcon, MapPinIcon, MailIcon, type LucideIcon } from 'lucide-react';
 import { WorkingPagination } from '@/components/WorkingPagination';
@@ -128,6 +128,14 @@ export default function JobsPage({ title }: { title: string }) {
             {children}
         </span>
     );
+
+    // for in panels like estimations
+    const InfoGridItem = ({ title, children }: {title: string, children: React.ReactNode}) => (
+        <div className="flex flex-col align-start">
+            <span className="text-muted-foreground">{title}</span>
+            {children}
+        </div>
+    )
     
     return (
         <PanelDrawer
@@ -168,7 +176,16 @@ export default function JobsPage({ title }: { title: string }) {
                             ))}
                         </div>
                     </div>
-
+                    {/** Estimation info */}
+                    <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
+                        <div className="grid grid-cols-2 gap-2">
+                            <InfoGridItem title={"RECEIVED"}>{formatDate(selectedJob.pickupTime, { year: false, time: true })}</InfoGridItem>
+                            {selectedJob.estimatedPickupTime && <InfoGridItem title="EST. PICKUP">{formatDate(selectedJob.estimatedPickupTime, { year: false, time: true })}</InfoGridItem>}
+                            {selectedJob.estimatedPrice && <InfoGridItem title="EST. PRICE">{formatPrice(parseFloat(selectedJob.estimatedPrice))}</InfoGridItem>}
+                        </div>
+                    </div>
+                    {/** editable info */}
+                    
                 </div>
             )}
         >
