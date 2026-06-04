@@ -139,7 +139,7 @@ export default function DevicesPage({ title }: { title: string }) {
                     </div>
                     <ProblemEdit ref={problemEditRef} deviceId={selectedDevice.id} isEditing={isEditing} />
                     {isEditing && 
-                        <div className="flex justify-end gap-2 pt-4">
+                        <div className="flex justify-end gap-2 p-4">
                                 <Button variant="outline" onClick={handleCancel}>Cancel</Button>
                                 <Button onClick={handleConfirm}>Confirm</Button>
                         </div>
