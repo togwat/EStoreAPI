@@ -42,6 +42,7 @@ export default function DevicesPage({ title }: { title: string }) {
     // reset to page 1 whenever the filter or layout changes
     useEffect(() => { setPage(1); }, [selectedType]);
     useEffect(() => { setPage(1); }, [isMobile]);
+    useEffect(() => { setPage(1); }, [searchQuery]);
     const itemsPerPage = isMobile ? 10 : 32;
 
     // type & search filters
@@ -57,7 +58,7 @@ export default function DevicesPage({ title }: { title: string }) {
         <DeviceCard key={device.id} device={device} isSelected={selectedDevice?.id === device.id} onClick={() => setSelectedDevice(device)} />
     ));
 
-    const pagination = <WorkingPagination className="mt-4" page={page} totalItems={devices.length} itemsPerPage={itemsPerPage} onPageChange={setPage} />;
+    const pagination = <WorkingPagination className="mt-4" page={page} totalItems={sortedDevices.length} itemsPerPage={itemsPerPage} onPageChange={setPage} />;
 
     // problemEditRef lets us call into ProblemEdit's internal state from the Confirm/Cancel buttons here
     const problemEditRef = useRef<ProblemEditHandle>(null);
