@@ -213,7 +213,7 @@ export default function JobsPage({ title }: { title: string }) {
                         <span className="text-muted-foreground">PROBLEMS</span>
                         <div className="flex flex-row flex-wrap gap-2">
                             {selectedJob.problems.map(p => (
-                                <div className="flex flew-row gap-4 bg-muted text-muted-foreground px-1 rounded-lg">
+                                <div key={p.id} className="flex flew-row gap-4 bg-muted text-muted-foreground px-1 rounded-lg">
                                     <span>{p.name}</span>
                                     <span>{formatPrice(p.price)}</span>
                                 </div>

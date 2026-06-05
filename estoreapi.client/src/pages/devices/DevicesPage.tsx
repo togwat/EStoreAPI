@@ -123,7 +123,7 @@ export default function DevicesPage({ title }: { title: string }) {
                                     <Input className="w-28" list="type-datalist" placeholder={selectedDevice.type} value={editedType} onChange={e => setEditedType(e.target.value)} />
                                     <datalist id="type-datalist">
                                         {deviceTypes.map(type => (
-                                            <option value={type} />
+                                            <option key={type} value={type} />
                                         ))}
                                     </datalist>
                                 </div>
