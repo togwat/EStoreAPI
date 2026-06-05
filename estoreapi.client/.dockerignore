@@ -5,6 +5,8 @@ obj
 # frontend
 node_modules
 dist
+src/__tests__
+vitest.config.ts
 
 .git
 .env
