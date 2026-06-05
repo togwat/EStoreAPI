@@ -15,7 +15,11 @@ CONFIRMATION_REQUIRED_TOOLS: set[str] = {
     "create_devices",
     "create_problems",
     "create_jobs",
-    "update_description"
+    "update_description",
+    "update_customer",
+    "update_device",
+    "update_problem",
+    "update_job"
 }
 
 

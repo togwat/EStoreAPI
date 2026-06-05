@@ -45,4 +45,27 @@ public class ProblemTools
             throw new Exception($"Validation failed: {ex.Message}");
         }
     }
+
+    [McpServerTool, Description("Update a problem in the problem catalogue. Only provide the fields that need to change. Omitted fields keep their current values.")]
+    public async Task<OutProblemDTO> UpdateProblemAsync(
+        [Description("The ID of the problem to update.")] int problemId,
+        [Description("New problem name.")] string? problemName = null,
+        [Description("New service price.")] decimal? price = null)
+    {
+        Problem existing = await _service.GetProblemAsync(problemId)
+            ?? throw new KeyNotFoundException($"Problem {problemId} not found.");
+
+        InProblemDTO dto = new()
+        {
+            ProblemId = problemId,
+            ProblemName = problemName ?? existing.ProblemName,
+            DeviceId = existing.DeviceId,
+            Price = price ?? existing.Price,
+        };
+
+        await _service.UpdateProblemAsync(problemId, dto);
+        Problem updated = await _service.GetProblemAsync(problemId)
+            ?? throw new Exception("Failed to retrieve updated problem.");
+        return OutProblemDTO.FromModel(updated);
+    }
 }

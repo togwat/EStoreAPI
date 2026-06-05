@@ -49,4 +49,38 @@ public class JobTools
             throw new Exception($"Validation failed: {ex.Message}");
         }
     }
+
+    [McpServerTool, Description("Update a repair job. Only provide the fields that need to change. Omitted fields keep their current values.")]
+    public async Task<OutJobDTO> UpdateJobAsync(
+        [Description("The ID of the job to update.")] int jobId,
+        [Description("Time the device was picked up by the customer.")] DateTime? pickupTime = null,
+        [Description("Updated estimated pickup time.")] DateTime? estimatedPickupTime = null,
+        [Description("Updated note.")] string? note = null,
+        [Description("Updated list of problem IDs. Replaces all current problems if provided.")] List<int>? problemIds = null,
+        [Description("Updated estimated price.")] decimal? estimatedPrice = null,
+        [Description("Updated collected price.")] decimal? collectedPrice = null,
+        [Description("Whether the job is finished.")] bool? isFinished = null)
+    {
+        Job existing = await _service.GetJobAsync(jobId)
+            ?? throw new KeyNotFoundException($"Job {jobId} not found.");
+
+        InJobDTO dto = new()
+        {
+            CustomerId = existing.CustomerId,
+            DeviceId = existing.DeviceId,
+            ReceiveTime = existing.ReceiveTime,
+            PickupTime = pickupTime ?? existing.PickupTime,
+            EstimatedPickupTime = estimatedPickupTime ?? existing.EstimatedPickupTime,
+            Note = note ?? existing.Note,
+            ProblemIds = problemIds ?? existing.Problems.Select(p => p.ProblemId).ToList(),
+            EstimatedPrice = estimatedPrice ?? existing.EstimatedPrice,
+            CollectedPrice = collectedPrice ?? existing.CollectedPrice,
+            IsFinished = isFinished ?? existing.IsFinished,
+        };
+
+        await _service.UpdateJobAsync(jobId, dto);
+        Job updated = await _service.GetJobAsync(jobId)
+            ?? throw new Exception("Failed to retrieve updated job.");
+        return OutJobDTO.FromModel(updated);
+    }
 }

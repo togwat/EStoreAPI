@@ -37,4 +37,31 @@ public class CustomerTools
             throw new Exception($"Validation failed: {ex.Message}");
         }
     }
+
+    [McpServerTool, Description("Update a customer's details. Only provide the fields that need to change. Omitted fields keep their current values.")]
+    public async Task<OutCustomerDTO> UpdateCustomerAsync(
+        [Description("The ID of the customer to update.")] int customerId,
+        [Description("New customer name.")] string? customerName = null,
+        [Description("New primary phone number.")] string? phoneNumber = null,
+        [Description("New secondary phone number.")] string? phoneNumberSecondary = null,
+        [Description("New email address.")] string? email = null,
+        [Description("New street address.")] string? address = null)
+    {
+        Customer existing = await _service.GetCustomerAsync(customerId)
+            ?? throw new KeyNotFoundException($"Customer {customerId} not found.");
+
+        InCustomerDTO dto = new()
+        {
+            CustomerName = customerName ?? existing.CustomerName,
+            PhoneNumber = phoneNumber ?? existing.PhoneNumber,
+            PhoneNumberSecondary = phoneNumberSecondary ?? existing.PhoneNumberSecondary,
+            Email = email ?? existing.Email,
+            Address = address ?? existing.Address,
+        };
+
+        await _service.UpdateCustomerAsync(customerId, dto);
+        Customer updated = await _service.GetCustomerAsync(customerId)
+            ?? throw new Exception("Failed to retrieve updated customer.");
+        return OutCustomerDTO.FromModel(updated);
+    }
 }

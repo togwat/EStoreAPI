@@ -45,4 +45,26 @@ public class DeviceTools
             throw new Exception($"Validation failed: {ex.Message}");
         }
     }
+
+    [McpServerTool, Description("Update a device model's details. Only provide the fields that need to change Omitted fields keep their current values.")]
+    public async Task<OutDeviceDTO> UpdateDeviceAsync(
+        [Description("The ID of the device to update.")] int deviceId,
+        [Description("New device name.")] string? deviceName = null,
+        [Description("New device type.")] string? deviceType = null)
+    {
+        Device existing = await _service.GetDeviceAsync(deviceId)
+            ?? throw new KeyNotFoundException($"Device {deviceId} not found.");
+
+        InDeviceDTO dto = new()
+        {
+            DeviceName = deviceName ?? existing.DeviceName,
+            DeviceType = deviceType ?? existing.DeviceType,
+        };
+
+        await _service.UpdateDeviceAsync(deviceId, dto);
+        Device updated = await _service.GetDeviceAsync(deviceId)
+            ?? throw new Exception("Failed to retrieve updated device.");
+        return OutDeviceDTO.FromModel(updated);
+    }
+
 }
