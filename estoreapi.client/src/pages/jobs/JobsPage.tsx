@@ -248,9 +248,9 @@ export default function JobsPage({ title }: { title: string }) {
                         </div>
                         <InfoItem title={"STATUS"}>
                             {isEditing ? 
-                            <div>
-                                <Button variant={!editedIsFinished ? "default" : "ghost"} onClick={() => setEditedIsFinished(false)}>In progress</Button>
-                                <Button variant={editedIsFinished ? "default" : "ghost"} onClick={() => setEditedIsFinished(true)}>Finished</Button>
+                            <div className="w-fit rounded-full border border-border bg-input">
+                                <Button className="rounded-full" variant={!editedIsFinished ? "default" : "ghost"} onClick={() => setEditedIsFinished(false)}>In progress</Button>
+                                <Button className="rounded-full" variant={editedIsFinished ? "default" : "ghost"} onClick={() => setEditedIsFinished(true)}>Finished</Button>
                             </div>
                             : <span>{selectedJob.isFinished ? "Finished" : "In progress"}</span>
                             }
