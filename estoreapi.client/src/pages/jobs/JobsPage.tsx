@@ -11,6 +11,7 @@ import { Filter, FilterSearch, FilterSelect } from '@/components/Filter';
 import { CircleCheckIcon, Inbox, X, PencilIcon, PhoneIcon, MapPinIcon, MailIcon, type LucideIcon } from 'lucide-react';
 import { WorkingPagination } from '@/components/WorkingPagination';
 import { formatPrice } from '@/lib/formatPrice';
+import { toLocalDatetimeInputValue } from '@/lib/toLocalDatetime';
 import { Textarea } from '@/components/ui/textarea';
 
 // for in panels like customer info, device info
@@ -70,7 +71,7 @@ export default function JobsPage({ title }: { title: string }) {
 
     async function handleConfirm() {
         // process input
-        const newPickupTime = editedPickupTime ? new Date(editedPickupTime + 'T00:00:00Z').toISOString() : null;
+        const newPickupTime = editedPickupTime ? new Date(editedPickupTime).toISOString() : null;
 
         // only 4 fields should be updated
         const updatedJob: Job = {...selectedJob!,
@@ -237,7 +238,13 @@ export default function JobsPage({ title }: { title: string }) {
                     <div className={`py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
                         <div className="flex items-center justify-start gap-2">
                             <span className={isEditing ? "text-primary" : "text-foreground"}>UPDATE</span>
-                            {!isEditing && <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)}><PencilIcon /></Button>}
+                            {!isEditing && <Button variant="ghost" size="icon" onClick={() => {
+                                setIsEditing(true);
+                                setEditedIsFinished(selectedJob.isFinished);
+                                setEditedPickupTime(selectedJob.pickupTime ? toLocalDatetimeInputValue(selectedJob.pickupTime) : '');
+                                setEditedCollectedPrice(selectedJob.collectedPrice ?? '');
+                                setEditedNote(selectedJob.note ?? '');
+                            }}><PencilIcon /></Button>}
                         </div>
                         <InfoItem title={"STATUS"}>
                             {isEditing ? 
@@ -249,18 +256,18 @@ export default function JobsPage({ title }: { title: string }) {
                             }
                         </InfoItem>
                         <InfoItem title={"PICKUP TIME"}>
-                            {isEditing ? <Input type="date" onChange={e => setEditedPickupTime(e.target.value)}/>
+                            {isEditing ? <Input type="datetime-local" value={editedPickupTime} onChange={e => setEditedPickupTime(e.target.value)}/>
                             : selectedJob.pickupTime ? <span>{formatDate(selectedJob.pickupTime, { time: true })}</span> : <span className="text-muted-foreground">Not picked up yet</span>
                             }
                             
                         </InfoItem>
                         <InfoItem title={"COLLECTED PRICE"}>
-                            {isEditing ? <Input type="number" onChange={e => setEditedCollectedPrice(e.target.value)}/>
+                            {isEditing ? <Input type="number" value={editedCollectedPrice} onChange={e => setEditedCollectedPrice(e.target.value)}/>
                             : selectedJob.collectedPrice ? <span>{formatPrice(parseInt(selectedJob.collectedPrice))}</span> : <span className="text-muted-foreground">---</span>
                             }
                         </InfoItem>
                         <InfoItem title={"NOTES"}>
-                            {isEditing ? <Textarea onChange={e => setEditedNote(e.target.value)} />
+                            {isEditing ? <Textarea value={editedNote} onChange={e => setEditedNote(e.target.value)} />
                             : selectedJob.note ? <p>{selectedJob.note}</p> : <span className="text-muted-foreground">---</span>
                             }
                         </InfoItem>
