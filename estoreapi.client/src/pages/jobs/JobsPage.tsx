@@ -102,15 +102,18 @@ export default function JobsPage({ title }: { title: string }) {
     useEffect(() => { setPage(1); }, [searchQuery]);
     const itemsPerPage = 8;
 
-    // check if the job's customer matches the search query
+    // check if the job's customer or device matches the search query
     function matchesSearch(job: Job) {
         // skip search with no query
         if (!searchQuery) return true;
 
         const customer = customers[job.customerId];
+        const device = devices[job.deviceId];
         const query = searchQuery.toLowerCase();
-        // search by customer name or phone
-        return customer?.name.toLowerCase().includes(query) || customer?.phone.includes(query);
+        // search by customer name or phone, or by device name
+        return customer?.name.toLowerCase().includes(query) 
+            || customer?.phone.includes(query)
+            || device?.name.toLowerCase().includes(query);
     }
 
     // sort the jobs by putting finished jobs after unfinished jobs, 
@@ -286,7 +289,7 @@ export default function JobsPage({ title }: { title: string }) {
                 // mobile
                 ? <div className="flex flex-col gap-2">
                     <Filter className="pb-4 flex flex-col gap-2">
-                        <FilterSearch placeholder={"Search by customer name or phone..."} onChange={setSearchQuery} />
+                        <FilterSearch placeholder={"Search jobs..."} onChange={setSearchQuery} />
                         <FilterSelect label="Is finished" options={["In progress", "Finished"]} value={selectedFinish} onChange={setSelectedFinish} />
                     </Filter>
                     {cards}
@@ -295,7 +298,7 @@ export default function JobsPage({ title }: { title: string }) {
                 : <div className="p-8">
                     <h1>{title}</h1>
                     <Filter className="py-4 flex flex-row justify-start gap-2">
-                        <FilterSearch placeholder={"Search by customer name or phone..."} onChange={setSearchQuery} />
+                        <FilterSearch placeholder={"Search jobs..."} onChange={setSearchQuery} />
                         <FilterSelect label="Is finished" options={["In progress", "Finished"]} value={selectedFinish} onChange={setSelectedFinish} />
                     </Filter>
                     {cards}
