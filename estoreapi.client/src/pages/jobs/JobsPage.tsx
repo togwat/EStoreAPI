@@ -263,7 +263,7 @@ export default function JobsPage({ title }: { title: string }) {
                         </InfoItem>
                         <InfoItem title={"COLLECTED PRICE"}>
                             {isEditing ? <Input type="number" value={editedCollectedPrice} onChange={e => setEditedCollectedPrice(e.target.value)}/>
-                            : selectedJob.collectedPrice ? <span>{formatPrice(parseInt(selectedJob.collectedPrice))}</span> : <span className="text-muted-foreground">---</span>
+                            : selectedJob.collectedPrice ? <span>{formatPrice(parseFloat(selectedJob.collectedPrice))}</span> : <span className="text-muted-foreground">---</span>
                             }
                         </InfoItem>
                         <InfoItem title={"NOTES"}>
