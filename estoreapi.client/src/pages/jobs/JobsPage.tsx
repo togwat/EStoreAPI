@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PanelDrawer } from '@/components/PanelDrawer';
 import { Button } from '@/components/ui/button';
-import { getJobs, Job } from '@/api/jobs';
+import { Input } from '@/components/ui/input';
+import { getJobs, updateJob, Job } from '@/api/jobs';
 import { getCustomers, Customer } from '@/api/customers';
 import { getDevices, Device } from '@/api/devices';
 import { JobCard, formatPhone, formatDate } from './components/JobCard';
@@ -10,6 +11,24 @@ import { Filter, FilterSearch, FilterSelect } from '@/components/Filter';
 import { CircleCheckIcon, Inbox, X, PencilIcon, PhoneIcon, MapPinIcon, MailIcon, type LucideIcon } from 'lucide-react';
 import { WorkingPagination } from '@/components/WorkingPagination';
 import { formatPrice } from '@/lib/formatPrice';
+import { Textarea } from '@/components/ui/textarea';
+
+// for in panels like customer info, device info
+const InfoRow = ({ icon: Icon, children }: { icon?: LucideIcon, children: React.ReactNode }) => (
+    <span className="flex flex-row items-center gap-2">
+        {/** w-4 placeholder if no icon for indentation */}
+        {Icon ? <Icon className="text-muted-foreground" size={16} /> : <span className="w-4" />}
+        {children}
+    </span>
+);
+
+// for in panels like estimations
+const InfoItem = ({ title, children }: {title: string, children: React.ReactNode}) => (
+    <div className="flex flex-col align-start">
+        <span className="text-muted-foreground">{title}</span>
+        {children}
+    </div>
+)
 
 export default function JobsPage({ title }: { title: string }) {
     const isMobile = useIsMobile();
@@ -22,6 +41,12 @@ export default function JobsPage({ title }: { title: string }) {
     const [searchQuery, setSearchQuery] = useState('');
     // pagination
     const [page, setPage] = useState(1);
+    // editing/updates
+    const [isEditing, setIsEditing] = useState(false);
+    const [editedIsFinished, setEditedIsFinished] = useState<boolean | null>(null);
+    const [editedPickupTime, setEditedPickupTime] = useState('');
+    const [editedCollectedPrice, setEditedCollectedPrice] = useState('');
+    const [editedNote, setEditedNote] = useState('');
 
     // async makes sure all 3 fetches happen together, so no issues like jobs proceeding before customers are fetched
     useEffect(() => {
@@ -38,10 +63,38 @@ export default function JobsPage({ title }: { title: string }) {
         load();
     }, []);
 
-    // reset edit mode when switiching selected job
+    // reset edit mode when switching selected jobs
     useEffect(() => {
-        
-    });
+        handleCancel();
+    }, [selectedJob?.jobId]);
+
+    async function handleConfirm() {
+        // process input
+        const newPickupTime = editedPickupTime ? new Date(editedPickupTime + 'T00:00:00Z').toISOString() : null;
+
+        // only 4 fields should be updated
+        const updatedJob: Job = {...selectedJob!,
+            isFinished: editedIsFinished ?? selectedJob!.isFinished,
+            pickupTime: newPickupTime || selectedJob!.pickupTime,
+            collectedPrice: editedCollectedPrice || selectedJob!.collectedPrice,
+            note: editedNote || selectedJob!.note
+        }
+
+        await updateJob(selectedJob!.jobId, updatedJob);
+        // get latest data to refresh
+        const refreshed = await getJobs();
+        setJobs(refreshed);
+        setSelectedJob(refreshed.find(j => j.jobId === selectedJob!.jobId) ?? selectedJob!);
+        handleCancel();
+    }
+
+    function handleCancel() {
+        setIsEditing(false);
+        setEditedIsFinished(null);
+        setEditedPickupTime('');
+        setEditedCollectedPrice('');
+        setEditedNote('');
+    }
 
     // reset to page 1 whenever the filter or layout changes
     useEffect(() => { setPage(1); }, [isMobile]);
@@ -119,23 +172,6 @@ export default function JobsPage({ title }: { title: string }) {
             )}
         </div>
     );
-
-    // for in panels like customer info, device info
-    const InfoRow = ({ icon: Icon, children }: { icon?: LucideIcon, children: React.ReactNode }) => (
-        <span className="flex flex-row items-center gap-2">
-            {/** w-4 placeholder if no icon for indentation */}
-            {Icon ? <Icon className="text-muted-foreground" size={16} /> : <span className="w-4" />}
-            {children}
-        </span>
-    );
-
-    // for in panels like estimations
-    const InfoItem = ({ title, children }: {title: string, children: React.ReactNode}) => (
-        <div className="flex flex-col align-start">
-            <span className="text-muted-foreground">{title}</span>
-            {children}
-        </div>
-    )
     
     return (
         <PanelDrawer
@@ -200,21 +236,40 @@ export default function JobsPage({ title }: { title: string }) {
                     {/** editable info */}
                     <div className={`py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
                         <div className="flex items-center justify-start gap-2">
-                            <span className="text-primary">UPDATE</span>
-                            <Button variant="ghost" size="icon"><PencilIcon /></Button>
+                            <span className={isEditing ? "text-primary" : "text-foreground"}>UPDATE</span>
+                            {!isEditing && <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)}><PencilIcon /></Button>}
                         </div>
                         <InfoItem title={"STATUS"}>
-                            <span>{selectedJob.isFinished ? "Finished" : "In progress"}</span>
+                            {isEditing ? 
+                            <div>
+                                <Button variant={!editedIsFinished ? "default" : "ghost"} onClick={() => setEditedIsFinished(false)}>In progress</Button>
+                                <Button variant={editedIsFinished ? "default" : "ghost"} onClick={() => setEditedIsFinished(true)}>Finished</Button>
+                            </div>
+                            : <span>{selectedJob.isFinished ? "Finished" : "In progress"}</span>
+                            }
                         </InfoItem>
                         <InfoItem title={"PICKUP TIME"}>
-                            {selectedJob.pickupTime ? <span>{formatDate(selectedJob.pickupTime, { time: true })}</span> : <span className="text-muted-foreground">Not picked up yet</span>}
+                            {isEditing ? <Input type="date" onChange={e => setEditedPickupTime(e.target.value)}/>
+                            : selectedJob.pickupTime ? <span>{formatDate(selectedJob.pickupTime, { time: true })}</span> : <span className="text-muted-foreground">Not picked up yet</span>
+                            }
+                            
                         </InfoItem>
                         <InfoItem title={"COLLECTED PRICE"}>
-                            {selectedJob.collectedPrice ? <span>{formatPrice(parseInt(selectedJob.collectedPrice))}</span> : <span className="text-muted-foreground">---</span>}
+                            {isEditing ? <Input type="number" onChange={e => setEditedCollectedPrice(e.target.value)}/>
+                            : selectedJob.collectedPrice ? <span>{formatPrice(parseInt(selectedJob.collectedPrice))}</span> : <span className="text-muted-foreground">---</span>
+                            }
                         </InfoItem>
                         <InfoItem title={"NOTES"}>
-                            {selectedJob.note ? <p>{selectedJob.note}</p> : <span className="text-muted-foreground">---</span>}
+                            {isEditing ? <Textarea onChange={e => setEditedNote(e.target.value)} />
+                            : selectedJob.note ? <p>{selectedJob.note}</p> : <span className="text-muted-foreground">---</span>
+                            }
                         </InfoItem>
+                        {isEditing && 
+                            <div className="flex justify-end gap-2 p-4">
+                                    <Button variant="outline" onClick={handleCancel}>Cancel</Button>
+                                    <Button onClick={handleConfirm}>Confirm</Button>
+                            </div>
+                        }
                     </div>
                 </div>
             )}

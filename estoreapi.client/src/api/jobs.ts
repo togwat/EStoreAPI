@@ -1,4 +1,5 @@
-import axios  from "axios";
+import axios from "axios";
+import { toast } from '@/components/CustomToast';
 import { Problem } from "./problems";
 
 // follow OutJobDTO
@@ -67,6 +68,54 @@ type SubmitJobPayload = {
     estimatedPrice?: number | null;
     note?: string;
 };
+
+// follow InJobDTO
+type UpdateJobPayload = {
+    customerId: number;
+    deviceId: number;
+    receiveTime?: string | null;
+    pickupTime?: string | null;
+    estimatedPickupTime?: string | null;
+    note?: string | null;
+    problemIds: number[];
+    estimatedPrice?: number | null;
+    collectedPrice?: number | null;
+    isFinished: boolean;
+};
+
+export async function updateJob(jobId: string, job: Job): Promise<void> {
+    const body: UpdateJobPayload = {
+        customerId: parseInt(job.customerId),
+        deviceId: parseInt(job.deviceId),
+        receiveTime: job.receiveTime,
+        pickupTime: job.pickupTime,
+        estimatedPickupTime: job.estimatedPickupTime,
+        note: job.note,
+        problemIds: job.problems.map(p => parseInt(p.id)),
+        estimatedPrice: job.estimatedPrice ? parseFloat(job.estimatedPrice) : null, 
+        collectedPrice: job.collectedPrice ? parseFloat(job.collectedPrice) : null,
+        isFinished: job.isFinished,
+    };
+
+    try {
+        await axios.put(`/api/Jobs/update/${jobId}`, body);
+    } catch (error) {
+        let message;
+
+        if (axios.isAxiosError(error)) {
+            const data = error.response?.data;
+            const text = typeof data === 'string' ? data : null;
+
+            if (error.response?.status === 404) {
+                message = text ?? "Job not found.";
+            } else if (error.response?.status === 400) {
+                message = text ?? "One or more validation errors occurred.";
+            }
+        }
+
+        toast.error(message ?? "Something went wrong.");
+    }
+}
 
 export async function submitJob(payload: SubmitJobPayload): Promise<{ jobId: number }> {
     try {
