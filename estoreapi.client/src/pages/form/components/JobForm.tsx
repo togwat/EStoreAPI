@@ -8,12 +8,13 @@ import { Device, getDevices, getDeviceTypes, searchDeviceType } from '@/api/devi
 import { Problem, getProblems } from '@/api/problems';
 import { submitJob } from '@/api/jobs';
 import { toast } from '@/components/CustomToast';
+import { toLocalDatetimeInputValue } from '@/lib/toLocalDatetime';
 
 // for estimated pickup date, which for now is today + 1
 function getTomorrow(): string {
     const d = new Date();
     d.setDate(d.getDate() + 1);
-    return d.toISOString().split('T')[0];
+    return toLocalDatetimeInputValue(d.toISOString());
 }
 
 export default function JobForm() {
@@ -99,7 +100,7 @@ export default function JobForm() {
         const problemNames = problems.filter(p => p.trim() !== '');
         // convert to postgre friendly format
         const pickupRaw = formData.get("pickup")?.toString();
-        const estPickupDate = pickupRaw ? new Date(pickupRaw + 'T00:00:00Z').toISOString() : null;
+        const estPickupDate = pickupRaw ? new Date(pickupRaw).toISOString() : null;
         // convert to js number, or null if empty
         const estPrice = parseFloat(formData.get("price")?.toString() ?? '') || null;
         const notes = formData.get("notes")?.toString().trim();
@@ -205,7 +206,7 @@ export default function JobForm() {
                 </Field>
                 <Field>
                     <FieldLabel htmlFor="pickup">Estimated pickup date</FieldLabel>
-                    <Input id="pickup" name="pickup" type="date" min={new Date().toISOString().split('T')[0]} defaultValue={getTomorrow()} />
+                    <Input id="pickup" name="pickup" type="datetime-local" min={new Date().toISOString().split('T')[0]} defaultValue={getTomorrow()} />
                 </Field>
                 <Field>
                     <FieldLabel htmlFor="notes">Notes</FieldLabel>
