@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks.Dataflow;
 
 namespace EStoreAPI.Server.Data
 {
@@ -345,6 +346,12 @@ namespace EStoreAPI.Server.Data
         public async Task<ICollection<Job>> GetJobsOfCustomerAsync(int customerId)
         {
             ICollection<Job> jobs = await _dbContext.Jobs.Include(j => j.Problems).Where(j => j.CustomerId == customerId).ToListAsync();
+            return jobs;
+        }
+
+        public async Task<ICollection<Job>> GetJobsOfDeviceAsync(int deviceId)
+        {
+            ICollection<Job> jobs = await _dbContext.Jobs.Include(j => j.Problems).Where(j => j.DeviceId == deviceId).ToListAsync();
             return jobs;
         }
 

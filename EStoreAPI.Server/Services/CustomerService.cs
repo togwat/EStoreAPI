@@ -28,6 +28,7 @@ namespace EStoreAPI.Server.Services
             return _repo.GetCustomerByPhoneAsync(phone);
         }
 
+        // get all customers if empty query
         public Task<ICollection<Customer>> SearchCustomersAsync(string? query)
         {
             return query is null ? _repo.GetCustomersAsync() : _repo.GetCustomersByQueryAsync(query);

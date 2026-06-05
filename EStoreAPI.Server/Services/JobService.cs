@@ -38,6 +38,27 @@ namespace EStoreAPI.Server.Services
             }
         }
 
+        // search jobs by customer or device name
+        // leave empty to get all jobs
+        public async Task<ICollection<Job>> SearchJobsAsync(string? query)
+        {
+            if (query is null) return await _repo.GetJobsAsync();
+
+            // union of jobs with matching customer or device
+            // can run these lookups in parallel
+            Task<ICollection<Customer>> customersTask = _repo.GetCustomersByQueryAsync(query);
+            Task<ICollection<Device>> devicesTask = _repo.GetDevicesByNameAsync(query);
+            await Task.WhenAll(customersTask, devicesTask);
+
+            // get matching jobs
+            IEnumerable<Task<ICollection<Job>>> matchesCustomersTask = customersTask.Result.Select(c => _repo.GetJobsOfCustomerAsync(c.CustomerId));
+            IEnumerable<Task<ICollection<Job>>> matchesDevicesTask = devicesTask.Result.Select(d => _repo.GetJobsOfDeviceAsync(d.DeviceId));
+            ICollection<Job>[] results = await Task.WhenAll(matchesCustomersTask.Concat(matchesDevicesTask));
+
+            // prevent duplicate results
+            return results.SelectMany(j => j).DistinctBy(j => j.JobId).ToList();
+        }
+
         public async Task<Job> CreateJobAsync(InJobDTO dto)
         {
             Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true); 
