@@ -1,16 +1,24 @@
 using EStoreAPI.Server.Models;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Server.DTOs
 {
     public class InProblemDTO
     {
+        [Description("Problem ID. Only required when updating an existing problem.")]
         public int? ProblemId { get; set; }
+
         [Required]
+        [Description("Name of the problem (e.g. screen replacement). Required.")]
         public required string ProblemName { get; set; }
+
         [Required]
+        [Description("ID of the device this problem belongs to. Required.")]
         public int DeviceId { get; set; }
+
         [Required]
+        [Description("Service price for this problem. Required.")]
         public decimal Price { get; set; }
 
         public Problem ToModel() => new()

@@ -25,7 +25,7 @@ public class CustomerTools
 
     [McpServerTool, Description("Create one or more new customers and add them into the database. Check if customers exist using search before creating.")]
     public async Task<ICollection<OutCustomerDTO>> CreateCustomersAsync(
-        [Description("A list of customers to create. Each customer requires: CustomerName, PhoneNumber.")] ICollection<InCustomerDTO> dtos)
+        [Description("A list of customers to create.")] ICollection<InCustomerDTO> dtos)
     {
         try
         {
