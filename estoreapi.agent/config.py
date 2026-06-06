@@ -14,6 +14,9 @@ OLLAMA_MODEL = os.environ["OLLAMA_MODEL"]
 API_BASE_URL = os.environ["API_BASE_URL"]
 MCP_URL = os.getenv("MCP_URL", f"{API_BASE_URL}/mcp")
 
+# web search
+TAVILY_KEY = os.environ["TAVILY_KEY"]
+
 SYSTEM_PROMPT = (
     "You are a phone repair shop (E-Store) management assistant."
     "Use the available tools to read from and write to the database."

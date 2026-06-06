@@ -5,6 +5,7 @@ from tools.descriptions.AbstractDescriptionService import AbstractDescriptionSer
 from tools.custom_tools.registry import Registry
 from tools.custom_tools.time_lookup import get_time
 from tools.custom_tools.update_description import make_update_description_handler
+from tools.custom_tools.web_search import web_search
 
 
 class CustomToolClient(AbstractToolClient):
@@ -26,6 +27,7 @@ class CustomToolClient(AbstractToolClient):
         self._handlers = {
             "get_time": get_time,
             "update_description": make_update_description_handler(desc_service, get_all_tools),
+            "web_search": web_search
         }
 
     def __contains__(self, name: str) -> bool:

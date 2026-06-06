@@ -27,6 +27,7 @@ class Registry:
         self._tools: dict[str, CustomTool] = {}
         self._register_get_time()
         self._register_update_description()
+        self._register_web_search()
 
     def __contains__(self, name: str) -> bool:
         return name in self._tools
@@ -81,6 +82,26 @@ class Registry:
                         },
                     },
                     "required": ["tool_name", "description"],
+                },
+            },
+            default_description=default,
+        )
+
+    def _register_web_search(self):
+        default = "Search the web for current information. Use for recent events, prices, or anything requiring up-to-date data."
+        self._tools["web_search"] = CustomTool(
+            schema={
+                "name": "web_search",
+                "description": default,
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "The search query.",
+                        }
+                    },
+                    "required": ["query"],
                 },
             },
             default_description=default,

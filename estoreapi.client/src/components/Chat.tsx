@@ -23,11 +23,20 @@ type ToolCallPart = {
     result?: unknown;
 };
 
+/** for sources component of web page searches */
+type SourcePart = {
+    type: "source";
+    sourceType: "url";
+    url: string; 
+    title?: string;
+};
+
 /** Content part shapes received from the agent and yielded to the assistant-ui runtime. */
 type IncomingContentPart =
     | { type: "reasoning"; text: string }
     | { type: "text"; text: string }
-    | ToolCallPart;
+    | ToolCallPart
+    | SourcePart;
 
 /** Content part shapes sent to the agent over the wire. */
 type OutgoingContentPart =
@@ -96,6 +105,7 @@ const agentAdapter: ChatModelAdapter = {
         let reasoning = "";
         const toolCalls: ToolCallPart[] = [];
         const toolCallMap = new Map<string, ToolCallPart>();
+        const sources: SourcePart[] = [];
         // Set when the backend pauses for confirmation; drives the final status.
         let awaitingConfirmation = false;
 
@@ -104,8 +114,9 @@ const agentAdapter: ChatModelAdapter = {
             ...(reasoning ? [{ type: "reasoning" as const, text: reasoning }] : []),
             ...toolCalls,
             ...(text ? [{ type: "text" as const, text }] : []),
+            ...sources,
         ];
-        
+
         /** Apply one parsed event to the accumulated state. Returns true if state changed. */
         const applyEvent = ([type, ...rest]: StreamEvent): boolean => {
             if (type === "chunk") {
@@ -126,7 +137,20 @@ const agentAdapter: ChatModelAdapter = {
             } else if (type === "tool_result") {
                 const [id, result] = rest as [string, unknown];
                 const part = toolCallMap.get(id);
-                if (part) part.result = result;
+                if (part) {
+                    try {
+                        // split web search tool call results into text results (go to the agent)
+                        // and the sources (render badges)
+                        const parsed = JSON.parse(result as string) as { text: string; sources?: { url: string; title?: string }[] };
+                        part.result = parsed.text;
+                        for (const s of parsed.sources ?? []) {
+                            sources.push({ type: "source", sourceType: "url", url: s.url, title: s.title });
+                        }
+                    } catch {
+                        // Plain-string tool results are not JSON, assign directly.
+                        part.result = result;
+                    }
+                }
             } else if (type === "confirmation_required") {
                 // Tool call(s) await user approval; the stream ends after this.
                 awaitingConfirmation = true;

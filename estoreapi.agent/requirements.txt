@@ -3,3 +3,4 @@ ollama
 fastapi
 uvicorn
 python-dotenv
+tavily-python

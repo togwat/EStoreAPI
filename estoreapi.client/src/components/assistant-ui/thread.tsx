@@ -18,6 +18,7 @@ import {
 } from "src/components/assistant-ui/tool-group";
 import { ToolFallback } from "src/components/assistant-ui/tool-fallback";
 import { ToolConfirmation } from "src/components/assistant-ui/tool-confirmation";
+import { Sources } from "src/components/assistant-ui/sources";
 import { TooltipIconButton } from "src/components/assistant-ui/tooltip-icon-button";
 import { Button } from "src/components/ui/button";
 import { cn } from "src/lib/utils";
@@ -321,6 +322,15 @@ const AssistantMessage: FC = () => {
             }
           }}
         </MessagePrimitive.GroupedParts>
+        {/* A second pass over parts, rendering only source badges — one per search result URL. */}
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          <MessagePrimitive.Parts>
+            {({ part }) => {
+              if (part.type === "source") return <Sources {...part} />;
+              return null;
+            }}
+          </MessagePrimitive.Parts>
+        </div>
         <MessageError />
       </div>
 
