@@ -19,7 +19,8 @@ CONFIRMATION_REQUIRED_TOOLS: set[str] = {
     "update_customer",
     "update_device",
     "update_problem",
-    "update_job"
+    "update_job",
+    "submit_form"
 }
 
 
