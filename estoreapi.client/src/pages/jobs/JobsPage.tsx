@@ -148,7 +148,7 @@ export default function JobsPage({ title }: { title: string }) {
     const inProgressCards = pagedJobs.filter(j => !j.isFinished).map(toCard);
     const finishedCards   = pagedJobs.filter(j =>  j.isFinished).map(toCard);
 
-    const pagination = <WorkingPagination className="mt-4" page={page} totalItems={filteredJobs.length} itemsPerPage={itemsPerPage} onPageChange={setPage} />
+    const pagination = <WorkingPagination className="mb-4" page={page} totalItems={filteredJobs.length} itemsPerPage={itemsPerPage} onPageChange={setPage} />
 
     const cards = (
         <div className="flex flex-col gap-4 max-w-4xl">
@@ -293,6 +293,7 @@ export default function JobsPage({ title }: { title: string }) {
                         <FilterSelect label="Is finished" options={["In progress", "Finished"]} value={selectedFinish} onChange={setSelectedFinish} />
                     </Filter>
                     {cards}
+                    {pagination}
                 </div>
                 // desktop
                 : <div className="p-8">
@@ -301,10 +302,10 @@ export default function JobsPage({ title }: { title: string }) {
                         <FilterSearch placeholder={"Search jobs..."} onChange={setSearchQuery} />
                         <FilterSelect label="Is finished" options={["In progress", "Finished"]} value={selectedFinish} onChange={setSelectedFinish} />
                     </Filter>
-                    {cards}
+                    <div className="mb-4">{cards}</div>
+                    {pagination}
                 </div>
             }
-            {pagination}
         </PanelDrawer>
     );
 }

@@ -58,7 +58,7 @@ export default function DevicesPage({ title }: { title: string }) {
         <DeviceCard key={device.id} device={device} isSelected={selectedDevice?.id === device.id} onClick={() => setSelectedDevice(device)} />
     ));
 
-    const pagination = <WorkingPagination className="mt-4" page={page} totalItems={sortedDevices.length} itemsPerPage={itemsPerPage} onPageChange={setPage} />;
+    const pagination = <WorkingPagination className="mb-4" page={page} totalItems={sortedDevices.length} itemsPerPage={itemsPerPage} onPageChange={setPage} />;
 
     // problemEditRef lets us call into ProblemEdit's internal state from the Confirm/Cancel buttons here
     const problemEditRef = useRef<ProblemEditHandle>(null);
