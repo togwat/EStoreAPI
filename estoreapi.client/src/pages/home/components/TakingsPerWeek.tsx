@@ -1,6 +1,6 @@
 import { Job, getJobs } from "@/api/jobs";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { useEffect, useState } from "react";
 import { formatPrice } from "@/lib/formatPrice";
 
@@ -65,20 +65,35 @@ export function TakingsPerWeek() {
         getJobs().then(jobs => setChartData(buildChartData(jobs)));
     }, []);
 
+    const maxTakings = Math.max(0, ...chartData.map(d => d.takings));
+    // 100 per step only
+    const yTicks = Array.from({ length: Math.floor(maxTakings / 100) + 2 }, (_, i) => i * 100);
+
     return (
         <div className="flex flex-col gap-2">
             <h2 className="font-medium">Takings Per Week</h2>
             <ChartContainer config={chartConfig} className="aspect-auto max-w-2xl h-40">
-                <AreaChart data={chartData} margin={{ left: 12, right: 12 }}>
+                <AreaChart data={chartData}>
                     <CartesianGrid vertical={false} />
                     <XAxis
                         dataKey="week"
                         tickLine={false}
                         axisLine={false}
                         tickMargin={8}
+                        minTickGap={32}
                         tickFormatter={(value) =>
                             new Date(value).toLocaleDateString("en-NZ", { month: "short", day: "numeric" })
                         }
+                        tick={{ fill: "var(--muted-foreground)" }}
+                    />
+                    <YAxis
+                        ticks={yTicks}
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        tickFormatter={(value) => `$${value}`}
+                        width={45}
+                        tick={{ fill: "var(--muted-foreground)" }}
                     />
                     <ChartTooltip
                         cursor={false}

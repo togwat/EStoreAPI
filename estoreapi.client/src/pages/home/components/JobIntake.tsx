@@ -1,6 +1,6 @@
 import { Job, getJobs } from "@/api/jobs";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { useEffect, useState } from "react";
 
 // 1 month chart range
@@ -49,7 +49,7 @@ const chartConfig: ChartConfig = {
     }
 }
 
-export function JobIntakeChart() {
+export function JobIntake() {
     const [chartData, setChartData] = useState<{ date: string; jobs: number }[]>([]);
 
     useEffect(() => {
@@ -76,6 +76,15 @@ export function JobIntakeChart() {
                                 day: "numeric",
                             });
                         }}
+                        tick={{ fill: "var(--muted-foreground)" }}
+                    />
+                    <YAxis
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        width={30}
+                        allowDecimals={false}
+                        tick={{ fill: "var(--muted-foreground)" }}
                     />
                     <ChartTooltip 
                         content={
