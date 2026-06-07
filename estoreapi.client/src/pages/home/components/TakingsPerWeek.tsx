@@ -2,6 +2,7 @@ import { Job, getJobs } from "@/api/jobs";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import { useEffect, useState } from "react";
+import { formatPrice } from "@/lib/formatPrice";
 
 // 2 month chart range
 const startDate = new Date();
@@ -106,6 +107,20 @@ export function TakingsPerWeek() {
                         fillOpacity={0.4}
                         stroke="var(--color-takings)"
                         dot={true}
+                        label={(props) => {
+                            if (props.index !== chartData.length - 1) return <div />;
+                            return (
+                                // label for the last data point only
+                                <text
+                                    x={props.x}
+                                    y={Number(props.y) - 10}
+                                    textAnchor="end"
+                                    className="text-xs font-medium font-mono text-foreground"
+                                >
+                                    {formatPrice(Number(props.value))}
+                                </text>
+                            );
+                        }}
                     />
                 </AreaChart>
             </ChartContainer>
