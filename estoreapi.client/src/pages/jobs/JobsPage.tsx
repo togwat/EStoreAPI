@@ -227,7 +227,7 @@ export default function JobsPage({ title }: { title: string }) {
                     <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
                         <div className="grid grid-cols-2 gap-2">
                             <InfoItem title={"RECEIVED"}>
-                                <span>{formatDate(selectedJob.pickupTime, { year: false, time: true })}</span>
+                                <span>{formatDate(selectedJob.receiveTime, { year: false, time: true })}</span>
                             </InfoItem>
                             {selectedJob.estimatedPickupTime && <InfoItem title="EST. PICKUP">
                                 <span>{formatDate(selectedJob.estimatedPickupTime, { year: false, time: true })}</span>
