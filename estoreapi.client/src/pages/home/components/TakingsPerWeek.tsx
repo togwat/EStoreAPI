@@ -58,7 +58,7 @@ const chartConfig: ChartConfig = {
     },
 }
 
-export function TakingsPerWeek() {
+export default function TakingsPerWeek() {
     const [chartData, setChartData] = useState<{ week: string; takings: number }[]>([]);
 
     useEffect(() => {

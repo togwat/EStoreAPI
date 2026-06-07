@@ -49,7 +49,7 @@ const chartConfig: ChartConfig = {
     }
 }
 
-export function JobIntake() {
+export default function JobIntake() {
     const [chartData, setChartData] = useState<{ date: string; jobs: number }[]>([]);
 
     useEffect(() => {

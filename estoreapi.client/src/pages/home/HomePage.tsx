@@ -1,7 +1,7 @@
 import MenuHeader from './components/MenuHeader';
-import { JobIntake } from './components/JobIntake';
+import JobIntake from './components/JobIntake';
+import TakingsPerWeek from './components/TakingsPerWeek';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { TakingsPerWeek } from './components/TakingsPerWeek';
 
 export default function HomePage() {
     const isMobile = useIsMobile();
