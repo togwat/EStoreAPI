@@ -122,10 +122,22 @@ def chat(
     """
     user_id_var.set(req.user_id)
 
-    # Add memory to system prompt
+    # Get memory
+    context_memory = ""
+    # memory is enabled and context memory not already fetched
+    if memory and not context_memory:
+        memory.get_context(req.user_id)
+
     latest_msg = req.messages[-1].get("content", "") if req.messages else ""    # user-sent msg
     relevant_memory = memory.search(latest_msg, req.user_id) if memory and latest_msg else ""
-    system = SYSTEM_PROMPT + (f"\n\n## Relevant memory\n{relevant_memory}" if relevant_memory else "")
+
+    # Add memory to system prompt
+    system = SYSTEM_PROMPT
+    if context_memory:
+        system += f"\n\n## Persistent context\n{context_memory}"
+    if relevant_memory:
+        system += f"\n\n## Relevant memory\n{relevant_memory}"
+
     messages = [{"role": "system", "content": system}] + req.messages
 
     if req.stream:
