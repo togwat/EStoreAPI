@@ -42,7 +42,7 @@ namespace EStoreAPI.Server.Services
         // leave empty to get all jobs
         public async Task<ICollection<Job>> SearchJobsAsync(string? query)
         {
-            if (query is null) return await _repo.GetJobsAsync();
+            if (string.IsNullOrEmpty(query)) return await _repo.GetJobsAsync();
 
             // union of jobs with matching customer or device
             // can run these lookups in parallel
