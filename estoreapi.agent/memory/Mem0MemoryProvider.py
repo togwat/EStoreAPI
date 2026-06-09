@@ -49,19 +49,17 @@ class Mem0MemoryProvider(MemoryProvider):
 
     def get_context(self, user_id: str) -> str:
         """
-        Returns all stored memories for the user as a bullet list, injected into the
-        system prompt at the start of each session.
-
-        mem0 extracts structured facts from past conversations (e.g. preferences like
-        "Prefers metric units") rather than raw message history. get_all() retrieves every fact.
-        currently stored for this user_id, so the model has persistent context without
-        needing to search.
+        Returns standing context that is broadly relevant across all conversations,
+        injected once into the system prompt at session start.
         """
-        result = self._memory.get_all(filters={"user_id": user_id})
+        result = self._memory.search(
+            "user identity preferences standing instructions",
+            filters={"user_id": user_id},
+        )
         memories = result.get("results", [])
         if not memories:
             return ""
-        return "Known facts about this session:\n" + "\n".join(f"- {m['memory']}" for m in memories)
+        return "Persistent context:\n" + "\n".join(f"- {m['memory']}" for m in memories)
 
     @staticmethod
     def _text_only(msg: dict) -> dict | None:

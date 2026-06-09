@@ -120,11 +120,12 @@ def chat(
     Run the agentic loop. Set stream=true to receive NDJSON events (one JSON array per line),
     or stream=false to wait for the full text response as JSON.
     """
-    # Add memory to system prompt
     user_id_var.set(req.user_id)
 
-    context = memory.get_context(req.user_id) if memory else ""
-    system = SYSTEM_PROMPT + (f"\n\n## Memory\n{context}" if context else "")
+    # Add memory to system prompt
+    latest_msg = req.messages[-1].get("content", "") if req.messages else ""    # user-sent msg
+    relevant_memory = memory.search(latest_msg, req.user_id) if memory and latest_msg else ""
+    system = SYSTEM_PROMPT + (f"\n\n## Relevant memory\n{relevant_memory}" if relevant_memory else "")
     messages = [{"role": "system", "content": system}] + req.messages
 
     if req.stream:
