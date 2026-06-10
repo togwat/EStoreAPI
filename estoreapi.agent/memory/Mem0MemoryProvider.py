@@ -61,6 +61,13 @@ class Mem0MemoryProvider(MemoryProvider):
             return ""
         return "Persistent context:\n" + "\n".join(f"- {m['memory']}" for m in memories)
 
+    
+    @staticmethod
+    def _extract_text(content: str | list) -> str:
+        if isinstance(content, list):
+            return " ".join(b["text"] for b in content if b.get("type") == "text" and b.get("text"))
+        return content
+
     @staticmethod
     def _text_only(msg: dict) -> dict | None:
         """
@@ -69,13 +76,11 @@ class Mem0MemoryProvider(MemoryProvider):
         crashes on non-text blocks when no vision LLM is configured, so we extract only
         the text parts and drop messages that have no text at all (e.g. pure tool calls).
         """
-        content = msg["content"]
-        if isinstance(content, str):
-            return msg
-        if isinstance(content, list):
-            text = " ".join(b["text"] for b in content if b.get("type") == "text" and b.get("text"))
-            return {"role": msg["role"], "content": text} if text else None
-        return None
+        text = Mem0MemoryProvider._extract_text(msg["content"])
+        
+        if not text:
+            return None
+        return msg if isinstance(msg["content"], str) else {"role": msg["role"], "content": text}
 
     def write(self, messages: list[dict], user_id: str) -> None:
         """
@@ -95,7 +100,7 @@ class Mem0MemoryProvider(MemoryProvider):
         if conversation:
             self._memory.add(conversation, user_id=user_id)
 
-    def search(self, query: str, user_id: str) -> str:
+    def search(self, query: str | list, user_id: str) -> str:
         """
         Semantic search over stored memories for a specific query.
 
@@ -103,6 +108,9 @@ class Mem0MemoryProvider(MemoryProvider):
         specific.
         Returns the top matching facts ranked by semantic similarity score.
         """
+        query = self._extract_text(query)
+        if not query:
+            return "No relevant memories found."
         result = self._memory.search(query, filters={"user_id": user_id})
         results = result.get("results", [])
         if not results:
