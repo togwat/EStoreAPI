@@ -71,6 +71,9 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<EStoreDbContext>();
     db.Database.Migrate();
+    // apply readonly privileges to agent's sql access
+    // AgentReadOnlyGrants define the tables allowed
+    AgentReadOnlyGrants.Apply(db, app.Configuration, app.Logger);
 }
 
 app.Run();

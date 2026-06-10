@@ -23,12 +23,8 @@ WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'agent_user')
 GRANT CONNECT ON DATABASE :"db" TO :"agent_user";
 GRANT USAGE ON SCHEMA public TO :"agent_user";
 
--- Tables don't exist yet at first init: EF Core migrations create them later,
--- when the API container starts. ALTER DEFAULT PRIVILEGES makes tables that
--- POSTGRES_USER creates in the future readable; the blanket GRANT covers any
--- that already exist (only relevant for manual re-runs on an existing volume).
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO :"agent_user";
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO :"agent_user";
+-- The API applies a per-table allowlist after EF migrations run (see Data/AgentReadOnlyGrants.cs),
+-- tables added by future migrations (e.g. auth) are unreadable by default.
 
 -- Defense in depth on top of the SELECT-only grants: refuse writes even if a
 -- future migration broadens permissions, and bound runaway queries.
