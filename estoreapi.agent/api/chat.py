@@ -7,7 +7,13 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from config import SYSTEM_PROMPT, STREAMING
-from dependencies import get_all_tools, get_provider, get_router
+
+# Placeholder until ASP.NET auth is wired and replaced by token-derived identity.
+# When auth ships: remove this constant, remove user_id from ChatRequest, and
+# set user_id_var from the auth dependency instead.
+_UNAUTHENTICATED_USER_ID = "default"
+from dependencies import get_all_tools, get_memory, get_provider, get_router
+from memory.user_context import user_id_var
 from providers.AbstractProvider import ChatProvider
 from tools.confirmation import requires_confirmation
 from tools.router import ToolRouter
@@ -23,6 +29,7 @@ _tc_counter = count(1)
 class ChatRequest(BaseModel):
     messages: list[dict]  # [{role: "user"|"assistant", content: "..."}]
     stream: bool = STREAMING
+    user_id: str = _UNAUTHENTICATED_USER_ID # switch to token-derived auth when ready
 
 
 class ChatResponse(BaseModel):
@@ -107,21 +114,49 @@ def chat(
     provider: ChatProvider = Depends(get_provider),
     tools: list[dict] = Depends(get_all_tools),
     tool_router: ToolRouter = Depends(get_router),
+    memory=Depends(get_memory),
 ):
     """
     Run the agentic loop. Set stream=true to receive NDJSON events (one JSON array per line),
     or stream=false to wait for the full text response as JSON.
     """
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}] + req.messages
+    user_id_var.set(req.user_id)
+
+    # Get memory
+    context_memory = ""
+    # memory is enabled and context memory not already fetched
+    if memory and not context_memory:
+        memory.get_context(req.user_id)
+
+    latest_msg = req.messages[-1].get("content", "") if req.messages else ""    # user-sent msg
+    relevant_memory = memory.search(latest_msg, req.user_id) if memory and latest_msg else ""
+
+    # Add memory to system prompt
+    system = SYSTEM_PROMPT
+    if context_memory:
+        system += f"\n\n## Persistent context\n{context_memory}"
+    if relevant_memory:
+        system += f"\n\n## Relevant memory\n{relevant_memory}"
+
+    messages = [{"role": "system", "content": system}] + req.messages
 
     if req.stream:
         def serialised() -> Iterator[str]:
             for event in _run_agentic_loop(messages, provider, tools, tool_router):
                 yield json.dumps(event) + "\n"
+            # Write after the generator is exhausted so messages is fully populated.
+            if memory:
+                memory.write(messages[1:], req.user_id)
 
         return StreamingResponse(serialised(), media_type="application/x-ndjson")
-
-    text = "".join(ev[1] for ev in _run_agentic_loop(messages, provider, tools, tool_router) if ev[0] == "chunk")
+    
+    # non-streaming
+    text = ""
+    for ev in _run_agentic_loop(messages, provider, tools, tool_router):
+        if ev[0] == "chunk":
+            text += ev[1]
+    if memory:
+        memory.write(messages[1:], req.user_id)
     return ChatResponse(response=text)
 
 

@@ -141,8 +141,10 @@ const agentAdapter: ChatModelAdapter = {
                     try {
                         // split web search tool call results into text results (go to the agent)
                         // and the sources (render badges)
-                        const parsed = JSON.parse(result as string) as { text: string; sources?: { url: string; title?: string }[] };
-                        part.result = parsed.text;
+                        const parsed = JSON.parse(result as string) as { text?: string; sources?: { url: string; title?: string }[] };
+                        // Fall back to the raw string if the result isn't in the {text, sources} web-search shape,
+                        // which are usually from regular tool calls without a 'text' field
+                        part.result = parsed.text ?? result;
                         for (const s of parsed.sources ?? []) {
                             sources.push({ type: "source", sourceType: "url", url: s.url, title: s.title });
                         }

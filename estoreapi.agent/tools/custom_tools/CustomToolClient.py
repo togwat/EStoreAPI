@@ -3,6 +3,7 @@ from collections.abc import Callable
 from tools.AbstractToolClient import AbstractToolClient
 from tools.descriptions.AbstractDescriptionService import AbstractDescriptionService
 from tools.custom_tools.registry import Registry
+from tools.custom_tools.memory_search import make_memory_search_handler
 from tools.custom_tools.time_lookup import get_time
 from tools.custom_tools.update_description import make_update_description_handler
 from tools.custom_tools.web_search import web_search
@@ -20,6 +21,7 @@ class CustomToolClient(AbstractToolClient):
         self,
         registry: Registry,
         desc_service: AbstractDescriptionService,
+        memory=None,
         get_all_tools: Callable[[], list[dict]] | None = None,
     ):
         self._registry = registry
@@ -27,7 +29,8 @@ class CustomToolClient(AbstractToolClient):
         self._handlers = {
             "get_time": get_time,
             "update_description": make_update_description_handler(desc_service, get_all_tools),
-            "web_search": web_search
+            "web_search": web_search,
+            "memory_search": make_memory_search_handler(memory),
         }
 
     def __contains__(self, name: str) -> bool:

@@ -22,6 +22,20 @@ services:
       db:
         condition: service_healthy
 
+  mem0-db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: ${MEM0_DB_USER}
+      POSTGRES_PASSWORD: ${MEM0_DB_PASSWORD}
+      POSTGRES_DB: postgres
+    volumes:
+      - mem0_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${MEM0_DB_USER:-mem0} -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   agent:
     build: ./estoreapi.agent
     image: estoreapi-agent:latest
@@ -32,6 +46,13 @@ services:
       API_BASE_URL: http://api:5100
       AGENT_PORT: 8000
       TAVILY_KEY: ${TAVILY_KEY}
+      MEMORY_ENABLED: ${MEMORY_ENABLED}
+      MEM0_DB_HOST: mem0-db
+      MEM0_DB_PORT: 5432
+      MEM0_DB_USER: ${MEM0_DB_USER}
+      MEM0_DB_PASSWORD: ${MEM0_DB_PASSWORD}
+      MEM0_LLM_MODEL: ${MEM0_LLM_MODEL}
+      MEM0_EMBEDDING_MODEL: ${MEM0_EMBEDDING_MODEL}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -39,6 +60,8 @@ services:
     depends_on:
       api:
         condition: service_started
+      mem0-db:
+        condition: service_healthy
 
   client:
     build: ./estoreapi.client
@@ -52,3 +75,4 @@ services:
 volumes:
   postgres_data:
   agent_descriptions:
+  mem0_postgres_data:

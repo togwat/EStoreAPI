@@ -28,6 +28,7 @@ class Registry:
         self._register_get_time()
         self._register_update_description()
         self._register_web_search()
+        self._register_memory_search()
 
     def __contains__(self, name: str) -> bool:
         return name in self._tools
@@ -99,6 +100,26 @@ class Registry:
                         "query": {
                             "type": "string",
                             "description": "The search query.",
+                        }
+                    },
+                    "required": ["query"],
+                },
+            },
+            default_description=default,
+        )
+
+    def _register_memory_search(self):
+        default = "Search your persistent memory for facts relevant to the query. Use to recall information from past conversations."
+        self._tools["memory_search"] = CustomTool(
+            schema={
+                "name": "memory_search",
+                "description": default,
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "What to recall from memory.",
                         }
                     },
                     "required": ["query"],
