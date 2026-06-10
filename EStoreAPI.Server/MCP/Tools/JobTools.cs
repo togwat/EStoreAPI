@@ -31,9 +31,9 @@ public class JobTools
         }
     }
 
-    [McpServerTool, Description("Search for repair jobs by customer name, phone number, email, or device name. Leave empty to get all jobs.")]
+    [McpServerTool, Description("Search for repair jobs by customer name, phone number, email, or device name.")]
     public async Task<ICollection<OutJobDTO>> SearchJobsAsync(
-        [Description("Partial matches supported. Leave empty to get all jobs.")] string? query = null)
+        [Description("Partial matches supported.")] string query)
     {
         ICollection<Job> jobs = await _service.SearchJobsAsync(query);
         return jobs.Select(OutJobDTO.FromModel).ToList();

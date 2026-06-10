@@ -17,7 +17,7 @@ public class CustomerTools
     
     [McpServerTool, Description("Search for customers by name, phone number, or email address.")]
     public async Task<ICollection<OutCustomerDTO>> SearchCustomersAsync(
-        [Description("The search query to match against customer name, phone number, or email address. Partial matches are supported. Leave empty to get all customers.")]string? query)
+        [Description("The search query to match against customer name, phone number, or email address. Partial matches are supported.")] string query)
     {
         ICollection<Customer> customers = await _service.SearchCustomersAsync(query);
         return customers.Select(OutCustomerDTO.FromModel).ToList();
