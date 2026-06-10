@@ -24,6 +24,7 @@ builder.Services.AddScoped<IDeviceService, DeviceService>();
 builder.Services.AddScoped<IJobService, JobService>();
 builder.Services.AddScoped<IProblemService, ProblemService>();
 builder.Services.AddScoped<IFormService, FormService>();
+builder.Services.AddScoped<IReadOnlyQueryService, ReadOnlyQueryService>();
 
 // MCP services
 builder.Services.AddMcpServer()
