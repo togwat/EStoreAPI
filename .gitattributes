@@ -3,6 +3,10 @@
 ###############################################################################
 * text=auto
 
+# Shell scripts run inside Linux containers (e.g. the Postgres init script
+# bind-mounted into /docker-entrypoint-initdb.d) and break with CRLF endings.
+*.sh text eol=lf
+
 ###############################################################################
 # Set default behavior for command prompt diff.
 #
