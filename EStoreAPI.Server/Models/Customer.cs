@@ -1,7 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Server.Models
 {
+    [Index(nameof(PhoneNumber), IsUnique = true)]
     public class Customer
     {
         [Key]
