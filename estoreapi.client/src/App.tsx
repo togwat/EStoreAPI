@@ -9,6 +9,7 @@ import { Navbar } from './components/Navbar';
 import { TooltipProvider } from './components/ui/tooltip';
 import { ToastContainer } from 'react-toastify';
 import LoginPage from './pages/login/LoginPage';
+import RouteGuard from './components/RouteGuard';
 
 const pageTitles: Record<string, string> = {
     '/': '',
@@ -40,12 +41,14 @@ function AppContent() {
             <Route path="/login" element={<LoginPage />} />
 
             {/** regular app with navbar, chat panel */}
-            <Route element={<AppLayout />}>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/form" element={<FormPage title={title} />} />
-                <Route path="/jobs" element={<JobsPage title={title} />} />
-                <Route path="/devices" element={<DevicesPage title={title} />} />
-                <Route path="*" element={<NotFoundPage />} />
+            <Route element={<RouteGuard />}>
+                <Route element={<AppLayout />}>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/form" element={<FormPage title={title} />} />
+                    <Route path="/jobs" element={<JobsPage title={title} />} />
+                    <Route path="/devices" element={<DevicesPage title={title} />} />
+                    <Route path="*" element={<NotFoundPage />} />
+                </Route>
             </Route>
         </Routes>
     )
