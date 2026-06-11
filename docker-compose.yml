@@ -23,6 +23,8 @@ services:
     environment:
       ConnectionStrings__WebAPIDatabase: "Host=db; Port=5432; Database=${DB_NAME}; Username=${DB_USER}; Password=${DB_PASSWORD};"
       ConnectionStrings__ReadOnlyDatabase: "Host=db; Port=5432; Database=${DB_NAME}; Username=${AGENT_DB_USER}; Password=${AGENT_DB_PASSWORD};"
+      Google__ClientId: ${GOOGLE_CLIENT_ID}
+      Google__ClientSecret: ${GOOGLE_CLIENT_SECRET}
     depends_on:
       db:
         condition: service_healthy

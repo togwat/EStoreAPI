@@ -11,6 +11,8 @@ namespace EStoreAPI.Server.Data
         public DbSet<Device> Devices { get; set; }
         public DbSet<Problem> Problems { get; set; }
         public DbSet<Job> Jobs { get; set; }
+        // for auth
+        public DbSet<User> Users { get; set; }
 
         public EStoreDbContext(IConfiguration configuration)
         {
