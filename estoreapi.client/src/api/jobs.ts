@@ -1,6 +1,7 @@
 import axios from "axios";
 import { toast } from '@/components/CustomToast';
 import { Problem } from "./problems";
+import { api } from './client';
 
 // follow OutJobDTO
 export type Job = {
@@ -51,7 +52,7 @@ function _mapJob(j: {
 
 
 export async function getJobs(): Promise<Job[]> {
-    const response = await axios.get('/api/Jobs');
+    const response = await api.get('/api/Jobs');
     return response.data.map(_mapJob);
 }
 

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Outlet } from 'react-router-dom';
 import HomePage from './pages/home/HomePage';
 import FormPage from './pages/form/FormPage';
 import JobsPage from './pages/jobs/JobsPage';
@@ -8,6 +8,7 @@ import Chat from './components/Chat';
 import { Navbar } from './components/Navbar';
 import { TooltipProvider } from './components/ui/tooltip';
 import { ToastContainer } from 'react-toastify';
+import LoginPage from './pages/login/LoginPage';
 
 const pageTitles: Record<string, string> = {
     '/': '',
@@ -16,23 +17,38 @@ const pageTitles: Record<string, string> = {
     '/devices': 'Devices',
 };
 
-function AppContent() {
+function AppLayout() {
     const { pathname } = useLocation();
     const title = pageTitles[pathname];
 
     return (
         <Chat>
             <Navbar title={title}>
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/form" element={<FormPage title={title} />} />
-                    <Route path="/jobs" element={<JobsPage title={title} />} />
-                    <Route path="/devices" element={<DevicesPage title={title} />} />
-                    <Route path="*" element={<NotFoundPage />} />
-                </Routes>
+                <Outlet />
             </Navbar>
         </Chat>
     );
+}
+
+function AppContent() {
+    const { pathname } = useLocation();
+    const title = pageTitles[pathname];
+
+    return (
+        <Routes>
+            {/** login page only */}
+            <Route path="/login" element={<LoginPage />} />
+
+            {/** regular app with navbar, chat panel */}
+            <Route element={<AppLayout />}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/form" element={<FormPage title={title} />} />
+                <Route path="/jobs" element={<JobsPage title={title} />} />
+                <Route path="/devices" element={<DevicesPage title={title} />} />
+                <Route path="*" element={<NotFoundPage />} />
+            </Route>
+        </Routes>
+    )
 }
 
 export default function App() {

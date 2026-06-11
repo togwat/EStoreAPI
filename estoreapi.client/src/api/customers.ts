@@ -1,5 +1,6 @@
 import { toast } from '@/components/CustomToast';
 import axios from "axios";
+import { api } from './client';
 
 // follow OutCustomerDTO
 export type Customer = {
@@ -23,13 +24,13 @@ function _mapCustomer(c: { customerId: string; customerName: string; phoneNumber
 }
 
 export async function getCustomers(): Promise<Customer[]> {
-    const response = await axios.get('api/Customers');
+    const response = await api.get('api/Customers');
     return response.data.map(_mapCustomer);
 }
 
 export async function getCustomer(id: string): Promise<Customer> {
     try {
-        const response = await axios.get(`api/Customers/${id}`);
+        const response = await api.get(`api/Customers/${id}`);
         return _mapCustomer(response.data);
     } catch (error) {
         let message;

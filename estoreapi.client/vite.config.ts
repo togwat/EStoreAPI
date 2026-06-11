@@ -20,6 +20,10 @@ export default defineConfig({
                 target: 'https://localhost:5100',
                 secure: false
             },
+            '^/signin-google': {
+                target: 'https://localhost:5100',
+                secure: false
+            },
             '^/agent': {
                 target: 'http://localhost:8000',
                 secure: false

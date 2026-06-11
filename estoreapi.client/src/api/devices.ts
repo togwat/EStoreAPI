@@ -1,5 +1,6 @@
 import { toast } from '@/components/CustomToast';
 import axios from 'axios';
+import { api } from './client';
 
 // follow OutDeviceDTO
 export type Device = {
@@ -18,7 +19,7 @@ function _mapDevice(d: { deviceId: string; deviceName: string; deviceType: strin
 
 export async function getDevice(id: string): Promise<Device> {
     try {
-        const response = await axios.get(`/api/Devices/${id}`);
+        const response = await api.get(`/api/Devices/${id}`);
         return _mapDevice(response.data);
     } catch (error) {
         let message;
@@ -38,17 +39,17 @@ export async function getDevice(id: string): Promise<Device> {
 }
 
 export async function getDevices(): Promise<Device[]> {
-    const response = await axios.get('/api/devices');
+    const response = await api.get('/api/devices');
     return response.data.map(_mapDevice);
 }
 
 export async function getDeviceTypes(): Promise<string[]> {
-    const response = await axios.get<string[]>('/api/Devices/types');
+    const response = await api.get<string[]>('/api/Devices/types');
     return response.data;
 }
 
 export async function searchDeviceType(type: string): Promise<Device[]> {
-    const response = await axios.get('/api/devices/searchType', { params: { type } })
+    const response = await api.get('/api/devices/searchType', { params: { type } })
     return response.data.map(_mapDevice);
 }
 

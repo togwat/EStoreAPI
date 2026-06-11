@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { toast } from '@/components/CustomToast';
+import { api } from './client';
 
 // follow OutProblemDTO
 export type Problem = {
@@ -17,7 +18,7 @@ function _mapProblem(d: { problemId: string; problemName: string; price: string 
 }
 
 export async function getProblems(deviceId: string): Promise<Problem[]> {
-    const response = await axios.get(`/api/problems/device/${deviceId}`);
+    const response = await api.get(`/api/problems/device/${deviceId}`);
     return response.data.map(_mapProblem);
 }
 
