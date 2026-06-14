@@ -1,4 +1,4 @@
-export const themes = ['rustic-leather'] as const;
+export const themes = ['rustic-leather', 'generic-dark', 'generic-light'] as const;
 export type ThemeName = typeof themes[number];
 
 const DEFAULT_THEME: ThemeName = 'rustic-leather';

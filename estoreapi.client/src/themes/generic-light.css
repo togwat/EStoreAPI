@@ -1,0 +1,38 @@
+[data-theme="generic-light"] {
+  /* page + ink */
+  --background: #f5f5f4;                  /* warm off-white */
+  --foreground: #18181b;                 /* near-black ink */
+
+  /* cards / surfaces */
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+  --surface-alt: #f5f5f4;
+
+  /* primary = green */
+  --primary: #16a34a;
+  --primary-foreground: #ffffff;
+
+  /* secondary / muted (toolbars, sidebar panels) */
+  --secondary: #fafaf9;
+  --secondary-foreground: #18181b;
+  --muted: #f5f5f4;
+  --muted-foreground: #71717a;
+
+  /* accent = soft green wash */
+  --accent: rgba(22, 163, 74, 0.10);
+  --accent-foreground: #16a34a;
+
+  /* destructive */
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  /* borders / inputs / focus rings */
+  --border: #e7e5e4;
+  --border-strong: #d6d3d1;
+  --input: #fafaf9;
+  --ring: #16a34a;
+
+  --radius: 0.625rem;
+}

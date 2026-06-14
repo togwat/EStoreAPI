@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="776" height="166" viewBox="0 0 776 166">
+  <!-- 5-point outer orange pentagon (no inner "E") -->
+  <polygon points="0,72 78,0 192,10 167,155 40,166" fill="#7C8CFF"/>
+  
+  <!-- White E inside polygon-->
+  <g transform="translate(47,33) scale(1.05)">
+    <!-- E vertical component -->
+    <path fill="#E8EAED" d="
+      M 24 0
+      L 24 104
+      A 24 24 0 0 1 0 80
+      L 0 24
+      A 24 24 0 0 1 24 0
+      Z
+    "/>
+    
+    <!-- E horizontal component 1 -->
+    <path fill="#E8EAED" d="
+      M 23 0
+      L 108 0
+      A 24 24 0 0 1 84 24
+      L 0 24
+      Z
+    "/>
+
+    <!-- E horizontal component 2 -->
+    <path fill="#E8EAED" d="
+      M 0 40
+      L 100 40
+      A 24 24 0 0 1 76 64
+      L 0 64
+      Z
+    "/>
+    
+    <!-- E horizontal component 3 -->
+    <path fill="#E8EAED" d="
+      M 0 80
+      L 108 80
+      A 24 24 0 0 1 84 104
+      L 23 104
+      Z
+    "/>
+  </g>
+
+  <!-- S -->
+  <path fill="#E8EAED" transform="translate(192,36)" d="
+    M 38 0
+    L 124 0
+    L 124 24
+    L 32 24
+    A 8 8 0 0 0 32 40
+    L 92 40
+    A 30 30 0 0 1 92 103
+    L 5 103
+    A 22 22 0 0 1 24 80
+    L 92 80
+    A 8 8 0 0 0 92 64
+    L 32 64
+    A 30 30 0 0 1 32 0
+    Z
+  "/>
+
+  <!-- T -->
+  <g transform="translate(314,36)">
+    <!-- Top bar: bottom-right corner rounded -->
+    <path fill="#E8EAED" d="
+      M 0 0
+      L 90 0
+      A 24 24 0 0 1 64 24
+      L 0 24
+      Z
+    "/>
+
+    <!-- Vertical stem: bottom-right corner rounded -->
+    <path fill="#E8EAED" d="
+      M 19 23
+      L 43 23
+      L 43 80
+      A 22 22 0 0 1 20 104
+      L 19 104
+      Z
+    "/>
+  </g>
+
+  <!-- O -->
+  <g transform="translate(403,36)">
+    <defs>
+      <!-- White = keep, Black = punch out -->
+      <mask id="o-cutout" maskUnits="userSpaceOnUse" x="0" y="0" width="127" height="104">
+        <rect x="0" y="0" width="127" height="104" rx="32" ry="32" fill="white"/>
+        <rect x="24" y="24" width="79" height="56" rx="8" ry="8" fill="black"/>
+      </mask>
+    </defs>
+  
+    <rect x="0" y="0" width="127" height="104" rx="32" ry="32" fill="#E8EAED" mask="url(#o-cutout)"/>
+  </g>
+
+  <!-- R -->
+  <g transform="translate(540,36)">
+  <!-- R component without diagonal tail -->
+  <path fill="#E8EAED" d="
+    M 0 0
+    L 82 0
+    A 32 32 0 0 1 82 70
+    L 24 70
+    L 24 104
+    L 0 104
+    L 0 46
+    L 88 46
+    A 14 14 0 0 0 88 24
+    L 26 24
+    A 24 24 0 0 1 0 0
+    Z
+  "/>
+
+  <!-- Diagonal tail of R -->
+  <path fill="#E8EAED" d="
+    M 56 68
+    L 88 68
+    L 120 104
+    L 88 104
+    Z
+  "/>
+  </g>
+
+  <!-- E -->
+  <g transform="translate(668,36)">
+    <!-- E vertical component -->
+    <path fill="#E8EAED" d="
+      M 24 0
+      L 24 104
+      A 24 24 0 0 1 0 80
+      L 0 24
+      A 24 24 0 0 1 24 0
+      Z
+    "/>
+
+    <!-- E horizontal component 1 -->
+    <path fill="#E8EAED" d="
+      M 23 0
+      L 108 0
+      A 24 24 0 0 1 84 24
+      L 0 24
+      Z
+    "/>
+    
+    <!-- E horizontal component 2 -->
+    <path fill="#E8EAED" d="
+      M 0 40
+      L 100 40
+      A 24 24 0 0 1 76 64
+      L 0 64
+      Z
+    "/>
+    
+    <!-- E horizontal component 3 -->
+    <path fill="#E8EAED" d="
+      M 0 80
+      L 108 80
+      A 24 24 0 0 1 84 104
+      L 23 104
+      Z
+    "/>
+  </g>
+</svg>
+

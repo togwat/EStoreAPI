@@ -1,0 +1,38 @@
+[data-theme="generic-dark"] {
+  /* page + ink */
+  --background: #0b0c0e;                  /* near-black */
+  --foreground: #e8eaed;                  /* off-white ink */
+
+  /* cards / surfaces */
+  --card: #15171b;
+  --card-foreground: #e8eaed;
+  --popover: #15171b;
+  --popover-foreground: #e8eaed;
+  --surface-alt: #1d2026;
+
+  /* primary = violet */
+  --primary: #7c8cff;
+  --primary-foreground: #0b0c0e;
+
+  /* secondary / muted (toolbars, sidebar panels) */
+  --secondary: #1d2026;
+  --secondary-foreground: #e8eaed;
+  --muted: #1d2026;
+  --muted-foreground: #9aa0a6;
+
+  /* accent = soft violet wash */
+  --accent: rgba(124, 140, 255, 0.14);
+  --accent-foreground: #7c8cff;
+
+  /* destructive */
+  --destructive: #f87171;
+  --destructive-foreground: #0b0c0e;
+
+  /* borders / inputs / focus rings */
+  --border: #262a31;
+  --border-strong: #3a3f47;
+  --input: #262a31;
+  --ring: #7c8cff;
+
+  --radius: 0.625rem;
+}

@@ -7,6 +7,8 @@
    another file and adding the name to ThemeName in src/lib/theme.ts.
    ──────────────────────────────────────────────────────────────────── */
 @import "./themes/rustic-leather.css";
+@import "./themes/generic-dark.css";
+@import "./themes/generic-light.css";
 
 /* ── Runtime color mappings ──────────────────────────────────────────────
    @theme inline makes each CSS var readable by Tailwind utilities at
