@@ -34,4 +34,7 @@
   --ring: hsl(19, 72%, 42%);
 
   --radius: 0.375rem;
+
+  /* clock accent, unique to this theme */
+  --clock: #b29765;
 }

@@ -21,12 +21,11 @@ export default function Clock() {
         hour12: true
     });
 
-    const goldColour = "#b29765";
-
+    // rustic-leather theme gets special clock colour, otherwise use primary accent
     return (
         <div className="flex flex-col gap-1 border-b border-border pb-8">
-            <span className="text-sm font-bold" style={{ color: goldColour }}>{dayName}</span>
-            <span className="text-4xl font-bold">{day} {month} <span style={{ color: goldColour }}>{year}</span></span>
+            <span className="text-sm font-bold" style={{ color: 'var(--clock, var(--primary))' }}>{dayName}</span>
+            <span className="text-4xl font-bold">{day} {month} <span style={{ color: 'var(--clock, var(--primary))' }}>{year}</span></span>
             <span className="text-muted-foreground font-medium">{timeStr}</span>
         </div>
     )
