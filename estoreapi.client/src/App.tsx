@@ -10,12 +10,14 @@ import { TooltipProvider } from './components/ui/tooltip';
 import { ToastContainer } from 'react-toastify';
 import LoginPage from './pages/login/LoginPage';
 import RouteGuard from './components/RouteGuard';
+import SettingsPage from './pages/settings/SettingsPage';
 
 const pageTitles: Record<string, string> = {
     '/': '',
     '/form': 'E-Store Repair Job Form',
     '/jobs': 'Jobs',
     '/devices': 'Devices',
+    '/settings': 'Settings',
 };
 
 function AppLayout() {
@@ -47,6 +49,7 @@ function AppContent() {
                     <Route path="/form" element={<FormPage title={title} />} />
                     <Route path="/jobs" element={<JobsPage title={title} />} />
                     <Route path="/devices" element={<DevicesPage title={title} />} />
+                    <Route path="/settings" element={<SettingsPage title={title} />} />
                     <Route path="*" element={<NotFoundPage />} />
                 </Route>
             </Route>

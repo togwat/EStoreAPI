@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Form, ScrollText, TabletSmartphone, Menu, X, LogOut } from 'lucide-react';
+import { Form, ScrollText, TabletSmartphone, Menu, X, LogOut, SettingsIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from 'src/components/ui/collapsible';
 import { Button } from 'src/components/ui/button';
@@ -43,6 +43,7 @@ export function Navbar({ title, children }: NavbarProps) {
                             <NavItem to="/form" icon={<Form className="h-4 w-4" />} label="Form" horizontal onClick={close} />
                             <NavItem to="/jobs" icon={<ScrollText className="h-4 w-4" />} label="Jobs" horizontal onClick={close} />
                             <NavItem to="/devices" icon={<TabletSmartphone className="h-4 w-4" />} label="Devices" horizontal onClick={close} />
+                            <NavItem to="/settings" icon={<SettingsIcon className="h-4 w-4" />} label="Settings" horizontal onClick={close} />
                             <Button variant="ghost" className={"rounded-md p-2 transition-colors flex-row justify-start items-center gap-2 text-xs"} onClick={handleLogout}><LogOut className="h-4 w-4" />Log Out</Button>
                         </nav>
                     </CollapsibleContent>
@@ -62,7 +63,10 @@ export function Navbar({ title, children }: NavbarProps) {
                     <NavItem to="/jobs" icon={<ScrollText className="h-4.5 w-4.5" />} label="Jobs" />
                     <NavItem to="/devices" icon={<TabletSmartphone className="h-4.5 w-4.5" />} label="Devices" />
                 </nav>
-                <Button variant="ghost" className={"rounded-md p-2 my-3 transition-colors"} onClick={handleLogout}><LogOut className="h-4.5 w-4.5" /></Button>
+                <nav className="flex flex-col gap-1 p-3">
+                    <NavItem to="/settings" icon={<SettingsIcon className="h-4.5 w-4.5" />} label="Settings" />
+                    <Button variant="ghost" className={"rounded-md p-2 transition-colors"} onClick={handleLogout}><LogOut className="h-4.5 w-4.5" /></Button>
+                </nav>
             </aside>
             <main className="flex-1 overflow-auto">{children}</main>
         </div>
