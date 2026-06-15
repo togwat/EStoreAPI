@@ -1,4 +1,26 @@
-# EStoreAPI
+# EStoreAPI / E-Store Management Console
+E-Store Management Console is a web application that facilitates the data management of a phone repair shop. 
+## Key Features
+**Device model & problem catalogue:**
+- Keep track of all device models serviced at the shop
+- A list of problems serviced & their base price for each device model
+- Easy addition of a new device model and its associated problems
+- Easy editing of a device model and its associated problems
+
+**Repair jobs tracking:**
+- Easy input of customers and their repair jobs through a form
+- Keep track of all repair jobs received by the shop, including search filters by customer or device
+- Clean separation of ongoing jobs and finished jobs
+- Easy editing of the job's status & data such as the final collected price
+- Repair job statistics such as job received per day & total earnings are displayed with charts
+
+**Integrated AI assistant:**
+- Assistant chat with access to MCP tools directly integrated within the server, with data search & manipulation capabilities
+- Human-in-the-loop safeguards for any data manipulation tools
+- File attachments are supported, especially helpful for bulk data import
+- Integrated memory layer with **mem0**: the assistant will remember facts from previous chat sessions
+- Models can be locally hosted, all data is kept within the server
+- Web search capable
 
 ## Running the development version
 In `/EStoreAPI.Server`, run:
