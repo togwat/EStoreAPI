@@ -2,16 +2,12 @@ import json
 from itertools import count
 from typing import Iterator
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from config import SYSTEM_PROMPT, STREAMING
 
-# Placeholder until ASP.NET auth is wired and replaced by token-derived identity.
-# When auth ships: remove this constant, remove user_id from ChatRequest, and
-# set user_id_var from the auth dependency instead.
-_UNAUTHENTICATED_USER_ID = "default"
 from dependencies import get_all_tools, get_memory, get_provider, get_router
 from memory.user_context import user_id_var
 from providers.AbstractProvider import ChatProvider
@@ -29,7 +25,6 @@ _tc_counter = count(1)
 class ChatRequest(BaseModel):
     messages: list[dict]  # [{role: "user"|"assistant", content: "..."}]
     stream: bool = STREAMING
-    user_id: str = _UNAUTHENTICATED_USER_ID # switch to token-derived auth when ready
 
 
 class ChatResponse(BaseModel):
@@ -111,6 +106,7 @@ def _run_agentic_loop(
 @router.post("/agent/chat")
 def chat(
     req: ChatRequest,
+    request: Request,
     provider: ChatProvider = Depends(get_provider),
     tools: list[dict] = Depends(get_all_tools),
     tool_router: ToolRouter = Depends(get_router),
@@ -120,16 +116,26 @@ def chat(
     Run the agentic loop. Set stream=true to receive NDJSON events (one JSON array per line),
     or stream=false to wait for the full text response as JSON.
     """
-    user_id_var.set(req.user_id)
+    # get user email as user id, part of the X-User-Email header injected by nginx
+    user_email = request.headers.get("x-user-email", "").strip()
+    if not user_email:
+        raise HTTPException(status_code=401, detail="Missing user identity header")
+    user_id_var.set(user_email)
 
     # Get memory
-    context_memory = ""
-    # memory is enabled and context memory not already fetched
-    if memory and not context_memory:
-        memory.get_context(req.user_id)
+    context_memory = memory.get_context(user_email) if memory else ""
 
-    latest_msg = req.messages[-1].get("content", "") if req.messages else ""    # user-sent msg
-    relevant_memory = memory.search(latest_msg, req.user_id) if memory and latest_msg else ""
+    # Content may be a plain string or a list of typed parts (text, image_url) when attachments are present
+    latest_raw = req.messages[-1].get("content", "") if req.messages else ""    # user-sent msg
+    # Extract only text for memory_search
+    if isinstance(latest_raw, list):
+        latest_msg = " ".join(
+            p.get("text", "") for p in latest_raw if isinstance(p, dict) and p.get("type") == "text"
+        )
+    else:
+        latest_msg = str(latest_raw)
+
+    relevant_memory = memory.search(latest_msg, user_email) if memory and latest_msg else ""
 
     # Add memory to system prompt
     system = SYSTEM_PROMPT
@@ -146,7 +152,7 @@ def chat(
                 yield json.dumps(event) + "\n"
             # Write after the generator is exhausted so messages is fully populated.
             if memory:
-                memory.write(messages[1:], req.user_id)
+                memory.write(messages[1:], user_email)
 
         return StreamingResponse(serialised(), media_type="application/x-ndjson")
     
@@ -156,7 +162,7 @@ def chat(
         if ev[0] == "chunk":
             text += ev[1]
     if memory:
-        memory.write(messages[1:], req.user_id)
+        memory.write(messages[1:], user_email)
     return ChatResponse(response=text)
 
 

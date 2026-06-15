@@ -43,6 +43,8 @@ namespace EStoreAPI.Server.Controllers
         public ActionResult Verify()
         {
             // for nginx auth_request, can trigger 401
+            // also inject X-User-Email into the proxied agent request for user identity
+            Response.Headers.Append("X-User-Email", User.FindFirstValue(ClaimTypes.Email) ?? "");
             return Ok();
         }
     }
