@@ -9,7 +9,7 @@ services:
       AGENT_DB_USER: ${AGENT_DB_USER}
       AGENT_DB_PASSWORD: ${AGENT_DB_PASSWORD}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
       - ./db/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
@@ -21,6 +21,7 @@ services:
     build: ./EStoreAPI.Server
     image: estoreapi-server:latest
     environment:
+      ASPNETCORE_URLS: "http://+:5100"
       ConnectionStrings__WebAPIDatabase: "Host=db; Port=5432; Database=${DB_NAME}; Username=${DB_USER}; Password=${DB_PASSWORD};"
       ConnectionStrings__ReadOnlyDatabase: "Host=db; Port=5432; Database=${DB_NAME}; Username=${AGENT_DB_USER}; Password=${AGENT_DB_PASSWORD};"
       Google__ClientId: ${GOOGLE_CLIENT_ID}
