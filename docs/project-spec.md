@@ -54,38 +54,37 @@ All roles require a user account with password authentication to access the syst
 
 ### 4.3 Problem Catalogue
 
-- [ ] Maintain a list of common problems per device model, each with a set price
+- [x] Maintain a list of common problems per device model, each with a set price
 - [x] Allow staff to add, update, and remove problems and their prices
 
 ### 4.4 Job Management
 
 - [x] Create a job linking a customer, a device, and one or more problems
-- [ ] Support jobs where the problem is unknown at intake
+- [x] Support jobs where the problem is unknown at intake
 - [x] Record receive time; set estimated and actual pickup times
-- [ ] Capture an estimated price and a final collected price
+- [x] Capture an estimated price and a final collected price
 - [x] Mark a job as completed
 - [ ] Set warranty status for a completed job based on warranty policy timeframe
 - [ ] Allow new jobs to be linked to an existing job as warranty repair
 
 ### 4.5 Authentication
 
-- [ ] Password-based authentication — all API routes require a valid session
-- [ ] User accounts stored in the database with hashed passwords
-- [ ] User creation and modification handled administratively (no self-registration)
+- [x] All API routes require a valid authenticated session
+- [ ] <s>User accounts stored in the database with hashed passwords</s> (Google OAuth is used instead)
+- [x] User creation and modification handled administratively (no self-registration)
 
 ### 4.6 Frontend
 
-- [ ] Login interface for authentication
-- [ ] Job intake form links customer, device, and selected problems in one submission; price input shows the sum of selected problem prices as a placeholder, which the technician can accept or override
-- [ ] Job list view showing outstanding and completed jobs
-- [ ] Customer lookup to retrieve repair history
+- [x] Login interface for authentication
+- [x] Job intake form links customer, device, and selected problems in one submission; price input shows the sum of selected problem prices as a placeholder, which the technician can accept or override
+- [x] Job list view showing outstanding and completed jobs
+- [x] Customer lookup to retrieve repair history
 
 ### 4.7 AI Agent
 - [x] A chatbox that is easily accessible from anywhere on the app
 - [x] Have the ability to upload files, such as pictures, documents, spreadsheets, for single or bulk import of data
 - [x] From prompts, be able to call upon provided APIs to make changes to the database
 - [ ] From prompts, be able to redirect the user to their desired pages and apply any requested filters closest to the user's request
-- [ ] A dedicated auth account will be provided to the agent, just like a human staff
 
 ---
 
@@ -108,16 +107,19 @@ All roles require a user account with password authentication to access the syst
 
 | Layer | Technology |
 |-------|-----------|
-| Backend API | ASP.NET Core 10 (C#) |
+| Backend API | `ASP.NET` Core 10 (C#) |
 | Database | PostgreSQL via Entity Framework Core 10 |
 | Frontend | React + Vite (TypeScript) |
 | API docs | Swagger / OpenAPI |
-| Containerisation | Docker (4-image setup: API, client, DB, agent) |
+| Containerisation | Docker (5-image setup: API, client, DB, agent, memory DB) |
 | AI provider | Ollama (Python API), locally hosted or with private cloud |
 | AI interface | React assistant-ui |
+| AI web search | Tavily |
+| AI memory | mem0 |
+| Authentication | Google OAuth |
 
 ### 6.2 High-Level Architecture
-![architecture diagram](assets/architecture.png)
+![architecture diagram](assets/architecture2.png)
 
 ### 6.3 Data Model
 ![data model diagram](assets/datamodel.svg)
@@ -136,9 +138,12 @@ The Problem entity represents the generic problems a device model may have.
 | Devices    | `/api/devices`     |
 | Jobs       | `/api/jobs`        |
 | Problems   | `/api/problems`    |
-| AI Agent | `/api/agent` |
+| Form       | `/api/form`        |
+| AI Agent   | `/api/agent`       |
+| Authentication | `/api/auth`    |
 
 ---
 
 ## 8. Future Work
 - Tracking of external partners (jobs handed off to partner repair shops/technicians)
+- Tracking inventory stock of parts
