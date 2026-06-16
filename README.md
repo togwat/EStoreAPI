@@ -22,14 +22,71 @@ E-Store Management Console is a web application that facilitates the data manage
 - Models can be locally hosted, all data is kept within the server
 - Web search capable
 
-## Running the development version
+## Deploying the application
+**Requirements:**
+- Docker engine
+- Python 3.14 or above
+- Node.js (npm)
+- PostgreSQL + pgvector extension if using memory
+- Ollama
+- `ASP.NET` 10.0
+
+**Docker compose:**
+Development:
+`docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build`
+
+Production:
+`docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d`
+
+**Environment variables:**
+Create a .env file in the project root with the following template:
+```.env
+DB_USER=
+DB_PASSWORD=
+DB_NAME=
+
+PROVIDER=ollama
+OLLAMA_MODEL=
+
+# web search apis
+TAVILY_KEY=
+
+# memory
+MEMORY_ENABLED=true
+MEM0_DB_PASSWORD=
+MEM0_DB_USER=mem0
+MEM0_LLM_MODEL=
+MEM0_EMBEDDING_MODEL=
+
+# read-only db role for the agent SQL tool
+AGENT_DB_USER=agent_readonly
+AGENT_DB_PASSWORD=
+
+# ASP.NET authentication
+# Obtain from google cloud console
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+```
+**Google OAuth**:
+In Google Cloud Console → APIs and services → Credentials, create an OAuth 2.0 Client ID.
+Set authorised redirect URI to http://localhost/signin-google for development, or the server URI/signin-google for production.
+
+**Whitelist accounts**:
+The fresh app will not have any whitelisted emails.
+After first successful launch of the app through Docker, go to the db-1 container:
+1. `psql -U {username} -d {dbname}` with username and dbname from .env
+2. `INSERT INTO "Users" ("Email") VALUES ('email');`
+
+## Running the development version (no agent, dockerless)
 In `/EStoreAPI.Server`, run:
 `dotnet run`
 
 Frontend: https://localhost:5173/
 Swagger: http://localhost:5100/swagger/
 
-## Setting up the database
+## Setting up the database (no agent, dockerless)
+This is for frontend work, so hot reload is available without having to recompose docker images for every change.
+
 Create a test user using postgres admin account:
 `createuser -U postgres -P test`
 
