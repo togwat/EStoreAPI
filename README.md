@@ -76,8 +76,14 @@ The fresh app will not have any whitelisted emails.
 After first successful launch of the app through Docker, go to the db-1 container:
 1. `psql -U {username} -d {dbname}` with username and dbname from .env
 2. `INSERT INTO "Users" ("Email") VALUES ('email');`
+## Restoring database backups
+Run the following command:
+`gunzip -c backups/{file}.sql.gz | docker exec -i estoreapi-db-1 psql -U {username} {dbname}`
+The default backup folder location is usually in the project root.
 
 ## Running the development version (no agent, dockerless)
+This is for frontend work, so hot reload is available without having to recompose docker images for every change.
+
 In `/EStoreAPI.Server`, run:
 `dotnet run`
 
@@ -85,8 +91,6 @@ Frontend: https://localhost:5173/
 Swagger: http://localhost:5100/swagger/
 
 ## Setting up the database (no agent, dockerless)
-This is for frontend work, so hot reload is available without having to recompose docker images for every change.
-
 Create a test user using postgres admin account:
 `createuser -U postgres -P test`
 
