@@ -46,6 +46,7 @@ DB_PASSWORD=
 DB_NAME=
 
 PROVIDER=ollama
+OLLAMA_HOST=
 OLLAMA_MODEL=
 
 # web search apis

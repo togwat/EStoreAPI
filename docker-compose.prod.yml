@@ -1,17 +1,27 @@
+# in prod environment, limit the amount of logs outputted via log rotation
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   db:
     restart: unless-stopped
-
+    logging: *default-logging
   api:
     restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: Production
+    logging: *default-logging
 
   agent:
     restart: unless-stopped
+    logging: *default-logging
 
   client:
     restart: unless-stopped
+    logging: *default-logging
 
   db-backup:
     image: prodrigestivill/postgres-backup-local
@@ -28,3 +38,4 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    logging: *default-logging
