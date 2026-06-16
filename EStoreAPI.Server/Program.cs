@@ -3,6 +3,7 @@ using EStoreAPI.Server.Data;
 using EStoreAPI.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -100,6 +101,15 @@ builder.Services
     });
 
 var app = builder.Build();
+
+// trust and process forwarded headers from a reverse proxy (nginx)
+var forwardedHeaderOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+};
+forwardedHeaderOptions.KnownProxies.Clear();
+forwardedHeaderOptions.KnownIPNetworks.Clear();
+app.UseForwardedHeaders(forwardedHeaderOptions);
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
