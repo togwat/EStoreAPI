@@ -17,12 +17,6 @@ class ChatProvider(ABC):
         pass
 
     @abstractmethod
-    def make_tool_result_message(self, tool_name: str, result: str) -> dict:
+    def make_tool_result_message(self, tool_call_id: str, result: str) -> dict:
         """Format a tool execution result as a message dict for this provider."""
-        pass
-
-
-class EmbeddingProvider(ABC):
-    @abstractmethod
-    def embed(self):
         pass

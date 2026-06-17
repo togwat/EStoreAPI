@@ -80,13 +80,15 @@ def _run_agentic_loop(
                 # that do. A gated call is left without a result here so the
                 # frontend can render a confirmation UI for it.
                 gated = []
-                for call in calls:
+                # original is the provider's tool call; its id matches the assistant_msg's
+                # tool_calls[].id, which is what the tool result must reference.
+                for call, original in zip(calls, tool_calls):
                     if requires_confirmation(call["name"]):
                         gated.append(call)
                         continue
                     result = tool_router.route(call["name"]).call_tool(call["name"], call["arguments"])
                     yield ("tool_result", call["id"], result)
-                    messages.append(provider.make_tool_result_message(call["name"], result))
+                    messages.append(provider.make_tool_result_message(original["id"], result))
 
                 if gated:
                     # Pause the turn and hand control to the frontend. It runs the

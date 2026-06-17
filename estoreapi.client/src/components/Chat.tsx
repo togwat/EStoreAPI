@@ -42,6 +42,7 @@ type IncomingContentPart =
 type OutgoingContentPart =
     | { type: "text"; text: string }
     | { type: "image_url"; url: string }
+    | { type: "reasoning"; text: string }
     | { type: "tool_use"; id: string; name: string; input: unknown; result?: unknown };
 
 /** Streaming event shapes from /agent/chat's StreamingResponse */
@@ -57,6 +58,8 @@ type StreamEvent =
 const toOutgoingParts = (c: { type: string; [k: string]: unknown }): OutgoingContentPart[] => {
     if (c.type === "text") return [{ type: "text", text: c.text as string }];
     if (c.type === "image") return [{ type: "image_url", url: c.image as string }];
+    // Round-tripped so thinking mode can re-receive the reasoning behind a tool call. Only works for API providers
+    if (c.type === "reasoning") return [{ type: "reasoning", text: c.text as string }];
     if (c.type === "tool-call") return [{
         type: "tool_use",
         id: c.toolCallId as string,

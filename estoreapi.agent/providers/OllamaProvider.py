@@ -47,8 +47,8 @@ class OllamaProvider(ChatProvider):
             }
             yield ("tool_calls", normalized, assistant_msg)
             
-    def make_tool_result_message(self, tool_name: str, result: str) -> dict:
-        return {"role": "tool", "content": result, "name": tool_name}
+    def make_tool_result_message(self, tool_call_id: str, result: str) -> dict:
+        return {"role": "tool", "content": result, "name": tool_call_id}
 
     def _to_ollama_tools(self, tools: list[dict]) -> list[dict]:
         """Convert MCP tool format (input_schema) to Ollama's expected format (parameters)."""

@@ -48,6 +48,9 @@ DB_NAME=
 PROVIDER=ollama
 OLLAMA_HOST=
 OLLAMA_MODEL=
+# Other providers (optional)
+DEEPSEEK_KEY=
+DEEPSEEK_MODEL=
 
 # web search apis
 TAVILY_KEY=
@@ -70,7 +73,7 @@ GOOGLE_CLIENT_SECRET=
 ```
 **Google OAuth**:
 In Google Cloud Console → APIs and services → Credentials, create an OAuth 2.0 Client ID.
-Set authorised redirect URI to http://localhost/signin-google for development, or the server URI/signin-google for production.
+Set authorised redirect URI to http://localhost/signin-google for development, or the server URI {yourdomain}/signin-google for production.
 
 **Whitelist accounts**:
 The fresh app will not have any whitelisted emails.
