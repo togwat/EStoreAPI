@@ -50,7 +50,7 @@ namespace EStoreAPI.Server.DTOs
             EstimatedPickupTime = EstimatedPickupTime,
             Note = Note,
             Problems = problems,
-            EstimatedPrice = EstimatedPrice ?? problems.Sum(p => p.Price),
+            EstimatedPrice = EstimatedPrice ?? problems.Sum(p => p.Price + p.LabourPrice),
             CollectedPrice = CollectedPrice,
             IsFinished = IsFinished,
         };

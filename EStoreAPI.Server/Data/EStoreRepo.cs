@@ -263,6 +263,7 @@ namespace EStoreAPI.Server.Data
             {
                 problemToChange.ProblemName = problem.ProblemName;
                 problemToChange.Price = problem.Price;
+                problemToChange.LabourPrice = problem.LabourPrice;
 
                 // check device id
                 Device? device = await GetDeviceByIdAsync(problem.DeviceId);
@@ -294,6 +295,7 @@ namespace EStoreAPI.Server.Data
                     {
                         existing.ProblemName = problem.ProblemName;
                         existing.Price = problem.Price;
+                        existing.LabourPrice = problem.LabourPrice;
                     }
                 }
 

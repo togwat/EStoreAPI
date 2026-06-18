@@ -50,7 +50,8 @@ public class ProblemTools
     public async Task<OutProblemDTO> UpdateProblemAsync(
         [Description("The ID of the problem to update.")] int problemId,
         [Description("New problem name.")] string? problemName = null,
-        [Description("New service price.")] decimal? price = null)
+        [Description("New parts price.")] decimal? price = null,
+        [Description("New labour cost.")] decimal? labourPrice = null)
     {
         Problem existing = await _service.GetProblemAsync(problemId)
             ?? throw new KeyNotFoundException($"Problem {problemId} not found.");
@@ -61,6 +62,7 @@ public class ProblemTools
             ProblemName = problemName ?? existing.ProblemName,
             DeviceId = existing.DeviceId,
             Price = price ?? existing.Price,
+            LabourPrice = labourPrice ?? existing.LabourPrice
         };
 
         await _service.UpdateProblemAsync(problemId, dto);
