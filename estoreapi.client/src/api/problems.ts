@@ -7,13 +7,15 @@ export type Problem = {
     id: string
     name: string
     price: number
+    labourPrice: number
 }
 
-function _mapProblem(d: { problemId: string; problemName: string; price: string }): Problem {
+function _mapProblem(d: { problemId: string; problemName: string; price: string; labourPrice: string }): Problem {
     return {
         id: String(d.problemId),
         name: d.problemName,
-        price: parseFloat(d.price)
+        price: parseFloat(d.price),
+        labourPrice: parseFloat(d.labourPrice)
     };
 }
 
@@ -28,7 +30,8 @@ export async function updateProblems(deviceId: string, problems: Problem[]) {
         problemId: p.id ? parseInt(p.id) : null,    // null id means to add
         problemName: p.name,
         deviceId: parseInt(deviceId),
-        price: p.price
+        price: p.price,
+        labourPrice: p.labourPrice
     }));
 
     try {

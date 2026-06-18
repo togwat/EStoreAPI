@@ -42,11 +42,25 @@ const EditablePriceCell = memo(function EditablePriceCell({ problem, onEdit }: {
     const [value, setValue] = useState("");
     return (
         <div className="flex justify-end">
-            <Input className="w-28 text-right" placeholder={formatPrice(problem.price)} value={value}
+            <Input className="w-20 text-right" placeholder={formatPrice(problem.price)} value={value}
                 onChange={e => { setValue(e.target.value); onEdit(problem.id, e.target.value); }}
             />
         </div>
     );
+});
+
+const EditableLabourPriceCell = memo(function EditableLabourPriceCell({ problem, onEdit }: {
+    problem: Problem;
+    onEdit: (id: string, value: string) => void;
+}) {
+    const [value, setValue] = useState("");
+    return (
+        <div className="flex justify-end">
+            <Input className="w-20 text-right" placeholder={formatPrice(problem.labourPrice)} value={value}
+                onChange={e => { setValue(e.target.value); onEdit(problem.id, e.target.value); }}
+            />
+        </div>
+    )
 });
 
 // forwardRef wraps the component so it can accept a ref prop from the parent
@@ -57,6 +71,7 @@ const ProblemEdit = forwardRef<ProblemEditHandle, {
     const [problems, setProblems] = useState<Problem[]>([]);
     const [editedProblems, setEditedProblems] = useState<Record<string, string>>({});
     const [editedPrices, setEditedPrices] = useState<Record<string, string>>({});
+    const [editedLabourPrices, setEditedLabourPrices] = useState<Record<string, string>>({}); 
     const isMobile = useIsMobile();
     const newProblemCounter = useRef(0);
 
@@ -75,12 +90,16 @@ const ProblemEdit = forwardRef<ProblemEditHandle, {
         setEditedPrices(prev => ({ ...prev, [id]: value }));
     }, []);
 
+    const handleEditLabourPrice = useCallback((id: string, value: string) => {
+        setEditedLabourPrices(prev => ({ ...prev, [id]: value}));
+    }, []);
+
     const handleDeleteProblem = useCallback((problemId: string) => {
         setProblems(prev => prev.filter(p => p.id !== problemId));
     }, []);
 
     function handleAddProblem() {
-        setProblems(prev => [...prev, { id: `new-${newProblemCounter.current++}`, name: '', price: 0 }]);
+        setProblems(prev => [...prev, { id: `new-${newProblemCounter.current++}`, name: '', price: 0, labourPrice: 0 }]);
     }
 
     // Expose these two functions to the parent via the forwarded ref.
@@ -92,13 +111,15 @@ const ProblemEdit = forwardRef<ProblemEditHandle, {
             id: p.id.startsWith('new-') ? '' : p.id,    // if it is a 'new' id, send it as none
             name: editedProblems[p.id] || p.name,
             price: editedPrices[p.id] ? parseFloat(editedPrices[p.id]) : p.price,
+            labourPrice: editedLabourPrices[p.id] ? parseFloat(editedLabourPrices[p.id]) : p.labourPrice
         })),
         cancel: async () => {
             setProblems(await getProblems(deviceId));
             setEditedProblems({});
             setEditedPrices({});
+            setEditedLabourPrices({});
         },
-    }), [problems, editedProblems, editedPrices, deviceId]);
+    }), [problems, editedProblems, editedPrices, editedLabourPrices, deviceId]);
 
     const columns = useMemo<ColumnDef<Problem>[]>(() => [
         {
@@ -114,6 +135,13 @@ const ProblemEdit = forwardRef<ProblemEditHandle, {
             cell: ({ row }) => isEditing
                 ? <EditablePriceCell problem={row.original} onEdit={handleEditPrice} />
                 : <div className="text-right font-medium">{formatPrice(row.getValue("price"))}</div>
+        },
+        {
+            accessorKey: "labourPrice",
+            header: () => <div className="text-right">Labour price</div>,
+            cell: ({ row }) => isEditing
+                ? <EditableLabourPriceCell problem={row.original} onEdit={handleEditLabourPrice} />
+                : <div className="text-right font-medium">{formatPrice(row.getValue("labourPrice"))}</div>
         },
         ...(isEditing ? [{
             id: "actions",

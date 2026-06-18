@@ -26,7 +26,7 @@ function _mapJob(j: {
     pickupTime: string;
     estimatedPickupTime: string;
     note: string;
-    problems: { problemId: number; problemName: string; deviceId: number; price: number }[];
+    problems: { problemId: number; problemName: string; deviceId: number; price: number; labourPrice: number }[];
     estimatedPrice: number;
     collectedPrice: number;
     isFinished: boolean;
@@ -42,7 +42,8 @@ function _mapJob(j: {
         problems: j.problems.map(p => ({
             id: String(p.problemId),
             name: p.problemName,
-            price: p.price
+            price: p.price,
+            labourPrice: p.labourPrice
         })),
         estimatedPrice: j.estimatedPrice != null ? String(j.estimatedPrice) : null,
         collectedPrice: j.collectedPrice != null ? String(j.collectedPrice) : null,
