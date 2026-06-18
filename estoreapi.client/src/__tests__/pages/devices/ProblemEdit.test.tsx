@@ -5,16 +5,18 @@ import { describe, it, expect } from 'vitest'
 import ProblemEdit, { type ProblemEditHandle } from '@/pages/devices/components/ProblemEdit'
 
 // MSW serves fixture problems for device '1':
-//   Screen Replacement / $250.00
-//   Battery Replacement / $80.00
+//   Screen Replacement / $250.00 parts / $100.00 labour
+//   Battery Replacement / $80.00 parts / $40.00 labour
 
 describe('ProblemEdit (view mode)', () => {
-    it('shows problem names and prices as plain text', async () => {
+    it('shows problem names, prices, and labour prices as plain text', async () => {
         const ref = createRef<ProblemEditHandle>()
         render(<ProblemEdit ref={ref} deviceId="1" isEditing={false} />)
 
         expect(await screen.findByText('Screen Replacement')).toBeInTheDocument()
-        expect(screen.getByText('$250.00')).toBeInTheDocument()
+        expect(screen.getByText('$250.00')).toBeInTheDocument()  // parts price
+        expect(screen.getByText('Labour price')).toBeInTheDocument()
+        expect(screen.getByText('$100.00')).toBeInTheDocument()  // labour price
         expect(screen.queryByRole('textbox')).toBeNull()
     })
 })
@@ -27,6 +29,22 @@ describe('ProblemEdit (edit mode)', () => {
         // Wait for data to load — the name input uses the problem name as placeholder
         expect(await screen.findByPlaceholderText('Screen Replacement')).toBeInTheDocument()
         expect(screen.getByPlaceholderText('Battery Replacement')).toBeInTheDocument()
+
+        // price and labour price inputs use each problem's current formatted value as placeholder
+        expect(screen.getByPlaceholderText('$250.00')).toBeInTheDocument()  // parts price
+        expect(screen.getByPlaceholderText('$100.00')).toBeInTheDocument()  // labour price
+    })
+
+    it('edited labour price is exposed through the ref', async () => {
+        const ref = createRef<ProblemEditHandle>()
+        render(<ProblemEdit ref={ref} deviceId="1" isEditing={true} />)
+        await screen.findByPlaceholderText('Screen Replacement')
+
+        // the Screen Replacement labour cell placeholder is its current labour price
+        await userEvent.type(screen.getByPlaceholderText('$100.00'), '150')
+
+        const updated = ref.current!.getUpdatedProblems().find(p => p.name === 'Screen Replacement')
+        expect(updated!.labourPrice).toBe(150)
     })
 
     it('"Add a problem..." button adds a new empty row', async () => {

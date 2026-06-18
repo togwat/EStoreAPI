@@ -33,6 +33,12 @@ describe('DevicesPage', () => {
         // Problems for iPhone 14 (device id '1') are Screen Replacement and Battery Replacement
         expect(await screen.findByText('Screen Replacement')).toBeInTheDocument()
         expect(screen.getByText('Battery Replacement')).toBeInTheDocument()
+
+        // Both the parts price and labour price columns render their formatted values
+        expect(screen.getByText('Price')).toBeInTheDocument()
+        expect(screen.getByText('Labour price')).toBeInTheDocument()
+        expect(screen.getByText('$250.00')).toBeInTheDocument()  // Screen Replacement parts price
+        expect(screen.getByText('$100.00')).toBeInTheDocument()  // Screen Replacement labour price
     })
 
     it('clicking Add device opens the panel in edit mode', async () => {
