@@ -170,10 +170,10 @@ class DeepseekProvider(ChatProvider):
             # Send the reasoning back with its tool call
             assistant_msg["reasoning_content"] = reasoning
 
+        # Cancelled mid-generation means no content
         tool_msgs = [
-            {"role": "tool", "tool_call_id": p["id"], "content": str(p["result"])}
+            {"role": "tool", "tool_call_id": p["id"], "content": tool_content}
             for p in tool_uses
-            if p.get("result") is not None
         ]
 
         return [assistant_msg] + tool_msgs
