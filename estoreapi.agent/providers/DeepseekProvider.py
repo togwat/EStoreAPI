@@ -172,7 +172,11 @@ class DeepseekProvider(ChatProvider):
 
         # Cancelled mid-generation means no content
         tool_msgs = [
-            {"role": "tool", "tool_call_id": p["id"], "content": tool_content}
+            {
+                "role": "tool",
+                "tool_call_id": p["id"],
+                "content": str(p["result"]) if p.get("result") is not None else "[cancelled — no result]"
+            }
             for p in tool_uses
         ]
 
