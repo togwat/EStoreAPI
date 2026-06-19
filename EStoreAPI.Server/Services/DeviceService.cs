@@ -33,10 +33,10 @@ namespace EStoreAPI.Server.Services
         public async Task<ICollection<Device>> SearchDevicesAsync(string query)
         {
             ICollection<Device> devicesByName = await _repo.GetDevicesByNameAsync(query);
-            ICollection<Device> devicesByModelNo = await _repo.GetDevicesByModelNumberAsync(query);
+            ICollection<Device> devicesByModelNumber = await _repo.GetDevicesByModelNumberAsync(query);
 
             // return union of two lists, deduped by id so a device matching both name and model number appears once
-            return devicesByName.UnionBy(devicesByModelNo, d => d.DeviceId).ToList();
+            return devicesByName.UnionBy(devicesByModelNumber, d => d.DeviceId).ToList();
         }
 
         public Task<ICollection<Device>> SearchDevicesByNameAsync(string name)

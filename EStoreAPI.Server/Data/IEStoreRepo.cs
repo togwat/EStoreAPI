@@ -20,7 +20,7 @@ namespace EStoreAPI.Server.Data
         Task<ICollection<Device>> GetDevicesAsync();
         Task<ICollection<string>> GetDeviceTypesAsync();
         Task<ICollection<Device>> GetDevicesByNameAsync(string name);
-        Task<ICollection<Device>> GetDevicesByModelNumberAsync(string modelNo);
+        Task<ICollection<Device>> GetDevicesByModelNumberAsync(string modelNumber);
         Task<ICollection<Device>> GetDevicesByTypeAsync(string type);
         Task<Device> AddDeviceAsync(Device device);
         // bulk
