@@ -126,26 +126,28 @@ export default function DevicesPage({ title }: { title: string }) {
                     <div className={`flex items-center justify-between ${isMobile ? "p-4" : "pb-4"} border-b`}>
                         <div className="flex items-center justify-start gap-2">
                             {isEditing ?
-                                <div>
-                                    <div className="flex flex-row justify-start gap-2">
-                                        <Input className="w-28" placeholder={selectedDevice.name} value={editedName} onChange={e => setEditedName(e.target.value)} />
+                                <div className="flex flex-col gap-1">
+                                    <Input className="w-full" placeholder={selectedDevice.name} value={editedName} onChange={e => setEditedName(e.target.value)} />
+                                    <div className="flex flex-row justify-start items-center gap-2">
                                         <Input className="w-28" placeholder={selectedDevice.modelNumber} value={editedModelNumber} onChange={e => setEditedModelNumber(e.target.value)} />
+                                        <Input className="w-28" list="type-datalist" placeholder={selectedDevice.type} value={editedType} onChange={e => setEditedType(e.target.value)} />
+                                        <datalist id="type-datalist">
+                                            {deviceTypes.map(type => (
+                                                <option key={type} value={type} />
+                                            ))}
+                                        </datalist>
                                     </div>
-                                    <Input className="w-28 mt-1" list="type-datalist" placeholder={selectedDevice.type} value={editedType} onChange={e => setEditedType(e.target.value)} />
-                                    <datalist id="type-datalist">
-                                        {deviceTypes.map(type => (
-                                            <option key={type} value={type} />
-                                        ))}
-                                    </datalist>
                                 </div>
                             :
-                                <div>
-                                    <div className="flex flex-row items-end justify-start gap-2">
+                                <div className="flex flex-col gap-1">
+                                    <div className="flex flex-row items-center justify-start gap-2">
                                         <span className="text-base font-medium">{selectedDevice.name}</span>
-                                        <span className="text-sm text-muted-foreground">{selectedDevice.modelNumber}</span>
                                         <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)}><PencilIcon /></Button>
                                     </div>
-                                    <span className="text-sm text-muted-foreground">{selectedDevice.type}</span>
+                                    <div className="flex flex-row items-center justify-start gap-2">
+                                        {selectedDevice.modelNumber && <span className="text-sm text-muted-foreground">{selectedDevice.modelNumber}</span>}
+                                        <span className="text-sm text-muted-foreground">{selectedDevice.type}</span>
+                                    </div>
                                 </div>
                             }
                         </div>
