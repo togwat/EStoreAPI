@@ -191,9 +191,11 @@ namespace EStoreAPI.Server.Data
 
             if (deviceToChange != null)
             {
+                // check required fields not null
                 if (device.DeviceName != null && device.DeviceType != null)
                 {
                     deviceToChange.DeviceName = device.DeviceName;
+                    deviceToChange.ModelNumber = device.ModelNumber;
                     deviceToChange.DeviceType = device.DeviceType;
                 }
                 else

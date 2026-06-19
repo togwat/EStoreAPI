@@ -20,8 +20,8 @@ public class QueryTools
 
         Schema (identifiers are PascalCase and MUST be double-quoted, e.g. SELECT "JobId" FROM "Jobs"):
         - "Customers": "CustomerId" int PK, "CustomerName" text NULL, "PhoneNumber" text, "PhoneNumberSecondary" text NULL, "Email" text NULL, "Address" text NULL
-        - "Devices": "DeviceId" int PK, "DeviceName" text, "DeviceType" text
-        - "Problems": "ProblemId" int PK, "ProblemName" text, "DeviceId" int FK -> Devices, "Price" numeric
+        - "Devices": "DeviceId" int PK, "DeviceName" text, "ModelNumber" text NULL, "DeviceType" text
+        - "Problems": "ProblemId" int PK, "ProblemName" text, "DeviceId" int FK -> Devices, "Price" numeric, "LabourPrice" numeric
         - "Jobs": "JobId" int PK, "CustomerId" int FK -> Customers, "DeviceId" int FK -> Devices, "ReceiveTime" timestamptz, "PickupTime" timestamptz NULL, "EstimatedPickupTime" timestamptz NULL, "Note" text NULL, "EstimatedPrice" numeric NULL, "CollectedPrice" numeric NULL, "IsFinished" boolean
         - "JobProblems": join table, "JobId" int FK -> Jobs, "ProblemId" int FK -> Problems
         """)]

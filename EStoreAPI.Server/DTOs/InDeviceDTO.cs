@@ -10,6 +10,9 @@ namespace EStoreAPI.Server.DTOs
         [Description("Device model name. Required.")]
         public required string DeviceName { get; set; }
 
+        [Description("Device model number.")]
+        public string? ModelNumber { get; set; }
+
         [Required]
         [Description("Device type (e.g. phone, tablet, laptop). Required.")]
         public required string DeviceType { get; set; }
@@ -17,6 +20,7 @@ namespace EStoreAPI.Server.DTOs
         public Device ToModel() => new()
         {
             DeviceName = DeviceName,
+            ModelNumber = ModelNumber,
             DeviceType = DeviceType.ToLower(),
         };
     }

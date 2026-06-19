@@ -46,10 +46,11 @@ public class DeviceTools
         }
     }
 
-    [McpServerTool, Description("Update a device model's details. Only provide the fields that need to change Omitted fields keep their current values.")]
+    [McpServerTool, Description("Update a device model's details. Only provide the fields that need to change. Omitted fields keep their current values.")]
     public async Task<OutDeviceDTO> UpdateDeviceAsync(
         [Description("The ID of the device to update.")] int deviceId,
         [Description("New device name.")] string? deviceName = null,
+        [Description("New device model number.")] string? modelNumber = null,
         [Description("New device type.")] string? deviceType = null)
     {
         Device existing = await _service.GetDeviceAsync(deviceId)
@@ -58,6 +59,7 @@ public class DeviceTools
         InDeviceDTO dto = new()
         {
             DeviceName = deviceName ?? existing.DeviceName,
+            ModelNumber = modelNumber ?? existing.ModelNumber,
             DeviceType = deviceType ?? existing.DeviceType,
         };
 
