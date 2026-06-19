@@ -124,10 +124,11 @@ class OllamaProvider(ChatProvider):
         if images:
             assistant_msg["images"] = images
 
+        # Cancelled mid-generation means no content
+        tool_content = str(p["result"]) if p.get("result") is not None else "[cancelled — no result]"
         tool_msgs = [
-            {"role": "tool", "content": str(p["result"]), "name": p["name"]}
+            {"role": "tool", "content": tool_content, "name": p["name"]}
             for p in tool_uses
-            if p.get("result") is not None
         ]
 
         return [assistant_msg] + tool_msgs
