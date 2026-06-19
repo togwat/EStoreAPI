@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { DeviceCard } from '@/pages/devices/components/DeviceCard'
 import type { Device } from '@/api/devices'
 
-const device: Device = { id: '1', name: 'iPhone 14', type: 'Smartphone' }
+const device: Device = { id: '1', name: 'iPhone 14', modelNumber: 'A2882', type: 'Smartphone' }
 
 describe('DeviceCard', () => {
     it('renders the device name and type', () => {

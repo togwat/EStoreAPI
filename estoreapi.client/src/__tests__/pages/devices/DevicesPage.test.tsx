@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect } from 'vitest'
 import DevicesPage from '@/pages/devices/DevicesPage'
 
-// MSW fixture data: iPhone 14 (Smartphone), Samsung S22 (Smartphone), MacBook Pro 2023 (Laptop)
+// MSW fixture data: iPhone 14 / A2882 (Smartphone), Samsung S22 / SM-S901 (Smartphone), MacBook Pro 2023 / A2780 (Laptop)
 
 describe('DevicesPage', () => {
     it('renders device cards from API data', async () => {
@@ -18,6 +18,18 @@ describe('DevicesPage', () => {
         await screen.findByText('iPhone 14')
 
         await userEvent.type(screen.getByPlaceholderText('Search devices...'), 'iphone')
+
+        expect(screen.getByText('iPhone 14')).toBeInTheDocument()
+        expect(screen.queryByText('Samsung S22')).not.toBeInTheDocument()
+        expect(screen.queryByText('MacBook Pro 2023')).not.toBeInTheDocument()
+    })
+
+    it('filters device cards by model number', async () => {
+        render(<DevicesPage title="Devices" />)
+        await screen.findByText('iPhone 14')
+
+        // 'A2882' is the iPhone 14's model number; matching mirrors the backend SearchDevicesAsync
+        await userEvent.type(screen.getByPlaceholderText('Search devices...'), 'a2882')
 
         expect(screen.getByText('iPhone 14')).toBeInTheDocument()
         expect(screen.queryByText('Samsung S22')).not.toBeInTheDocument()

@@ -49,9 +49,9 @@ export const customerFixtures = [
 ]
 
 export const deviceFixtures = [
-    { deviceId: '1', deviceName: 'iPhone 14', deviceType: 'Smartphone' },
-    { deviceId: '2', deviceName: 'Samsung S22', deviceType: 'Smartphone' },
-    { deviceId: '3', deviceName: 'MacBook Pro 2023', deviceType: 'Laptop' },
+    { deviceId: '1', deviceName: 'iPhone 14', modelNumber: 'A2882', deviceType: 'Smartphone' },
+    { deviceId: '2', deviceName: 'Samsung S22', modelNumber: 'SM-S901', deviceType: 'Smartphone' },
+    { deviceId: '3', deviceName: 'MacBook Pro 2023', modelNumber: 'A2780', deviceType: 'Laptop' },
 ]
 
 export const deviceTypeFixtures = ['Smartphone', 'Laptop', 'Tablet']
