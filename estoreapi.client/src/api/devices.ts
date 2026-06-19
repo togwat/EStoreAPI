@@ -6,13 +6,15 @@ import { api } from './client';
 export type Device = {
     id: string
     name: string
+    modelNumber: string
     type: string
 }
 
-function _mapDevice(d: { deviceId: string; deviceName: string; deviceType: string }): Device {
+function _mapDevice(d: { deviceId: string; deviceName: string; modelNumber: string; deviceType: string }): Device {
     return {
         id: d.deviceId,
         name: d.deviceName,
+        modelNumber: d.modelNumber,
         type: d.deviceType,
     };
 }
@@ -56,6 +58,7 @@ export async function searchDeviceType(type: string): Promise<Device[]> {
 export async function addDevice(device: Device): Promise<Device> {
     const payload = {
         deviceName: device.name,
+        modelNumber: device.modelNumber,
         deviceType: device.type,
     }
 
@@ -85,6 +88,7 @@ export async function addDevice(device: Device): Promise<Device> {
 export async function updateDevice(id: string, device: Device) {
     const body = {
         deviceName: device.name,
+        modelNumber: device.modelNumber,
         deviceType: device.type,
     }
 

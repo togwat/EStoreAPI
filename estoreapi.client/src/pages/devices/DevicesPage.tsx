@@ -20,6 +20,7 @@ export default function DevicesPage({ title }: { title: string }) {
     const [selectedType, setSelectedType] = useState('all');
     const [isEditing, setIsEditing] = useState(false);
     const [editedName, setEditedName] = useState('');
+    const [editedModelNumber, setEditedModelNumber] = useState('');
     const [editedType, setEditedType] = useState('');
     const [page, setPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
@@ -48,7 +49,12 @@ export default function DevicesPage({ title }: { title: string }) {
     // type & search filters
     const filteredDevices = devices
         .filter(d => selectedType === 'all' || d.type === selectedType)
-        .filter(d => !searchQuery || d.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        // case-insensitive substring match on name or model number
+        .filter(d => {
+            if (!searchQuery) return true;
+            const query = searchQuery.toLowerCase();
+            return d.name.toLowerCase().includes(query) || (d.modelNumber?.toLowerCase().includes(query) ?? false);
+        });
 
     // if id is being sorted, use numeric sort
     const sortedDevices = sortByField(filteredDevices, sortBy, direction, sortBy==='id');
@@ -67,18 +73,19 @@ export default function DevicesPage({ title }: { title: string }) {
     async function handleConfirm() {
         const updatedProblems = problemEditRef.current!.getUpdatedProblems();
         const name = editedName || selectedDevice!.name;
+        const modelNumber = editedModelNumber || selectedDevice!.modelNumber;
         const type = editedType || selectedDevice!.type;
 
         if (!selectedDevice!.id) {
             // add mode
-            const newDevice = await addDevice({ id: '', name, type });
+            const newDevice = await addDevice({ id: '', name, modelNumber, type });
             await updateProblems(newDevice.id, updatedProblems);
             setDevices(await getDevices());
             // triggers useEffect: resets isEditing + name/type; ProblemEdit refetches via deviceId change
             setSelectedDevice(newDevice);
         } else {
             // update mode
-            await updateDevice(selectedDevice!.id, { id: selectedDevice!.id, name, type });
+            await updateDevice(selectedDevice!.id, { id: selectedDevice!.id, name, modelNumber, type });
             await updateProblems(selectedDevice!.id, updatedProblems);
             // get latest data to refresh
             const refreshed = await getDevices();
@@ -105,7 +112,7 @@ export default function DevicesPage({ title }: { title: string }) {
 
     // adding a device: create a device with no name, no type, set isEditing to true
     function handleAddDevice() {
-        const newDevice: Device = { id: "", name: "", type: "" }
+        const newDevice: Device = { id: "", name: "", modelNumber: "", type: "" }
         setSelectedDevice(newDevice);
         setIsEditing(true);
     }
@@ -119,9 +126,12 @@ export default function DevicesPage({ title }: { title: string }) {
                     <div className={`flex items-center justify-between ${isMobile ? "p-4" : "pb-4"} border-b`}>
                         <div className="flex items-center justify-start gap-2">
                             {isEditing ?
-                                <div className="flex flex-row justify-start gap-2">
-                                    <Input className="w-28" placeholder={selectedDevice.name} value={editedName} onChange={e => setEditedName(e.target.value)} />
-                                    <Input className="w-28" list="type-datalist" placeholder={selectedDevice.type} value={editedType} onChange={e => setEditedType(e.target.value)} />
+                                <div>
+                                    <div className="flex flex-row justify-start gap-2">
+                                        <Input className="w-28" placeholder={selectedDevice.name} value={editedName} onChange={e => setEditedName(e.target.value)} />
+                                        <Input className="w-28" placeholder={selectedDevice.modelNumber} value={editedModelNumber} onChange={e => setEditedModelNumber(e.target.value)} />
+                                    </div>
+                                    <Input className="w-28 mt-1" list="type-datalist" placeholder={selectedDevice.type} value={editedType} onChange={e => setEditedType(e.target.value)} />
                                     <datalist id="type-datalist">
                                         {deviceTypes.map(type => (
                                             <option key={type} value={type} />
@@ -129,10 +139,13 @@ export default function DevicesPage({ title }: { title: string }) {
                                     </datalist>
                                 </div>
                             :
-                                <div className="flex flex-row items-end justify-start gap-2">
-                                    <span className="text-base font-medium">{selectedDevice.name}</span>
+                                <div>
+                                    <div className="flex flex-row items-end justify-start gap-2">
+                                        <span className="text-base font-medium">{selectedDevice.name}</span>
+                                        <span className="text-sm text-muted-foreground">{selectedDevice.modelNumber}</span>
+                                        <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)}><PencilIcon /></Button>
+                                    </div>
                                     <span className="text-sm text-muted-foreground">{selectedDevice.type}</span>
-                                    <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)}><PencilIcon /></Button>
                                 </div>
                             }
                         </div>

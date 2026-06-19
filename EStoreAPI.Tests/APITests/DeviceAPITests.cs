@@ -138,6 +138,46 @@ namespace EStoreAPI.Tests.APITests
             }
         }
 
+        // GET: api/Devices/search?name=
+        [Theory]
+        [InlineData("pro")]     // valid, matches a device by name and another by model number
+        [InlineData("xyz")]     // invalid, no matches
+        public async Task TestSearchDevices(string query)
+        {
+            // arrange — one device matches on name, another on model number; the search returns both
+            Device matchedByName = _fixture.Build<Device>()
+                                        .With(d => d.DeviceName, "macbook pro")
+                                        .With(d => d.ModelNumber, "A1989")
+                                        .Create();
+            Device matchedByModelNumber = _fixture.Build<Device>()
+                                        .With(d => d.DeviceName, "iphone")
+                                        .With(d => d.ModelNumber, "pro-123")
+                                        .Create();
+
+            _service.Setup(s => s.SearchDevicesAsync("pro"))
+                    .ReturnsAsync(new List<Device> { matchedByName, matchedByModelNumber });
+            _service.Setup(s => s.SearchDevicesAsync(It.Is<string>(q => q != "pro")))
+                    .ReturnsAsync(new List<Device>());
+
+            // act
+            var result = await _controller.SearchDevicesAsync(query);
+
+            // assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 ok
+            var devicesResult = Assert.IsAssignableFrom<ICollection<OutDeviceDTO>>(okResult.Value);
+
+            if (query == "pro")
+            {
+                Assert.Equal(2, devicesResult.Count);   // returns both matches
+                Assert.Contains(devicesResult, d => d.DeviceName == "macbook pro");  // matched by name
+                Assert.Contains(devicesResult, d => d.ModelNumber == "pro-123");     // matched by model number
+            }
+            else
+            {
+                Assert.Empty(devicesResult); // returns no device
+            }
+        }
+
         // GET: api/Devices/searchType?type=
         [Theory]
         [InlineData("phone")]   // valid
@@ -172,18 +212,20 @@ namespace EStoreAPI.Tests.APITests
 
         // POST: api/Devices/create
         [Theory]
-        [InlineData("name", "type")]    // valid
-        [InlineData("", "type")]        // invalid name
-        [InlineData("name", "")]        // invalid type
-        [InlineData("", "")]            // invalid name and type
-        public async Task TestCreateDevice(string name, string type)
+        [InlineData("name", "type", "model123")]    // valid, with model number
+        [InlineData("name", "type", null)]          // valid, model number is optional
+        [InlineData("", "type", "model123")]        // invalid name
+        [InlineData("name", "", "model123")]        // invalid type
+        [InlineData("", "", null)]                  // invalid name and type
+        public async Task TestCreateDevice(string name, string type, string? modelNumber)
         {
             // arrange
-            var dto = new InDeviceDTO { DeviceName = name, DeviceType = type };
+            var dto = new InDeviceDTO { DeviceName = name, DeviceType = type, ModelNumber = modelNumber };
             Device newDevice = _fixture.Build<Device>()
                                     .With(d => d.DeviceId, 1)
                                     .With(d => d.DeviceName, name)
                                     .With(d => d.DeviceType, type)
+                                    .With(d => d.ModelNumber, modelNumber)
                                     .Create();
 
             if (name == "name" && type == "type")
@@ -205,6 +247,7 @@ namespace EStoreAPI.Tests.APITests
                 var createdDevice = Assert.IsAssignableFrom<OutDeviceDTO>(createdResult.Value);
 
                 Assert.Equal(newDevice.DeviceName, createdDevice.DeviceName);
+                Assert.Equal(newDevice.ModelNumber, createdDevice.ModelNumber);
                 Assert.Equal(newDevice.DeviceType, createdDevice.DeviceType);
             }
             else
@@ -236,6 +279,7 @@ namespace EStoreAPI.Tests.APITests
                 var newDevices = dtos.Select((d, i) => _fixture.Build<Device>()
                     .With(dev => dev.DeviceId, i + 1)
                     .With(dev => dev.DeviceName, d.DeviceName)
+                    .With(dev => dev.ModelNumber, d.ModelNumber)
                     .With(dev => dev.DeviceType, d.DeviceType)
                     .Create()).ToList();
 

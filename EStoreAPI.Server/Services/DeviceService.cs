@@ -1,6 +1,7 @@
 using EStoreAPI.Server.Data;
 using EStoreAPI.Server.DTOs;
 using EStoreAPI.Server.Models;
+using NuGet.Packaging;
 using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Server.Services
@@ -26,6 +27,16 @@ namespace EStoreAPI.Server.Services
         public Task<ICollection<string>> GetDeviceTypesAsync()
         {
             return _repo.GetDeviceTypesAsync();
+        }
+
+        // search by either model name or number
+        public async Task<ICollection<Device>> SearchDevicesAsync(string query)
+        {
+            ICollection<Device> devicesByName = await _repo.GetDevicesByNameAsync(query);
+            ICollection<Device> devicesByModelNumber = await _repo.GetDevicesByModelNumberAsync(query);
+
+            // return union of two lists, deduped by id so a device matching both name and model number appears once
+            return devicesByName.UnionBy(devicesByModelNumber, d => d.DeviceId).ToList();
         }
 
         public Task<ICollection<Device>> SearchDevicesByNameAsync(string name)

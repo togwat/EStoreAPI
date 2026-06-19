@@ -141,6 +141,14 @@ namespace EStoreAPI.Server.Data
             return devices;
         }
 
+        public async Task<ICollection<Device>> GetDevicesByModelNumberAsync(string modelNumber)
+        {
+            modelNumber = modelNumber.ToLower();
+            
+            ICollection<Device> devices = await _dbContext.Devices.Where(d => d.ModelNumber != null && d.ModelNumber.ToLower().Contains(modelNumber)).ToListAsync();
+            return devices;
+        }
+
         public async Task<ICollection<Device>> GetDevicesByTypeAsync(string type)
         {
             ICollection<Device> devices = await _dbContext.Devices.Where(d => d.DeviceType == type).ToListAsync();
@@ -191,9 +199,11 @@ namespace EStoreAPI.Server.Data
 
             if (deviceToChange != null)
             {
+                // check required fields not null
                 if (device.DeviceName != null && device.DeviceType != null)
                 {
                     deviceToChange.DeviceName = device.DeviceName;
+                    deviceToChange.ModelNumber = device.ModelNumber;
                     deviceToChange.DeviceType = device.DeviceType;
                 }
                 else
