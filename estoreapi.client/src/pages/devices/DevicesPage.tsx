@@ -50,7 +50,8 @@ export default function DevicesPage({ title }: { title: string }) {
         .filter(d => selectedType === 'all' || d.type === selectedType)
         .filter(d => !searchQuery || d.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    const sortedDevices = sortByField(filteredDevices, sortBy, direction);
+    // if id is being sorted, use numeric sort
+    const sortedDevices = sortByField(filteredDevices, sortBy, direction, sortBy==='id');
 
     const pagedDevices = sortedDevices.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 

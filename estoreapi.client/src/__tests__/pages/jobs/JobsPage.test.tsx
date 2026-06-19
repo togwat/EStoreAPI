@@ -38,12 +38,20 @@ describe('JobsPage', () => {
         expect(screen.getByText('FINISHED')).toBeInTheDocument()
     })
 
-    it('filters cards by matching customer name', async () => {
+    it('filters cards by matching customer name or device name', async () => {
         render(<JobsPage title="Jobs" />)
         await screen.findByText('John Smith')
 
-        await userEvent.type(screen.getByPlaceholderText(/search by customer/i), 'Jane')
+        const search = screen.getByPlaceholderText(/search jobs/i)
 
+        // match by customer name
+        await userEvent.type(search, 'Jane')
+        expect(screen.queryByText('John Smith')).not.toBeInTheDocument()
+        expect(screen.getByText('Jane Doe')).toBeInTheDocument()
+
+        // match by device name — Samsung S22 belongs to Jane Doe
+        await userEvent.clear(search)
+        await userEvent.type(search, 'Samsung')
         expect(screen.queryByText('John Smith')).not.toBeInTheDocument()
         expect(screen.getByText('Jane Doe')).toBeInTheDocument()
     })
