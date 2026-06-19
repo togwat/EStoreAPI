@@ -49,7 +49,12 @@ export default function DevicesPage({ title }: { title: string }) {
     // type & search filters
     const filteredDevices = devices
         .filter(d => selectedType === 'all' || d.type === selectedType)
-        .filter(d => !searchQuery || d.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        // case-insensitive substring match on name or model number
+        .filter(d => {
+            if (!searchQuery) return true;
+            const query = searchQuery.toLowerCase();
+            return d.name.toLowerCase().includes(query) || (d.modelNumber?.toLowerCase().includes(query) ?? false);
+        });
 
     // if id is being sorted, use numeric sort
     const sortedDevices = sortByField(filteredDevices, sortBy, direction, sortBy==='id');
