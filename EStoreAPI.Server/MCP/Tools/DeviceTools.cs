@@ -15,11 +15,11 @@ public class DeviceTools
         _service = service;
     }
 
-    [McpServerTool, Description("Search for device models by model name.")]
-    public async Task<ICollection<OutDeviceDTO>> SearchDevicesNameAsync(
+    [McpServerTool, Description("Search for device models by model name or number.")]
+    public async Task<ICollection<OutDeviceDTO>> SearchDevicesAsync(
         [Description("Partial matches supported.")] string name)
     {   
-        ICollection<Device> devices = await _service.SearchDevicesByNameAsync(name);
+        ICollection<Device> devices = await _service.SearchDevicesAsync(name);
         return devices.Select(OutDeviceDTO.FromModel).ToList();
     }
 

@@ -141,6 +141,14 @@ namespace EStoreAPI.Server.Data
             return devices;
         }
 
+        public async Task<ICollection<Device>> GetDevicesByModelNumberAsync(string modelNo)
+        {
+            modelNo = modelNo.ToLower();
+            
+            ICollection<Device> devices = await _dbContext.Devices.Where(d => d.ModelNumber != null && d.ModelNumber.ToLower().Contains(modelNo)).ToListAsync();
+            return devices;
+        }
+
         public async Task<ICollection<Device>> GetDevicesByTypeAsync(string type)
         {
             ICollection<Device> devices = await _dbContext.Devices.Where(d => d.DeviceType == type).ToListAsync();

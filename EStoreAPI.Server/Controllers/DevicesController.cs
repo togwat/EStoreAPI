@@ -43,6 +43,14 @@ namespace EStoreAPI.Server.Controllers
             return Ok(types);
         }
 
+        // GET: api/Devices/search?name=
+        [HttpGet("search")]
+        public async Task<ActionResult<ICollection<OutDeviceDTO>>> SearchDevicesAsync([FromQuery] string name)
+        {
+            ICollection<Device> devices = await _service.SearchDevicesAsync(name);
+            return Ok(devices.Select(OutDeviceDTO.FromModel).ToList());
+        }
+
         // GET: api/Devices/searchName?name=
         [HttpGet("searchName")]
         public async Task<ActionResult<ICollection<OutDeviceDTO>>> SearchDevicesNameAsync([FromQuery] string name)
