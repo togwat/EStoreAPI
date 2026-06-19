@@ -37,6 +37,7 @@ export default function DevicesPage({ title }: { title: string }) {
     useEffect(() => {
         if (selectedDevice?.id) setIsEditing(false);
         setEditedName('');
+        setEditedModelNumber('');
         setEditedType('');
     }, [selectedDevice?.id]);
 
@@ -106,6 +107,7 @@ export default function DevicesPage({ title }: { title: string }) {
             setSelectedDevice(null);
         }
         setEditedName('');
+        setEditedModelNumber('');
         setEditedType('');
         setIsEditing(false);
     }
