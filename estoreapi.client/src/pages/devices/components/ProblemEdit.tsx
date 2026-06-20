@@ -29,52 +29,23 @@ const EditableNameCell = memo(function EditableNameCell({ problem, onEdit }: {
 }) {
     const [value, setValue] = useState("");
     return (
-        <Input className="w-full" placeholder={problem.name} value={value}
+        <Input className="min-w-28 w-full px-2" placeholder={problem.name} value={value}
             onChange={e => { setValue(e.target.value); onEdit(problem.id, e.target.value); }}
         />
     );
 });
 
-const EditablePriceCell = memo(function EditablePriceCell({ problem, onEdit }: {
-    problem: Problem;
+const EditablePriceCell = memo(function EditablePriceCell({ id, placeholder, onEdit }: {
+    id: string;
+    placeholder: string;
     onEdit: (id: string, value: string) => void;
 }) {
     const [value, setValue] = useState("");
     return (
-        <div className="flex justify-end">
-            <Input className="w-20 text-right" placeholder={formatPrice(problem.price)} value={value}
-                onChange={e => { setValue(e.target.value); onEdit(problem.id, e.target.value); }}
-            />
-        </div>
+        <Input className="min-w-18 w-full text-right px-2" placeholder={placeholder} value={value}
+            onChange={e => { setValue(e.target.value); onEdit(id, e.target.value); }}
+        />
     );
-});
-
-const EditableLabourPriceCell = memo(function EditableLabourPriceCell({ problem, onEdit }: {
-    problem: Problem;
-    onEdit: (id: string, value: string) => void;
-}) {
-    const [value, setValue] = useState("");
-    return (
-        <div className="flex justify-end">
-            <Input className="w-20 text-right" placeholder={formatPrice(problem.labourPrice)} value={value}
-                onChange={e => { setValue(e.target.value); onEdit(problem.id, e.target.value); }}
-            />
-        </div>
-    )
-});
-
-const EditableRiskCostCell = memo(function EditableRiskCostCell({ problem, onEdit }: {
-    problem: Problem;
-    onEdit: (id: string, value: string) => void;
-}) {
-    const [value, setValue] = useState("");
-    return (
-        <div className="flex justify-end">
-            <Input className="w-20 text-right" placeholder={formatPrice(problem.riskCost)} value={value}
-                onChange={e => { setValue(e.target.value); onEdit(problem.id, e.target.value); }}
-            />
-        </div>
-    )
 });
 
 // forwardRef wraps the component so it can accept a ref prop from the parent
@@ -154,21 +125,21 @@ const ProblemEdit = forwardRef<ProblemEditHandle, {
             accessorKey: "price",
             header: () => <div className="text-right">Price</div>,
             cell: ({ row }) => isEditing
-                ? <EditablePriceCell problem={row.original} onEdit={handleEditPrice} />
+                ? <EditablePriceCell id={row.original.id} placeholder={formatPrice(row.original.price)} onEdit={handleEditPrice} />
                 : <div className="text-right font-medium">{formatPrice(row.getValue("price"))}</div>
         },
         {
             accessorKey: "labourPrice",
-            header: () => <div className="text-right">Labour price</div>,
+            header: () => <div className="text-right">{isEditing ? "Lab. price" : "Labour price"}</div>,
             cell: ({ row }) => isEditing
-                ? <EditableLabourPriceCell problem={row.original} onEdit={handleEditLabourPrice} />
+                ? <EditablePriceCell id={row.original.id} placeholder={formatPrice(row.original.labourPrice)} onEdit={handleEditLabourPrice} />
                 : <div className="text-right font-medium">{formatPrice(row.getValue("labourPrice"))}</div>
         },
         {
             accessorKey: "riskCost",
             header: () => <div className="text-right">Risk cost</div>,
             cell: ({ row }) => isEditing
-                ? <EditableRiskCostCell problem={row.original} onEdit={handleEditRiskCost} />
+                ? <EditablePriceCell id={row.original.id} placeholder={formatPrice(row.original.riskCost)} onEdit={handleEditRiskCost} />
                 : <div className="text-right font-medium">{formatPrice(row.getValue("riskCost"))}</div>
         },
         ...(isEditing ? [{
@@ -184,7 +155,7 @@ const ProblemEdit = forwardRef<ProblemEditHandle, {
     ], [isEditing, handleEditName, handleEditPrice, handleDeleteProblem]);
 
     return (
-        <div className={`container mx-auto ${isMobile ? "p-4" : "py-4"}`}>
+        <div className={`container mx-auto ${isMobile ? "p-4" : "py-4"} ${isEditing && "[&_td]:px-0.5"}`}>
             <DataTable columns={columns} data={problems} />
             {isEditing && (
                 <Button variant="outline" className="mt-1 w-full bg-transparent border border-dashed border-foreground/50" onClick={handleAddProblem}>
