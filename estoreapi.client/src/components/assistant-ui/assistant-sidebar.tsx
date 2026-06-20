@@ -52,7 +52,7 @@ export const AssistantSidebar: FC<PropsWithChildren> = ({ children }) => {
 
   return (
     <ResizablePanelGroup key={isMobile ? "vertical" : "horizontal"} orientation={isMobile ? "vertical" : "horizontal"}>
-      <ResizablePanel className={isMobile ? "!overflow-clip" : ""} defaultSize={100 - chatWidth}>
+      <ResizablePanel className={"!overflow-clip"} defaultSize={100 - chatWidth}>
         <div className={`${isMobile ? "min-w-0" : "min-w-sm"} h-full relative`}>{children}</div>
       </ResizablePanel>
       <ResizableHandle withHandle />
