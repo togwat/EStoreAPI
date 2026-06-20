@@ -49,12 +49,13 @@ def _run_agentic_loop(
       ("tool_calls",           [{id, name, arguments}])  — model requested tools (before execution)
       ("tool_result",          id, result)               — result for a single tool call
       ("reasoning",            text)                     — incremental reasoning token (provider-dependent)
-      ("confirmation_required", [id, ...])               — listed tool calls need user approval; stream ends
+      ("confirmation_required", [id])                    — the gated tool needs user approval; stream ends
 
-    When any requested tool requires confirmation the loop emits
-    ("confirmation_required", ids) and returns without running those tools. The
-    frontend approves/declines, runs approved tools via /agent/tool, and
-    re-invokes this endpoint with the results carried in the message history.
+    Tools run strictly one per turn. 
+    When a tool requires confirmation the loop emits ("confirmation_required", [id]) and returns without 
+    running it. 
+    The frontend approves/declines, runs it via /agent/tool, and re-invokes this endpoint with the result
+    in the message history.
     """
     while True:
         had_tool_calls = False
@@ -66,36 +67,33 @@ def _run_agentic_loop(
                 yield ("reasoning", event[1])
             elif event[0] == "tool_calls":
                 _, tool_calls, assistant_msg = event
+
+                # Sequential tool calling guard
+                # Otherwise the provider may expect a result for every tool_call on the next turn. 
+                # The model re-requests any others it still wants on a later turn.
+                if len(tool_calls) > 1:
+                    tool_calls = tool_calls[:1]
+                    assistant_msg["tool_calls"] = assistant_msg["tool_calls"][:1]
                 messages.append(assistant_msg)
 
-                # Assign stable unique IDs before emitting so tool_calls and
-                # tool_result events share the same ID the frontend tracks.
-                calls = [
-                    {"id": f"tc_{next(_tc_counter)}", "name": tc["name"], "arguments": tc["arguments"]}
-                    for tc in tool_calls
-                ]
-                yield ("tool_calls", calls)
-
-                # Run tools that don't need confirmation immediately; collect any
-                # that do. A gated call is left without a result here so the
-                # frontend can render a confirmation UI for it.
-                gated = []
                 # original is the provider's tool call; its id matches the assistant_msg's
                 # tool_calls[].id, which is what the tool result must reference.
-                for call, original in zip(calls, tool_calls):
-                    if requires_confirmation(call["name"]):
-                        gated.append(call)
-                        continue
-                    result = tool_router.route(call["name"]).call_tool(call["name"], call["arguments"])
-                    yield ("tool_result", call["id"], result)
-                    messages.append(provider.make_tool_result_message(original["id"], result))
+                original = tool_calls[0]
+                # Assign a stable unique ID before emitting so the tool_calls and
+                # tool_result events share the same ID the frontend tracks.
+                call = {"id": f"tc_{next(_tc_counter)}", "name": original["name"], "arguments": original["arguments"]}
+                yield ("tool_calls", [call])
 
-                if gated:
+                if requires_confirmation(call["name"]):
                     # Pause the turn and hand control to the frontend. It runs the
-                    # approved tools via /agent/tool and re-invokes /agent/chat with
-                    # the results in the history, so the loop simply continues there.
-                    yield ("confirmation_required", [c["id"] for c in gated])
+                    # approved tool via /agent/tool and re-invokes /agent/chat with
+                    # the result in the history, so the loop simply continues there.
+                    yield ("confirmation_required", [call["id"]])
                     return
+
+                result = tool_router.route(call["name"]).call_tool(call["name"], call["arguments"])
+                yield ("tool_result", call["id"], result)
+                messages.append(provider.make_tool_result_message(original["id"], result))
 
                 had_tool_calls = True
 

@@ -35,6 +35,7 @@ class DeepseekProvider(ChatProvider):
             tools=self._to_openai_tools(tools),  # type: ignore[arg-type]
             stream=True,
             reasoning_effort="high",
+            parallel_tool_calls=False,
             extra_body={"thinking": {"type": "enabled"}},
         ):
             if not chunk.choices:
