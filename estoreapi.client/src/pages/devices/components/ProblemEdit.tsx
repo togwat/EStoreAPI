@@ -63,6 +63,20 @@ const EditableLabourPriceCell = memo(function EditableLabourPriceCell({ problem,
     )
 });
 
+const EditableRiskCostCell = memo(function EditableRiskCostCell({ problem, onEdit }: {
+    problem: Problem;
+    onEdit: (id: string, value: string) => void;
+}) {
+    const [value, setValue] = useState("");
+    return (
+        <div className="flex justify-end">
+            <Input className="w-20 text-right" placeholder={formatPrice(problem.riskCost)} value={value}
+                onChange={e => { setValue(e.target.value); onEdit(problem.id, e.target.value); }}
+            />
+        </div>
+    )
+});
+
 // forwardRef wraps the component so it can accept a ref prop from the parent
 const ProblemEdit = forwardRef<ProblemEditHandle, {
     deviceId: string;
@@ -71,7 +85,8 @@ const ProblemEdit = forwardRef<ProblemEditHandle, {
     const [problems, setProblems] = useState<Problem[]>([]);
     const [editedProblems, setEditedProblems] = useState<Record<string, string>>({});
     const [editedPrices, setEditedPrices] = useState<Record<string, string>>({});
-    const [editedLabourPrices, setEditedLabourPrices] = useState<Record<string, string>>({}); 
+    const [editedLabourPrices, setEditedLabourPrices] = useState<Record<string, string>>({});
+    const [editedRiskCosts, setEditedRiskCosts] = useState<Record<string, string>>({}); 
     const isMobile = useIsMobile();
     const newProblemCounter = useRef(0);
 
@@ -94,12 +109,16 @@ const ProblemEdit = forwardRef<ProblemEditHandle, {
         setEditedLabourPrices(prev => ({ ...prev, [id]: value}));
     }, []);
 
+    const handleEditRiskCost = useCallback((id: string, value: string) => {
+        setEditedRiskCosts(prev => ({ ...prev, [id]: value}));
+    }, []);
+
     const handleDeleteProblem = useCallback((problemId: string) => {
         setProblems(prev => prev.filter(p => p.id !== problemId));
     }, []);
 
     function handleAddProblem() {
-        setProblems(prev => [...prev, { id: `new-${newProblemCounter.current++}`, name: '', price: 0, labourPrice: 0 }]);
+        setProblems(prev => [...prev, { id: `new-${newProblemCounter.current++}`, name: '', price: 0, labourPrice: 0, riskCost: 0 }]);
     }
 
     // Expose these two functions to the parent via the forwarded ref.
@@ -111,15 +130,17 @@ const ProblemEdit = forwardRef<ProblemEditHandle, {
             id: p.id.startsWith('new-') ? '' : p.id,    // if it is a 'new' id, send it as none
             name: editedProblems[p.id] || p.name,
             price: editedPrices[p.id] ? parseFloat(editedPrices[p.id]) : p.price,
-            labourPrice: editedLabourPrices[p.id] ? parseFloat(editedLabourPrices[p.id]) : p.labourPrice
+            labourPrice: editedLabourPrices[p.id] ? parseFloat(editedLabourPrices[p.id]) : p.labourPrice,
+            riskCost: editedRiskCosts[p.id] ? parseFloat(editedRiskCosts[p.id]) : p.riskCost
         })),
         cancel: async () => {
             setProblems(await getProblems(deviceId));
             setEditedProblems({});
             setEditedPrices({});
             setEditedLabourPrices({});
+            setEditedRiskCosts({});
         },
-    }), [problems, editedProblems, editedPrices, editedLabourPrices, deviceId]);
+    }), [problems, editedProblems, editedPrices, editedLabourPrices, editedRiskCosts, deviceId]);
 
     const columns = useMemo<ColumnDef<Problem>[]>(() => [
         {
@@ -142,6 +163,13 @@ const ProblemEdit = forwardRef<ProblemEditHandle, {
             cell: ({ row }) => isEditing
                 ? <EditableLabourPriceCell problem={row.original} onEdit={handleEditLabourPrice} />
                 : <div className="text-right font-medium">{formatPrice(row.getValue("labourPrice"))}</div>
+        },
+        {
+            accessorKey: "riskCost",
+            header: () => <div className="text-right">Risk cost</div>,
+            cell: ({ row }) => isEditing
+                ? <EditableRiskCostCell problem={row.original} onEdit={handleEditRiskCost} />
+                : <div className="text-right font-medium">{formatPrice(row.getValue("riskCost"))}</div>
         },
         ...(isEditing ? [{
             id: "actions",
