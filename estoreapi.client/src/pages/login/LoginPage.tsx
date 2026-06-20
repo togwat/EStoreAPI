@@ -23,8 +23,8 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="flex min-h-screen justify-center items-center">
-            <Card className="w-full max-w-md border border-border m-2">
+        <div className="flex min-h-screen justify-center items-center p-4">
+            <Card className="w-full max-w-md border border-border">
                 <CardHeader className="pb-8">
                     <CardTitle className="flex items-center gap-2 flex-wrap"><ThemeLogo className="h-4"/>Management Console</CardTitle>
                     <CardDescription>Authorised accounts only</CardDescription>
