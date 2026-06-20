@@ -17,7 +17,7 @@
   /* secondary / muted (toolbars, sidebar panels) */
   --secondary: #fafaf9;
   --secondary-foreground: #18181b;
-  --muted: #f5f5f4;
+  --muted: #fafaf9;
   --muted-foreground: #71717a;
 
   /* accent = soft green wash */
