@@ -21,9 +21,11 @@ namespace EStoreAPI.Server.DTOs
         [Description("Parts price for this problem. Required.")]
         public decimal Price { get; set; }
 
-        [Required]
-        [Description("Labour cost for this problem. Required.")]
+        [Description("Labour cost for this problem.")]
         public decimal LabourPrice { get; set; }
+
+        [Description("Risk cost for this problem.")]
+        public decimal RiskCost { get; set; }
 
         public Problem ToModel() => new()
         {
@@ -31,7 +33,8 @@ namespace EStoreAPI.Server.DTOs
             ProblemName = ProblemName.ToLower(),
             DeviceId = DeviceId,
             Price = Price,
-            LabourPrice = LabourPrice
+            LabourPrice = LabourPrice,
+            RiskCost = RiskCost
         };
     }
 }

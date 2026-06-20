@@ -306,6 +306,7 @@ namespace EStoreAPI.Server.Data
                         existing.ProblemName = problem.ProblemName;
                         existing.Price = problem.Price;
                         existing.LabourPrice = problem.LabourPrice;
+                        existing.RiskCost = problem.RiskCost;
                     }
                 }
 

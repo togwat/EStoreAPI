@@ -9,6 +9,7 @@ namespace EStoreAPI.Server.DTOs
         public int DeviceId { get; set; }
         public decimal Price { get; set; }
         public decimal LabourPrice { get; set; }
+        public decimal RiskCost { get; set; }
 
         public static OutProblemDTO FromModel(Problem p) => new()
         {
@@ -16,7 +17,8 @@ namespace EStoreAPI.Server.DTOs
             ProblemName = p.ProblemName,
             DeviceId = p.DeviceId,
             Price = p.Price,
-            LabourPrice = p.LabourPrice
+            LabourPrice = p.LabourPrice,
+            RiskCost = p.RiskCost
         };
     }
 }
