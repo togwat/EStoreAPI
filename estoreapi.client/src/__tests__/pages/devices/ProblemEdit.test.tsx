@@ -5,11 +5,11 @@ import { describe, it, expect } from 'vitest'
 import ProblemEdit, { type ProblemEditHandle } from '@/pages/devices/components/ProblemEdit'
 
 // MSW serves fixture problems for device '1':
-//   Screen Replacement / $250.00 parts / $100.00 labour
-//   Battery Replacement / $80.00 parts / $40.00 labour
+//   Screen Replacement / $250.00 parts / $100.00 labour / $50.00 risk
+//   Battery Replacement / $80.00 parts / $40.00 labour / $20.00 risk
 
 describe('ProblemEdit (view mode)', () => {
-    it('shows problem names, prices, and labour prices as plain text', async () => {
+    it('shows problem names, prices, labour prices, and risk costs as plain text', async () => {
         const ref = createRef<ProblemEditHandle>()
         render(<ProblemEdit ref={ref} deviceId="1" isEditing={false} />)
 
@@ -17,6 +17,8 @@ describe('ProblemEdit (view mode)', () => {
         expect(screen.getByText('$250.00')).toBeInTheDocument()  // parts price
         expect(screen.getByText('Labour price')).toBeInTheDocument()
         expect(screen.getByText('$100.00')).toBeInTheDocument()  // labour price
+        expect(screen.getByText('Risk cost')).toBeInTheDocument()
+        expect(screen.getByText('$50.00')).toBeInTheDocument()   // risk cost
         expect(screen.queryByRole('textbox')).toBeNull()
     })
 })
@@ -30,9 +32,10 @@ describe('ProblemEdit (edit mode)', () => {
         expect(await screen.findByPlaceholderText('Screen Replacement')).toBeInTheDocument()
         expect(screen.getByPlaceholderText('Battery Replacement')).toBeInTheDocument()
 
-        // price and labour price inputs use each problem's current formatted value as placeholder
+        // price, labour price, and risk cost inputs use each problem's current formatted value as placeholder
         expect(screen.getByPlaceholderText('$250.00')).toBeInTheDocument()  // parts price
         expect(screen.getByPlaceholderText('$100.00')).toBeInTheDocument()  // labour price
+        expect(screen.getByPlaceholderText('$50.00')).toBeInTheDocument()   // risk cost
     })
 
     it('edited labour price is exposed through the ref', async () => {
@@ -45,6 +48,18 @@ describe('ProblemEdit (edit mode)', () => {
 
         const updated = ref.current!.getUpdatedProblems().find(p => p.name === 'Screen Replacement')
         expect(updated!.labourPrice).toBe(150)
+    })
+
+    it('edited risk cost is exposed through the ref', async () => {
+        const ref = createRef<ProblemEditHandle>()
+        render(<ProblemEdit ref={ref} deviceId="1" isEditing={true} />)
+        await screen.findByPlaceholderText('Screen Replacement')
+
+        // the Screen Replacement risk cost cell placeholder is its current risk cost
+        await userEvent.type(screen.getByPlaceholderText('$50.00'), '75')
+
+        const updated = ref.current!.getUpdatedProblems().find(p => p.name === 'Screen Replacement')
+        expect(updated!.riskCost).toBe(75)
     })
 
     it('"Add a problem..." button adds a new empty row', async () => {
