@@ -46,30 +46,31 @@ public class ProblemTools
         }
     }
 
-    [McpServerTool, Description("Update a problem in the problem catalogue. Only provide the fields that need to change. Omitted fields keep their current values.")]
-    public async Task<OutProblemDTO> UpdateProblemAsync(
-        [Description("The ID of the problem to update.")] int problemId,
-        [Description("New problem name.")] string? problemName = null,
-        [Description("New parts price.")] decimal? price = null,
-        [Description("New labour cost.")] decimal? labourPrice = null,
-        [Description("New risk cost.")] decimal? riskCost = null)
+    [McpServerTool, Description("Update one or more existing problems in the catalogue. Only provide the fields that need to change. Omitted fields keep their current values.")]
+    public async Task<ICollection<OutProblemDTO>> UpdateProblemsAsync(
+        [Description("The problems to update. Each must include its ProblemId.")] ICollection<UpdateProblemDTO> dtos)
     {
-        Problem existing = await _service.GetProblemAsync(problemId)
-            ?? throw new KeyNotFoundException($"Problem {problemId} not found.");
-
-        InProblemDTO dto = new()
+        try
         {
-            ProblemId = problemId,
-            ProblemName = problemName ?? existing.ProblemName,
-            DeviceId = existing.DeviceId,
-            Price = price ?? existing.Price,
-            LabourPrice = labourPrice ?? existing.LabourPrice,
-            RiskCost = riskCost ?? existing.RiskCost
-        };
+            await _service.UpdateProblemsAsync(dtos);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            throw new Exception($"Not found: {ex.Message}");
+        }
+        catch (ValidationException ex)
+        {
+            throw new Exception($"Validation failed: {ex.Message}");
+        }
 
-        await _service.UpdateProblemAsync(problemId, dto);
-        Problem updated = await _service.GetProblemAsync(problemId)
-            ?? throw new Exception("Failed to retrieve updated problem.");
-        return OutProblemDTO.FromModel(updated);
+        // return the updated records
+        List<OutProblemDTO> updated = new();
+        foreach (UpdateProblemDTO dto in dtos)
+        {
+            Problem problem = await _service.GetProblemAsync(dto.ProblemId)
+                ?? throw new Exception($"Failed to retrieve updated problem {dto.ProblemId}.");
+            updated.Add(OutProblemDTO.FromModel(problem));
+        }
+        return updated;
     }
 }

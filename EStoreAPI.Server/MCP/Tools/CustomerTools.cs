@@ -38,30 +38,31 @@ public class CustomerTools
         }
     }
 
-    [McpServerTool, Description("Update a customer's details. Only provide the fields that need to change. Omitted fields keep their current values.")]
-    public async Task<OutCustomerDTO> UpdateCustomerAsync(
-        [Description("The ID of the customer to update.")] int customerId,
-        [Description("New customer name.")] string? customerName = null,
-        [Description("New primary phone number.")] string? phoneNumber = null,
-        [Description("New secondary phone number.")] string? phoneNumberSecondary = null,
-        [Description("New email address.")] string? email = null,
-        [Description("New street address.")] string? address = null)
+    [McpServerTool, Description("Update one or more existing customers. Only provide the fields that need to change. Omitted fields keep their current values.")]
+    public async Task<ICollection<OutCustomerDTO>> UpdateCustomersAsync(
+        [Description("The customers to update. Each must include its CustomerId.")] ICollection<UpdateCustomerDTO> dtos)
     {
-        Customer existing = await _service.GetCustomerAsync(customerId)
-            ?? throw new KeyNotFoundException($"Customer {customerId} not found.");
-
-        InCustomerDTO dto = new()
+        try
         {
-            CustomerName = customerName ?? existing.CustomerName,
-            PhoneNumber = phoneNumber ?? existing.PhoneNumber,
-            PhoneNumberSecondary = phoneNumberSecondary ?? existing.PhoneNumberSecondary,
-            Email = email ?? existing.Email,
-            Address = address ?? existing.Address,
-        };
+            await _service.UpdateCustomersAsync(dtos);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            throw new Exception($"Not found: {ex.Message}");
+        }
+        catch (ValidationException ex)
+        {
+            throw new Exception($"Validation failed: {ex.Message}");
+        }
 
-        await _service.UpdateCustomerAsync(customerId, dto);
-        Customer updated = await _service.GetCustomerAsync(customerId)
-            ?? throw new Exception("Failed to retrieve updated customer.");
-        return OutCustomerDTO.FromModel(updated);
+        // return the updated records
+        List<OutCustomerDTO> updated = new();
+        foreach (UpdateCustomerDTO dto in dtos)
+        {
+            Customer customer = await _service.GetCustomerAsync(dto.CustomerId)
+                ?? throw new Exception($"Failed to retrieve updated customer {dto.CustomerId}.");
+            updated.Add(OutCustomerDTO.FromModel(customer));
+        }
+        return updated;
     }
 }

@@ -46,27 +46,32 @@ public class DeviceTools
         }
     }
 
-    [McpServerTool, Description("Update a device model's details. Only provide the fields that need to change. Omitted fields keep their current values.")]
-    public async Task<OutDeviceDTO> UpdateDeviceAsync(
-        [Description("The ID of the device to update.")] int deviceId,
-        [Description("New device name.")] string? deviceName = null,
-        [Description("New device model number.")] string? modelNumber = null,
-        [Description("New device type.")] string? deviceType = null)
+    [McpServerTool, Description("Update one or more existing device models. Only provide the fields that need to change. Omitted fields keep their current values.")]
+    public async Task<ICollection<OutDeviceDTO>> UpdateDevicesAsync(
+        [Description("The devices to update. Each must include its DeviceId.")] ICollection<UpdateDeviceDTO> dtos)
     {
-        Device existing = await _service.GetDeviceAsync(deviceId)
-            ?? throw new KeyNotFoundException($"Device {deviceId} not found.");
-
-        InDeviceDTO dto = new()
+        try
         {
-            DeviceName = deviceName ?? existing.DeviceName,
-            ModelNumber = modelNumber ?? existing.ModelNumber,
-            DeviceType = deviceType ?? existing.DeviceType,
-        };
+            await _service.UpdateDevicesAsync(dtos);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            throw new Exception($"Not found: {ex.Message}");
+        }
+        catch (ValidationException ex)
+        {
+            throw new Exception($"Validation failed: {ex.Message}");
+        }
 
-        await _service.UpdateDeviceAsync(deviceId, dto);
-        Device updated = await _service.GetDeviceAsync(deviceId)
-            ?? throw new Exception("Failed to retrieve updated device.");
-        return OutDeviceDTO.FromModel(updated);
+        // return the updated records
+        List<OutDeviceDTO> updated = new();
+        foreach (UpdateDeviceDTO dto in dtos)
+        {
+            Device device = await _service.GetDeviceAsync(dto.DeviceId)
+                ?? throw new Exception($"Failed to retrieve updated device {dto.DeviceId}.");
+            updated.Add(OutDeviceDTO.FromModel(device));
+        }
+        return updated;
     }
 
 }
