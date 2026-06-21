@@ -112,7 +112,8 @@ describe('JobForm (price auto-calculation)', () => {
 
         await waitFor(() => {
             const priceInput = screen.getByRole('spinbutton')
-            expect(priceInput).toHaveAttribute('placeholder', '250')
+            // price + labour price + risk cost
+            expect(priceInput).toHaveAttribute('placeholder', '400')
         })
     })
 })
