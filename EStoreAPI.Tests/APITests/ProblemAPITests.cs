@@ -242,18 +242,18 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestUpdateProblem(int id, string name, int deviceId, decimal price, decimal labourPrice, decimal riskCost)
         {
             // arrange
-            var dto = new InProblemDTO { ProblemName = name, DeviceId = deviceId, Price = price, LabourPrice = labourPrice, RiskCost = riskCost };
+            var dto = new UpdateProblemDTO { ProblemId = id, ProblemName = name, DeviceId = deviceId, Price = price, LabourPrice = labourPrice, RiskCost = riskCost };
 
             if (id == 1)
             {
                 if (name == "newname" && deviceId == 1 && price == 99.99m && labourPrice == 49.99m && riskCost == 24.99m)
-                    _service.Setup(s => s.UpdateProblemAsync(id, dto)).Returns(Task.CompletedTask);
+                    _service.Setup(s => s.UpdateProblemAsync(dto)).Returns(Task.CompletedTask);
                 else
-                    _service.Setup(s => s.UpdateProblemAsync(id, dto)).ThrowsAsync(new ValidationException());
+                    _service.Setup(s => s.UpdateProblemAsync(dto)).ThrowsAsync(new ValidationException());
             }
             else
             {
-                _service.Setup(s => s.UpdateProblemAsync(id, dto)).ThrowsAsync(new KeyNotFoundException("Problem not found."));
+                _service.Setup(s => s.UpdateProblemAsync(dto)).ThrowsAsync(new KeyNotFoundException("Problem not found."));
             }
 
             // act
