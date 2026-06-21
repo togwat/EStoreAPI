@@ -90,11 +90,12 @@ namespace EStoreAPI.Server.Controllers
 
         // PUT: api/Jobs/update/{id}
         [HttpPut("update/{id}")]
-        public async Task<ActionResult> UpdateJobAsync(int id, InJobDTO dto)
+        public async Task<ActionResult> UpdateJobAsync(int id, UpdateJobDTO dto)
         {
             try
             {
-                await _service.UpdateJobAsync(id, dto);
+                dto.JobId = id;
+                await _service.UpdateJobAsync(dto);
                 return NoContent();
             }
             // job not found

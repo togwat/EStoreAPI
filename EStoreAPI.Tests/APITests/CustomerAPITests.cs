@@ -303,18 +303,18 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestUpdateCustomer(int id, string name, string phone)
         {
             // arrange
-            var dto = new InCustomerDTO { CustomerName = name, PhoneNumber = phone };
+            var dto = new UpdateCustomerDTO { CustomerId = id, CustomerName = name, PhoneNumber = phone };
 
             if (id == 1)
             {
                 if (name == "newname" && phone == "123")
-                    _service.Setup(s => s.UpdateCustomerAsync(id, dto)).Returns(Task.CompletedTask);
+                    _service.Setup(s => s.UpdateCustomerAsync(dto)).Returns(Task.CompletedTask);
                 else
-                    _service.Setup(s => s.UpdateCustomerAsync(id, dto)).ThrowsAsync(new ValidationException());
+                    _service.Setup(s => s.UpdateCustomerAsync(dto)).ThrowsAsync(new ValidationException());
             }
             else
             {
-                _service.Setup(s => s.UpdateCustomerAsync(id, dto)).ThrowsAsync(new KeyNotFoundException("Customer not found."));
+                _service.Setup(s => s.UpdateCustomerAsync(dto)).ThrowsAsync(new KeyNotFoundException("Customer not found."));
             }
 
             // act

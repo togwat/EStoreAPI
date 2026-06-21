@@ -100,11 +100,12 @@ namespace EStoreAPI.Server.Controllers
 
         // PUT: api/Devices/update/{id}
         [HttpPut("update/{id}")]
-        public async Task<ActionResult> UpdateDeviceAsync(int id, InDeviceDTO dto)
+        public async Task<ActionResult> UpdateDeviceAsync(int id, UpdateDeviceDTO dto)
         {
             try
             {
-                await _service.UpdateDeviceAsync(id, dto);
+                dto.DeviceId = id;
+                await _service.UpdateDeviceAsync(dto);
                 return NoContent();
             }
             // job not found

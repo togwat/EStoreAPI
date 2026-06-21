@@ -320,18 +320,18 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestUpdateDevice(int id, string name, string type)
         {
             // arrange
-            var dto = new InDeviceDTO { DeviceName = name, DeviceType = type };
+            var dto = new UpdateDeviceDTO { DeviceId = id, DeviceName = name, DeviceType = type };
 
             if (id == 1)
             {
                 if (name == "newname" && type == "newtype")
-                    _service.Setup(s => s.UpdateDeviceAsync(id, dto)).Returns(Task.CompletedTask);
+                    _service.Setup(s => s.UpdateDeviceAsync(dto)).Returns(Task.CompletedTask);
                 else
-                    _service.Setup(s => s.UpdateDeviceAsync(id, dto)).ThrowsAsync(new ValidationException());
+                    _service.Setup(s => s.UpdateDeviceAsync(dto)).ThrowsAsync(new ValidationException());
             }
             else
             {
-                _service.Setup(s => s.UpdateDeviceAsync(id, dto)).ThrowsAsync(new KeyNotFoundException("Device not found."));
+                _service.Setup(s => s.UpdateDeviceAsync(dto)).ThrowsAsync(new KeyNotFoundException("Device not found."));
             }
 
             // act

@@ -47,19 +47,48 @@ namespace EStoreAPI.Server.Services
 
             return await _repo.AddProblemsAsync(problems);
         }
+        
+        public async Task UpdateProblemAsync(UpdateProblemDTO dto)
+        {
+            await MergeProblemAsync(dto);            
+            await _repo.ApplyUpdateAsync();
 
-        public async Task UpdateProblemAsync(int id, InProblemDTO dto)
+        }
+
+        public async Task UpdateProblemsAsync(ICollection<UpdateProblemDTO> dtos)
+        {
+            foreach (UpdateProblemDTO dto in dtos)
+            {
+                await MergeProblemAsync(dto);
+            }
+
+            await _repo.ApplyUpdateAsync();
+        }
+
+        // Validate, load, and apply the partial merge onto the tracked entity
+        private async Task MergeProblemAsync(UpdateProblemDTO dto)
         {
             Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true); 
 
-            // set new problem
-            Problem problem = dto.ToModel();
-            problem.ProblemId = id;
+            Problem existing = await _repo.GetProblemByIdAsync(dto.ProblemId)
+            ?? throw new KeyNotFoundException($"Problem {dto.ProblemId} not found.");
 
-            await _repo.UpdateProblemAsync(problem);
+            // check if device exists
+            if (dto.DeviceId != null)
+            {
+                _ = await _repo.GetDeviceByIdAsync(dto.DeviceId.Value)
+                    ?? throw new KeyNotFoundException($"Device {dto.DeviceId} not found.");
+            }
+
+            // merge
+            existing.ProblemName = dto.ProblemName?.ToLower() ?? existing.ProblemName;
+            existing.DeviceId = dto.DeviceId ?? existing.DeviceId;
+            existing.Price = dto.Price ?? existing.Price;
+            existing.LabourPrice = dto.LabourPrice ?? existing.LabourPrice;
+            existing.RiskCost = dto.RiskCost ?? existing.RiskCost;
         }
 
-        public async Task UpdateProblemsAsync(int deviceId, ICollection<InProblemDTO> dtos)
+        public async Task UpdateDeviceProblemsAsync(int deviceId, ICollection<InProblemDTO> dtos)
         {
             foreach (InProblemDTO dto in dtos)
             {

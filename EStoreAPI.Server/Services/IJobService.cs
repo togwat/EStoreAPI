@@ -11,6 +11,7 @@ namespace EStoreAPI.Server.Services
         Task<ICollection<Job>> SearchJobsAsync(string? query);
         Task<Job> CreateJobAsync(InJobDTO dto);
         Task<ICollection<Job>> CreateJobsAsync(ICollection<InJobDTO> dtos);
-        Task UpdateJobAsync(int id, InJobDTO dto);
+        Task UpdateJobAsync(UpdateJobDTO dto);
+        Task UpdateJobsAsync(ICollection<UpdateJobDTO> dtos);
     }
 }

@@ -74,11 +74,12 @@ namespace EStoreAPI.Server.Controllers
 
         // PUT: api/Problems/update/{id}
         [HttpPut("update/{id}")]
-        public async Task<ActionResult> UpdateProblemWithIdAsync(int id, InProblemDTO dto)
+        public async Task<ActionResult> UpdateProblemWithIdAsync(int id, UpdateProblemDTO dto)
         {
             try
             {
-                await _service.UpdateProblemAsync(id, dto);
+                dto.ProblemId = id;
+                await _service.UpdateProblemAsync(dto);
                 return NoContent();
             }
             // problem not found
@@ -99,7 +100,7 @@ namespace EStoreAPI.Server.Controllers
         {
             try
             {
-                await _service.UpdateProblemsAsync(deviceId, dtos);
+                await _service.UpdateDeviceProblemsAsync(deviceId, dtos);
                 return NoContent();
             }
             catch (KeyNotFoundException ex)

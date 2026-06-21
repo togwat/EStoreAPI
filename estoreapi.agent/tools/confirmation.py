@@ -16,10 +16,10 @@ CONFIRMATION_REQUIRED_TOOLS: set[str] = {
     "create_problems",
     "create_jobs",
     "update_description",
-    "update_customer",
-    "update_device",
-    "update_problem",
-    "update_job",
+    "update_customers",
+    "update_devices",
+    "update_problems",
+    "update_jobs",
     "submit_form",
     "web_search"
 }
