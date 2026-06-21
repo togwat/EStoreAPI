@@ -54,15 +54,21 @@ namespace EStoreAPI.Server.Services
             return await _repo.AddCustomersAsync(customers);
         }
 
-        public async Task UpdateCustomerAsync(int id, InCustomerDTO dto)
+        public async Task UpdateCustomerAsync(UpdateCustomerDTO dto)
         {
             Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true);
 
-            // set up new customer
-            Customer customer = dto.ToModel();
-            customer.CustomerId = id;
+            Customer existing = await _repo.GetCustomerByIdAsync(dto.CustomerId) 
+            ?? throw new KeyNotFoundException($"Customer {dto.CustomerId} not found.");
 
-            await _repo.UpdateCustomerAsync(customer);
+            // merge
+            existing.CustomerName = dto.CustomerName ?? existing.CustomerName;
+            existing.PhoneNumber = dto.NormalisedPhone ?? existing.PhoneNumber;
+            existing.PhoneNumberSecondary = dto.NormalisedPhoneSecondary ?? existing.PhoneNumberSecondary;
+            existing.Email = dto.Email ?? existing.Email;
+            existing.Address = dto.Address ?? existing.Address;
+
+            await _repo.UpdateCustomerAsync(existing);
         }
     }
 }

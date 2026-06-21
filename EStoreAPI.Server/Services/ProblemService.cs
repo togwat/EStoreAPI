@@ -48,15 +48,21 @@ namespace EStoreAPI.Server.Services
             return await _repo.AddProblemsAsync(problems);
         }
 
-        public async Task UpdateProblemAsync(int id, InProblemDTO dto)
+        public async Task UpdateProblemAsync(UpdateProblemDTO dto)
         {
             Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true); 
 
-            // set new problem
-            Problem problem = dto.ToModel();
-            problem.ProblemId = id;
+            Problem existing = await _repo.GetProblemByIdAsync(dto.ProblemId)
+            ?? throw new KeyNotFoundException($"Problem {dto.ProblemId} not found.");
 
-            await _repo.UpdateProblemAsync(problem);
+            // merge
+            existing.ProblemName = dto.ProblemName ?? existing.ProblemName;
+            existing.DeviceId = dto.DeviceId ?? existing.DeviceId;
+            existing.Price = dto.Price ?? existing.Price;
+            existing.LabourPrice = dto.LabourPrice ?? existing.LabourPrice;
+            existing.RiskCost = dto.RiskCost ?? existing.RiskCost;
+
+            await _repo.UpdateProblemAsync(existing);
         }
 
         public async Task UpdateDeviceProblemsAsync(int deviceId, ICollection<InProblemDTO> dtos)

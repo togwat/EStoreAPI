@@ -95,19 +95,41 @@ namespace EStoreAPI.Server.Services
             return await _repo.AddJobsAsync(jobs);
         }
 
-        public async Task UpdateJobAsync(int id, InJobDTO dto)
+        public async Task UpdateJobAsync(UpdateJobDTO dto)
         {
             Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true); 
 
-            // validate number of problems
-            ICollection<Problem> problems = await _repo.GetProblemsByIdsAsync(dto.ProblemIds);
-            if (problems.Count != dto.ProblemIds.Count)
-                throw new KeyNotFoundException("One or more problem IDs are invalid.");
+            Job existing = await _repo.GetJobByIdAsync(dto.JobId)
+            ?? throw new KeyNotFoundException($"Job {dto.JobId} not found.");
 
-            Job job = dto.ToModel(problems);
-            job.JobId = id;
+            // merge
+            if (dto.ProblemIds != null)
+            {
+                // validate the supplied problem ids all resolve to real problems
+                ICollection<Problem> problems = await _repo.GetProblemsByIdsAsync(dto.ProblemIds);
+                if (problems.Count != dto.ProblemIds.Count)
+                {
+                    throw new KeyNotFoundException("One or more problem IDs are invalid.");
+                }
+                if (problems.Count < 1)
+                {
+                    throw new ValidationException("A job must have at least one problem.");
+                }
 
-            await _repo.UpdateJobAsync(job);
+                // Replace in place: mutate the tracked collection instead of swapping the
+                // reference, so EF diffs the join table correctly — and so nothing downstream
+                // clears the very collection it's about to read from.
+                existing.Problems.Clear();
+                foreach (Problem p in problems) existing.Problems.Add(p);
+            }
+            existing.PickupTime = dto.PickupTime ?? existing.PickupTime;
+            existing.EstimatedPickupTime = dto.EstimatedPickupTime ?? existing.EstimatedPickupTime;
+            existing.Note = dto.Note ?? existing.Note;
+            existing.EstimatedPrice = dto.EstimatedPrice ?? existing.EstimatedPrice;
+            existing.CollectedPrice = dto.CollectedPrice ?? existing.CollectedPrice;
+            existing.IsFinished = dto.IsFinished ?? existing.IsFinished;
+
+            await _repo.UpdateJobAsync(existing);
         }
     }
 }

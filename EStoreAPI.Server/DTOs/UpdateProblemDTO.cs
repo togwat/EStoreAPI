@@ -12,6 +12,9 @@ namespace EStoreAPI.Server.DTOs
         [Description("New problem name.")]
         public string? ProblemName { get; set; }
 
+        [Description("New device id.")]
+        public int? DeviceId { get; set; }
+
         [Description("New parts price.")]
         public decimal? Price { get; set; }
 

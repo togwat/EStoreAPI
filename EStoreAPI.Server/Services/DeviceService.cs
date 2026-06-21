@@ -69,14 +69,19 @@ namespace EStoreAPI.Server.Services
             return await _repo.AddDevicesAsync(devices);
         }
 
-        public async Task UpdateDeviceAsync(int id, InDeviceDTO dto)
+        public async Task UpdateDeviceAsync(UpdateDeviceDTO dto)
         {
-            Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true); 
+            Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true);
             
-            Device device = dto.ToModel();
-            device.DeviceId = id;
+            Device existing = await _repo.GetDeviceByIdAsync(dto.DeviceId)
+            ?? throw new KeyNotFoundException($"Device {dto.DeviceId} not found.");
+            
+            // merge
+            existing.DeviceName = dto.DeviceName ?? existing.DeviceName;
+            existing.ModelNumber = dto.ModelNumber ?? existing.ModelNumber;
+            existing.DeviceType = dto.DeviceType ?? existing.DeviceType;
 
-            await _repo.UpdateDeviceAsync(device);
+            await _repo.UpdateDeviceAsync(existing);
         }
     }
 }
