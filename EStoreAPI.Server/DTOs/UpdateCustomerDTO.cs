@@ -11,7 +11,7 @@ namespace EStoreAPI.Server.DTOs
 
         [Required]
         [Description("The ID of the customer to update.")]
-        public required int CustomerId { get; set; }
+        public int CustomerId { get; set; }
 
         [Description("New customer name.")]
         public string? CustomerName { get; set; }

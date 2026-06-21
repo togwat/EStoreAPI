@@ -7,7 +7,7 @@ namespace EStoreAPI.Server.DTOs
     {
         [Required]
         [Description("The ID of the problem to update.")]
-        public required int ProblemId { get; set; }
+        public int ProblemId { get; set; }
 
         [Description("New problem name.")]
         public string? ProblemName { get; set; }

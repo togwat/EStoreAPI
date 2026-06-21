@@ -7,7 +7,7 @@ namespace EStoreAPI.Server.DTOs
     {
         [Required]
         [Description("The ID of the device to update.")]
-        public required int DeviceId { get; set; }
+        public int DeviceId { get; set; }
 
         [Description("New device name.")]
         public string? DeviceName { get; set; }

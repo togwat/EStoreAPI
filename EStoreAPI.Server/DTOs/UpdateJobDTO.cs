@@ -7,7 +7,7 @@ namespace EStoreAPI.Server.DTOs
     {   
         [Required]
         [Description("The ID of the job to update.")]
-        public required int JobId { get; set; }
+        public int JobId { get; set; }
 
         [Description("Time the device was picked up by the customer.")]
         public DateTime? PickupTime { get; set; }
