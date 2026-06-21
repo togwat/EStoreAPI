@@ -92,19 +92,18 @@ namespace EStoreAPI.Server.Data
 
             if (customerToChange != null)
             {
-                if (customer.CustomerName != null && customer.PhoneNumber != null)
+                if (customer.PhoneNumber != null)
                 {
                     customerToChange.CustomerName = customer.CustomerName;
-                    customerToChange.PhoneNumber = customer.PhoneNumber;
+                    customerToChange.PhoneNumber = customer.PhoneNumber;                                   
+                    customerToChange.PhoneNumberSecondary = customer.PhoneNumberSecondary;
+                    customerToChange.Email = customer.Email;
+                    customerToChange.Address = customer.Address;
                 }
                 else
                 {
                     throw new ValidationException();
                 }
-                
-                customerToChange.PhoneNumberSecondary = customer.PhoneNumberSecondary;
-                customerToChange.Email = customer.Email;
-                customerToChange.Address = customer.Address;
 
                 await _dbContext.SaveChangesAsync();
             }
@@ -112,6 +111,36 @@ namespace EStoreAPI.Server.Data
             {
                 throw new KeyNotFoundException("Customer not found.");
             }
+        }
+
+        public async Task UpdateCustomersAsync(ICollection<Customer> customers)
+        {
+            foreach (Customer customer in customers)
+            {
+                Customer? customerToChange = await GetCustomerByIdAsync(customer.CustomerId);
+
+                if (customerToChange != null)
+                {
+                    if (customer.PhoneNumber != null)
+                    {
+                        customerToChange.CustomerName = customer.CustomerName;
+                        customerToChange.PhoneNumber = customer.PhoneNumber;                                           
+                        customerToChange.PhoneNumberSecondary = customer.PhoneNumberSecondary;
+                        customerToChange.Email = customer.Email;
+                        customerToChange.Address = customer.Address;
+                    }
+                    else
+                    {
+                        throw new ValidationException();
+                    }
+                }
+                else
+                {
+                    throw new KeyNotFoundException("Customer not found.");
+                }
+            }
+
+            await _dbContext.SaveChangesAsync();
         }
 
         // device operations
@@ -219,6 +248,33 @@ namespace EStoreAPI.Server.Data
             }
         }
 
+        public async Task UpdateDevicesAsync(ICollection<Device> devices)
+        {
+            foreach(Device device in devices)
+            {
+                Device? deviceToChange = await GetDeviceByIdAsync(device.DeviceId);
+                if (deviceToChange != null)
+                {
+                    if (device.DeviceName != null && device.DeviceType != null)
+                    {
+                        deviceToChange.DeviceName = device.DeviceName;
+                        deviceToChange.ModelNumber = device.ModelNumber;
+                        deviceToChange.DeviceType = device.DeviceType;
+                    }
+                    else
+                    {
+                        throw new ValidationException();
+                    }
+                }
+                else
+                {
+                    throw new KeyNotFoundException("Device not found.");
+                }
+            }
+
+            await _dbContext.SaveChangesAsync();
+        }
+
         // problem operations
         public async Task<Problem?> GetProblemByIdAsync(int id)
         {
@@ -271,14 +327,13 @@ namespace EStoreAPI.Server.Data
 
             if (problemToChange != null)
             {
-                problemToChange.ProblemName = problem.ProblemName;
-                problemToChange.Price = problem.Price;
-                problemToChange.LabourPrice = problem.LabourPrice;
-
-                // check device id
+                // validate required fields
                 Device? device = await GetDeviceByIdAsync(problem.DeviceId);
-                if (device != null)
+                if (device != null && problem.ProblemName != null)
                 {
+                    problemToChange.ProblemName = problem.ProblemName;
+                    problemToChange.Price = problem.Price;
+                    problemToChange.LabourPrice = problem.LabourPrice;
                     problemToChange.DeviceId = problem.DeviceId;
                     problemToChange.Device = device;
                 }
@@ -294,6 +349,36 @@ namespace EStoreAPI.Server.Data
                 throw new KeyNotFoundException("Problem not found.");
             }
         }
+
+        // bulk problems update fields only
+        public async Task UpdateProblemsAsync(ICollection<Problem> problems)
+        {
+            foreach (Problem problem in problems)
+            {
+                Problem? problemToChange = await GetProblemByIdAsync(problem.ProblemId);
+                if (problemToChange != null)
+                {
+                    if (problem.ProblemName != null)
+                    {
+                        problemToChange.ProblemName = problem.ProblemName;
+                        problemToChange.Price = problem.Price;
+                        problemToChange.LabourPrice = problem.LabourPrice;
+                        problemToChange.RiskCost = problem.RiskCost;
+                    }
+                    else
+                    {
+                        throw new ValidationException();
+                    }
+                }
+                else
+                {
+                    throw new KeyNotFoundException("Problem not found.");
+                }
+            }
+
+            await _dbContext.SaveChangesAsync();
+        }
+
         public async Task UpdateDeviceProblemsAsync(ICollection<Problem> toDelete, ICollection<Problem> toUpdate, ICollection<Problem> toAdd)
         {
                 _dbContext.Problems.RemoveRange(toDelete);
@@ -424,9 +509,6 @@ namespace EStoreAPI.Server.Data
 
             if (jobToChange != null)
             {
-                jobToChange.PickupTime = job.PickupTime;
-                jobToChange.EstimatedPickupTime = job.EstimatedPickupTime;
-                jobToChange.Note = job.Note;
                 // update problems
                 if (job.Problems.Count >= 1)
                 {
@@ -436,9 +518,12 @@ namespace EStoreAPI.Server.Data
                 }
                 else
                 {
-                    throw new ValidationException();
+                    throw new ValidationException("There must be at least one problem.");
                 }
-
+                
+                jobToChange.PickupTime = job.PickupTime;
+                jobToChange.EstimatedPickupTime = job.EstimatedPickupTime;
+                jobToChange.Note = job.Note;
                 jobToChange.EstimatedPrice = job.EstimatedPrice;
                 jobToChange.CollectedPrice = job.CollectedPrice;
                 jobToChange.IsFinished = job.IsFinished;
@@ -449,6 +534,45 @@ namespace EStoreAPI.Server.Data
             {
                 throw new KeyNotFoundException("Job not found.");
             }
+        }
+
+        public async Task UpdateJobsAsync(ICollection<Job> jobs)
+        {
+            foreach (Job job in jobs)
+            {
+                Job? jobToChange = await _dbContext.Jobs
+                .Include(j => j.Problems)
+                .FirstOrDefaultAsync(j => j.JobId == job.JobId);
+
+                if (jobToChange != null)
+                {
+                    // update problems
+                    if (job.Problems.Count >= 1)
+                    {
+                        jobToChange.Problems.Clear();
+                        foreach (var p in job.Problems)
+                            jobToChange.Problems.Add(p);
+                    }
+                    else
+                    {
+                        throw new ValidationException("There must be at least one problem.");
+                    }
+
+                    jobToChange.PickupTime = job.PickupTime;
+                    jobToChange.EstimatedPickupTime = job.EstimatedPickupTime;
+                    jobToChange.Note = job.Note;
+                    jobToChange.EstimatedPrice = job.EstimatedPrice;
+                    jobToChange.CollectedPrice = job.CollectedPrice;
+                    jobToChange.IsFinished = job.IsFinished;
+                    
+                }
+                else
+                {
+                    throw new KeyNotFoundException("Job not found.");
+                }
+            }
+
+            await _dbContext.SaveChangesAsync();
         }
     }
 }
