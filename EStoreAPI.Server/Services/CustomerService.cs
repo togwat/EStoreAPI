@@ -68,7 +68,7 @@ namespace EStoreAPI.Server.Services
             existing.Email = dto.Email ?? existing.Email;
             existing.Address = dto.Address ?? existing.Address;
 
-            await _repo.UpdateCustomerAsync(existing);
+            await _repo.ApplyUpdateAsync();
         }
     }
 }

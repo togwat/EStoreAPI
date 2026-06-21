@@ -129,7 +129,7 @@ namespace EStoreAPI.Server.Services
             existing.CollectedPrice = dto.CollectedPrice ?? existing.CollectedPrice;
             existing.IsFinished = dto.IsFinished ?? existing.IsFinished;
 
-            await _repo.UpdateJobAsync(existing);
+            await _repo.ApplyUpdateAsync();
         }
     }
 }

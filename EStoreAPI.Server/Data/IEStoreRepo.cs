@@ -13,9 +13,6 @@ namespace EStoreAPI.Server.Data
         Task<Customer> AddCustomerAsync(Customer customer);
         // bulk
         Task<ICollection<Customer>> AddCustomersAsync(ICollection<Customer> customers);
-        Task UpdateCustomerAsync(Customer customer);
-        // bulk
-        Task UpdateCustomersAsync(ICollection<Customer> customers);
 
         // device operations
         Task<Device?> GetDeviceByIdAsync(int id);
@@ -27,9 +24,6 @@ namespace EStoreAPI.Server.Data
         Task<Device> AddDeviceAsync(Device device);
         // bulk
         Task<ICollection<Device>> AddDevicesAsync(ICollection<Device> devices);
-        Task UpdateDeviceAsync(Device device);
-        // bulk
-        Task UpdateDevicesAsync(ICollection<Device> devices);
 
         // problem operations
         Task<Problem?> GetProblemByIdAsync(int id);
@@ -38,9 +32,6 @@ namespace EStoreAPI.Server.Data
         Task<Problem> AddProblemAsync(Problem problem);
         // bulk
         Task<ICollection<Problem>> AddProblemsAsync(ICollection<Problem> problems);
-        Task UpdateProblemAsync(Problem problem);
-        // bulk
-        Task UpdateProblemsAsync(ICollection<Problem> problems);
         Task UpdateDeviceProblemsAsync(ICollection<Problem> toDelete, ICollection<Problem> toUpdate, ICollection<Problem> toAdd);
 
         // job operations
@@ -51,8 +42,6 @@ namespace EStoreAPI.Server.Data
         Task<Job> AddJobAsync(Job job);
         // bulk
         Task<ICollection<Job>> AddJobsAsync(ICollection<Job> jobs);
-        Task UpdateJobAsync(Job job);
-        // bulk
-        Task UpdateJobsAsync(ICollection<Job> jobs);
+        Task ApplyUpdateAsync();
     }
 }

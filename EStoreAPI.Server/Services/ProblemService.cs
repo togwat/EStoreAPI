@@ -55,6 +55,13 @@ namespace EStoreAPI.Server.Services
             Problem existing = await _repo.GetProblemByIdAsync(dto.ProblemId)
             ?? throw new KeyNotFoundException($"Problem {dto.ProblemId} not found.");
 
+            // check if device exists
+            if (dto.DeviceId != null)
+            {
+                _ = await _repo.GetDeviceByIdAsync(dto.DeviceId.Value)
+                    ?? throw new KeyNotFoundException($"Device {dto.DeviceId} not found.");
+            }
+
             // merge
             existing.ProblemName = dto.ProblemName ?? existing.ProblemName;
             existing.DeviceId = dto.DeviceId ?? existing.DeviceId;
@@ -62,7 +69,7 @@ namespace EStoreAPI.Server.Services
             existing.LabourPrice = dto.LabourPrice ?? existing.LabourPrice;
             existing.RiskCost = dto.RiskCost ?? existing.RiskCost;
 
-            await _repo.UpdateProblemAsync(existing);
+            await _repo.ApplyUpdateAsync();
         }
 
         public async Task UpdateDeviceProblemsAsync(int deviceId, ICollection<InProblemDTO> dtos)

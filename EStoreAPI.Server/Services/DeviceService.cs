@@ -77,11 +77,11 @@ namespace EStoreAPI.Server.Services
             ?? throw new KeyNotFoundException($"Device {dto.DeviceId} not found.");
             
             // merge
-            existing.DeviceName = dto.DeviceName ?? existing.DeviceName;
+            existing.DeviceName = dto.DeviceName?.ToLower() ?? existing.DeviceName;
             existing.ModelNumber = dto.ModelNumber ?? existing.ModelNumber;
             existing.DeviceType = dto.DeviceType ?? existing.DeviceType;
 
-            await _repo.UpdateDeviceAsync(existing);
+            await _repo.ApplyUpdateAsync();
         }
     }
 }
