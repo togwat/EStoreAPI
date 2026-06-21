@@ -6,9 +6,6 @@ namespace EStoreAPI.Server.DTOs
 {
     public class InProblemDTO
     {
-        [Description("Problem ID. Only required when updating an existing problem.")]
-        public int? ProblemId { get; set; }
-
         [Required]
         [Description("Name of the problem (e.g. screen replacement). Required.")]
         public required string ProblemName { get; set; }
@@ -29,7 +26,6 @@ namespace EStoreAPI.Server.DTOs
 
         public Problem ToModel() => new()
         {
-            ProblemId = ProblemId ?? 0, // 0 means new id, not set yet
             ProblemName = ProblemName.ToLower(),
             DeviceId = DeviceId,
             Price = Price,
