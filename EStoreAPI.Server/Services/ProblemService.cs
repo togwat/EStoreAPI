@@ -47,8 +47,26 @@ namespace EStoreAPI.Server.Services
 
             return await _repo.AddProblemsAsync(problems);
         }
-
+        
         public async Task UpdateProblemAsync(UpdateProblemDTO dto)
+        {
+            await MergeProblemAsync(dto);            
+            await _repo.ApplyUpdateAsync();
+
+        }
+
+        public async Task UpdateProblemsAsync(ICollection<UpdateProblemDTO> dtos)
+        {
+            foreach (UpdateProblemDTO dto in dtos)
+            {
+                await MergeProblemAsync(dto);
+            }
+
+            await _repo.ApplyUpdateAsync();
+        }
+
+        // Validate, load, and apply the partial merge onto the tracked entity
+        private async Task MergeProblemAsync(UpdateProblemDTO dto)
         {
             Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true); 
 
@@ -63,13 +81,11 @@ namespace EStoreAPI.Server.Services
             }
 
             // merge
-            existing.ProblemName = dto.ProblemName ?? existing.ProblemName;
+            existing.ProblemName = dto.ProblemName?.ToLower() ?? existing.ProblemName;
             existing.DeviceId = dto.DeviceId ?? existing.DeviceId;
             existing.Price = dto.Price ?? existing.Price;
             existing.LabourPrice = dto.LabourPrice ?? existing.LabourPrice;
             existing.RiskCost = dto.RiskCost ?? existing.RiskCost;
-
-            await _repo.ApplyUpdateAsync();
         }
 
         public async Task UpdateDeviceProblemsAsync(int deviceId, ICollection<InProblemDTO> dtos)

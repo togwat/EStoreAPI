@@ -97,6 +97,23 @@ namespace EStoreAPI.Server.Services
 
         public async Task UpdateJobAsync(UpdateJobDTO dto)
         {
+            await MergeJobAsync(dto);
+            await _repo.ApplyUpdateAsync();
+        }
+
+        public async Task UpdateJobsAsync(ICollection<UpdateJobDTO> dtos)
+        {
+            foreach (UpdateJobDTO dto in dtos)
+            {
+                await MergeJobAsync(dto);
+            }
+
+            await _repo.ApplyUpdateAsync();
+        }
+
+        // Validate, load, and apply the partial merge onto the tracked entity
+        private async Task MergeJobAsync(UpdateJobDTO dto)
+        {
             Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true); 
 
             Job existing = await _repo.GetJobByIdAsync(dto.JobId)
@@ -128,8 +145,6 @@ namespace EStoreAPI.Server.Services
             existing.EstimatedPrice = dto.EstimatedPrice ?? existing.EstimatedPrice;
             existing.CollectedPrice = dto.CollectedPrice ?? existing.CollectedPrice;
             existing.IsFinished = dto.IsFinished ?? existing.IsFinished;
-
-            await _repo.ApplyUpdateAsync();
         }
     }
 }

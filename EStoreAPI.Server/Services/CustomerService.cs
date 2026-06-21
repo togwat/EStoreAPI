@@ -56,9 +56,26 @@ namespace EStoreAPI.Server.Services
 
         public async Task UpdateCustomerAsync(UpdateCustomerDTO dto)
         {
+            await MergeCustomerAsync(dto);
+            await _repo.ApplyUpdateAsync();
+        }
+
+        public async Task UpdateCustomersAsync(ICollection<UpdateCustomerDTO> dtos)
+        {
+            foreach (UpdateCustomerDTO dto in dtos)
+            {
+                await MergeCustomerAsync(dto);
+            }
+
+            await _repo.ApplyUpdateAsync();
+        }
+
+        // Validate, load, and apply the partial merge onto the tracked entity
+        private async Task MergeCustomerAsync(UpdateCustomerDTO dto)
+        {
             Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true);
 
-            Customer existing = await _repo.GetCustomerByIdAsync(dto.CustomerId) 
+            Customer existing = await _repo.GetCustomerByIdAsync(dto.CustomerId)
             ?? throw new KeyNotFoundException($"Customer {dto.CustomerId} not found.");
 
             // merge
@@ -67,8 +84,6 @@ namespace EStoreAPI.Server.Services
             existing.PhoneNumberSecondary = dto.NormalisedPhoneSecondary ?? existing.PhoneNumberSecondary;
             existing.Email = dto.Email ?? existing.Email;
             existing.Address = dto.Address ?? existing.Address;
-
-            await _repo.ApplyUpdateAsync();
         }
     }
 }

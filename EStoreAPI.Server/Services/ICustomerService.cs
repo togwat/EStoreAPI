@@ -12,5 +12,6 @@ namespace EStoreAPI.Server.Services
         Task<Customer> CreateCustomerAsync(InCustomerDTO dto);
         Task<ICollection<Customer>> CreateCustomersAsync(ICollection<InCustomerDTO> dtos);
         Task UpdateCustomerAsync(UpdateCustomerDTO dto);
+        Task UpdateCustomersAsync(ICollection<UpdateCustomerDTO> dtos);
     }
 }

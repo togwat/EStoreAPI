@@ -14,5 +14,6 @@ namespace EStoreAPI.Server.Services
         Task<Device> CreateDeviceAsync(InDeviceDTO dto);
         Task<ICollection<Device>> CreateDevicesAsync(ICollection<InDeviceDTO> dtos);
         Task UpdateDeviceAsync(UpdateDeviceDTO dto);
+        Task UpdateDevicesAsync(ICollection<UpdateDeviceDTO> dtos);
     }
 }
