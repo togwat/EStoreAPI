@@ -23,7 +23,7 @@ namespace EStoreAPI.Server.Services
         {
             // validate device name
             ICollection<Device> devices = await _deviceService.SearchDevicesByNameAsync(dto.DeviceName);
-            Device device = devices.FirstOrDefault() 
+            Device device = devices.FirstOrDefault(d => d.DeviceName.Equals(dto.DeviceName, StringComparison.OrdinalIgnoreCase))
                 ?? throw new KeyNotFoundException($"Device {dto.DeviceName} not found.");
 
             // validate problems
