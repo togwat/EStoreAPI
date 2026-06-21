@@ -99,7 +99,7 @@ namespace EStoreAPI.Server.Controllers
         {
             try
             {
-                await _service.UpdateProblemsAsync(deviceId, dtos);
+                await _service.UpdateDeviceProblemsAsync(deviceId, dtos);
                 return NoContent();
             }
             catch (KeyNotFoundException ex)

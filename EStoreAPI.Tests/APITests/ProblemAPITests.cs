@@ -203,17 +203,17 @@ namespace EStoreAPI.Tests.APITests
 
             if (deviceId != 1)
             {
-                _service.Setup(s => s.UpdateProblemsAsync(deviceId, It.IsAny<ICollection<InProblemDTO>>()))
+                _service.Setup(s => s.UpdateDeviceProblemsAsync(deviceId, It.IsAny<ICollection<InProblemDTO>>()))
                         .ThrowsAsync(new KeyNotFoundException($"Device {deviceId} not found."));
             }
             else if (hasConflict)
             {
-                _service.Setup(s => s.UpdateProblemsAsync(deviceId, It.IsAny<ICollection<InProblemDTO>>()))
+                _service.Setup(s => s.UpdateDeviceProblemsAsync(deviceId, It.IsAny<ICollection<InProblemDTO>>()))
                         .ThrowsAsync(new InvalidOperationException("One or more problems are in use by a job and cannot be deleted."));
             }
             else
             {
-                _service.Setup(s => s.UpdateProblemsAsync(deviceId, It.IsAny<ICollection<InProblemDTO>>()))
+                _service.Setup(s => s.UpdateDeviceProblemsAsync(deviceId, It.IsAny<ICollection<InProblemDTO>>()))
                         .Returns(Task.CompletedTask);
             }
 

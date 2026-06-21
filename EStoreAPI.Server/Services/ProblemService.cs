@@ -59,7 +59,7 @@ namespace EStoreAPI.Server.Services
             await _repo.UpdateProblemAsync(problem);
         }
 
-        public async Task UpdateProblemsAsync(int deviceId, ICollection<InProblemDTO> dtos)
+        public async Task UpdateDeviceProblemsAsync(int deviceId, ICollection<InProblemDTO> dtos)
         {
             foreach (InProblemDTO dto in dtos)
             {
