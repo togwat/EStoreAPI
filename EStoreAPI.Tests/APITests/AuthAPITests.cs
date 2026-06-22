@@ -98,6 +98,16 @@ namespace EStoreAPI.Tests.APITests
         [Fact]
         public void TestVerifyReturnsOk()
         {
+            // arrange
+            // setup a greenlisted email
+            var identity = new ClaimsIdentity(
+                [new Claim(ClaimTypes.Email, "staff@example.com")],
+                authenticationType: "Cookies");
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identity) },
+            };
+
             // act
             var result = _controller.Verify();
 
@@ -105,6 +115,8 @@ namespace EStoreAPI.Tests.APITests
             // reaching the action at all means the session was valid (the global
             // fallback policy rejects with 401 first otherwise), so it just says 200
             Assert.IsType<OkResult>(result);
+            // it injects the signed-in user's email for the proxied agent request
+            Assert.Equal("staff@example.com", _controller.Response.Headers["X-User-Email"]);
         }
     }
 }
