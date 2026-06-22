@@ -12,3 +12,7 @@ services:
   agent:
     ports:
       - "8000:8000"
+
+  chat-db:
+    ports:
+      - "5433:5432"

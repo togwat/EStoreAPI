@@ -2,13 +2,13 @@ import json
 from itertools import count
 from typing import Iterator
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from config import SYSTEM_PROMPT, STREAMING
 
-from dependencies import get_all_tools, get_memory, get_provider, get_router
+from dependencies import get_all_tools, get_memory, get_provider, get_router, get_user_email
 from memory.user_context import user_id_var
 from providers.AbstractProvider import ChatProvider
 from tools.confirmation import requires_confirmation
@@ -106,20 +106,17 @@ def _run_agentic_loop(
 @router.post("/agent/chat")
 def chat(
     req: ChatRequest,
-    request: Request,
     provider: ChatProvider = Depends(get_provider),
     tools: list[dict] = Depends(get_all_tools),
     tool_router: ToolRouter = Depends(get_router),
     memory=Depends(get_memory),
+    user_email: str = Depends(get_user_email),
 ):
     """
     Run the agentic loop. Set stream=true to receive NDJSON events (one JSON array per line),
     or stream=false to wait for the full text response as JSON.
     """
-    # get user email as user id, part of the X-User-Email header injected by nginx
-    user_email = request.headers.get("x-user-email", "").strip()
-    if not user_email:
-        raise HTTPException(status_code=401, detail="Missing user identity header")
+    # user email (from the X-User-Email header) doubles as the memory/user id
     user_id_var.set(user_email)
 
     # Get memory

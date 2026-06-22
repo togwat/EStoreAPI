@@ -57,12 +57,17 @@ DEEPSEEK_MODEL=
 # web search apis
 TAVILY_KEY=
 
-# memory
+# memory (optional if disabled)
 MEMORY_ENABLED=true
 MEM0_DB_PASSWORD=
 MEM0_DB_USER=mem0
 MEM0_LLM_MODEL=
 MEM0_EMBEDDING_MODEL=
+
+# chat history persistence
+CHAT_DB_USER=
+CHAT_DB_PASSWORD=
+CHAT_DB_NAME=
 
 # read-only db role for the agent SQL tool
 AGENT_DB_USER=agent_readonly

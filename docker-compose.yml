@@ -44,6 +44,20 @@ services:
       timeout: 5s
       retries: 5
 
+  chat-db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: ${CHAT_DB_USER}
+      POSTGRES_PASSWORD: ${CHAT_DB_PASSWORD}
+      POSTGRES_DB: ${CHAT_DB_NAME}
+    volumes:
+      - chat_postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${CHAT_DB_USER} -d ${CHAT_DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   agent:
     build: ./estoreapi.agent
     image: estoreapi-agent:latest
@@ -63,6 +77,11 @@ services:
       MEM0_DB_PASSWORD: ${MEM0_DB_PASSWORD}
       MEM0_LLM_MODEL: ${MEM0_LLM_MODEL}
       MEM0_EMBEDDING_MODEL: ${MEM0_EMBEDDING_MODEL}
+      CHAT_DB_HOST: chat-db
+      CHAT_DB_PORT: 5432
+      CHAT_DB_USER: ${CHAT_DB_USER}
+      CHAT_DB_PASSWORD: ${CHAT_DB_PASSWORD}
+      CHAT_DB_NAME: ${CHAT_DB_NAME}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -71,6 +90,8 @@ services:
       api:
         condition: service_started
       mem0-db:
+        condition: service_healthy
+      chat-db:
         condition: service_healthy
 
   client:
@@ -86,3 +107,4 @@ volumes:
   postgres_data:
   agent_descriptions:
   mem0_postgres_data:
+  chat_postgres_data:

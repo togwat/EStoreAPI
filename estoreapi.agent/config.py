@@ -30,6 +30,13 @@ MEM0_DB_PASSWORD = os.environ["MEM0_DB_PASSWORD"]
 MEM0_LLM_MODEL = os.environ["MEM0_LLM_MODEL"]
 MEM0_EMBEDDING_MODEL = os.environ["MEM0_EMBEDDING_MODEL"]
 
+# chat history persistence
+CHAT_DB_HOST = os.environ["CHAT_DB_HOST"]
+CHAT_DB_PORT = int(os.environ["CHAT_DB_PORT"])
+CHAT_DB_USER = os.environ["CHAT_DB_USER"]
+CHAT_DB_PASSWORD = os.environ["CHAT_DB_PASSWORD"]
+CHAT_DB_NAME = os.environ["CHAT_DB_NAME"]
+
 SYSTEM_PROMPT = (
     "You are a phone repair shop (E-Store) management assistant."
     "Use the available tools to read from and write to the database."

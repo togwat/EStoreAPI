@@ -1,7 +1,8 @@
-from fastapi import Request
+from fastapi import HTTPException, Request
 
 from memory.MemoryProvider import MemoryProvider
 from providers.AbstractProvider import ChatProvider
+from store.AbstractChatStore import AbstractChatStore
 from tools.AbstractToolClient import AbstractToolClient
 from tools.router import ToolRouter
 
@@ -21,3 +22,13 @@ def get_router(request: Request) -> ToolRouter:
 
 def get_memory(request: Request) -> MemoryProvider | None:
     return request.app.state.memory
+
+def get_store(request: Request) -> AbstractChatStore:
+    return request.app.state.store
+
+def get_user_email(request: Request) -> str:
+    """User identity from the X-User-Email header injected by nginx after auth."""
+    email = request.headers.get("x-user-email", "").strip()
+    if not email:
+        raise HTTPException(status_code=401, detail="Missing user identity header")
+    return email
