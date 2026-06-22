@@ -46,6 +46,7 @@ type ToolCallPart = {
 type SourcePart = {
     type: "source";
     sourceType: "url";
+    id: string;
     url: string; 
     title?: string;
 };
@@ -139,6 +140,32 @@ const agentAdapter: ChatModelAdapter = {
             ...sources,
         ];
 
+        /**
+         * Split web search tool call results into text results (to agent) and sources (badges)
+         * Any other tool result (plain string, other JSON) passes through with no sources.
+         */
+        const splitWebSearchResult = (raw: unknown, toolCallId: string): { result: unknown; sources: SourcePart[] } => {
+            try {
+                const parsed = JSON.parse(raw as string) as { text?: string; sources?: { url: string; title?: string }[] };
+                return {
+                    result: parsed.text ?? raw,
+                    sources: (parsed.sources ?? []).map((s, i) => ({
+                        type: "source", sourceType: "url", id: `${toolCallId}-${i}`, url: s.url, title: s.title,
+                    })),
+                };
+            } catch {
+                return { result: raw, sources: [] };
+            }
+        };
+
+        // Render the web_search source badges if web_search is confirmation-gated
+        // since results after confirmation does not trigger sources.push
+        for (const c of current.content) {
+            if (c.type === "tool-call" && c.toolName === "web_search" && c.result !== undefined) {
+                sources.push(...splitWebSearchResult(c.result, c.toolCallId).sources);
+            }
+        }
+
         /** Apply one parsed event to the accumulated state. Returns true if state changed. */
         const applyEvent = ([type, ...rest]: StreamEvent): boolean => {
             if (type === "chunk") {
@@ -160,18 +187,12 @@ const agentAdapter: ChatModelAdapter = {
                 const [id, result] = rest as [string, unknown];
                 const part = toolCallMap.get(id);
                 if (part) {
-                    try {
-                        // split web search tool call results into text results (go to the agent)
-                        // and the sources (render badges)
-                        const parsed = JSON.parse(result as string) as { text?: string; sources?: { url: string; title?: string }[] };
-                        // Fall back to the raw string if the result isn't in the {text, sources} web-search shape,
-                        // which are usually from regular tool calls without a 'text' field
-                        part.result = parsed.text ?? result;
-                        for (const s of parsed.sources ?? []) {
-                            sources.push({ type: "source", sourceType: "url", url: s.url, title: s.title });
-                        }
-                    } catch {
-                        // Plain-string tool results are not JSON, assign directly.
+                    // try to extract web_search sources
+                    if (part.toolName === "web_search") {
+                        const parsed = splitWebSearchResult(result, id);
+                        part.result = parsed.result;
+                        sources.push(...parsed.sources);
+                    } else {
                         part.result = result;
                     }
                 }
