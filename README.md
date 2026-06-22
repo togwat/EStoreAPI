@@ -19,17 +19,20 @@ E-Store Management Console is a web application that facilitates the data manage
 - Human-in-the-loop safeguards for any data manipulation tools
 - File attachments are supported, especially helpful for bulk data import
 - Integrated memory layer with **mem0**: the assistant will remember facts from previous chat sessions
-- Models can be locally hosted, all data is kept within the server
+- Models can be locally hosted (all data is kept within the server) or from external APIs (fast & no hardware requirements)
 - Web search capable
+- Persistent chat history
 
 ## Deploying the application
 **Requirements:**
 - Docker engine
+For development:
 - Python 3.14 or above
 - Node.js (npm)
 - PostgreSQL + pgvector extension if using memory
-- Ollama
 - `ASP.NET` 10.0
+Optional:
+- Ollama (if using OllamaProvider)
 
 **Docker compose:**
 Development:
