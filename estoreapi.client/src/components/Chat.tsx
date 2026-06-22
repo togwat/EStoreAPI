@@ -9,6 +9,7 @@ import {
     type ChatModelAdapter,
     type RemoteThreadListAdapter,
     type ThreadHistoryAdapter,
+    type ThreadMessage,
     SimpleImageAttachmentAdapter,
     SimpleTextAttachmentAdapter,
     CompositeAttachmentAdapter,
@@ -235,6 +236,23 @@ const attachmentAdapter = new CompositeAttachmentAdapter([
 ]);
 
 /**
+ * A File can't survive JSON persistence as it round-trips into a `{}` that crashes
+ * `URL.createObjectURL`. Drop it so a restored image attachment renders from its
+ * data-URL content instead.
+ */
+const stripAttachmentFiles = (message: ThreadMessage): ThreadMessage => {
+    if (!("attachments" in message) || !message.attachments?.length) return message;
+    return {
+        ...message,
+        attachments: message.attachments.map((a) => {
+            const copy = { ...a };
+            delete (copy as { file?: unknown }).file;
+            return copy;
+        }),
+    } as ThreadMessage;
+};
+
+/**
  * Per-thread history adapter, injected into each thread's runtime via context.
  * Mirrors assistant-ui's cloud adapter: the remoteId is read from the active thread
  * list item, and `initialize()` is awaited before the first write so a brand-new
@@ -251,7 +269,7 @@ const HistoryProvider: FC<PropsWithChildren> = ({ children }) => {
             },
             async append(item) {
                 const { remoteId } = await aui.threadListItem().initialize();
-                await appendMessage(remoteId, item);
+                await appendMessage(remoteId, { ...item, message: stripAttachmentFiles(item.message) });
             },
         }),
         [aui],

@@ -2,14 +2,14 @@ import { Button } from "src/components/ui/button";
 import { Skeleton } from "src/components/ui/skeleton";
 import {
   AuiIf,
-  // ThreadListItemMorePrimitive,
+  ThreadListItemMorePrimitive,
   ThreadListItemPrimitive,
   ThreadListPrimitive,
   useAuiState,
 } from "@assistant-ui/react";
 import {
   // ArchiveIcon,
-  // MoreHorizontalIcon,
+  MoreHorizontalIcon,
   // PlusIcon,
   TrashIcon,
 } from "lucide-react";
@@ -139,23 +139,12 @@ const ThreadListItem: FC = () => {
           <ThreadListItemPrimitive.Title fallback="New Chat" />
         </span>
       </ThreadListItemPrimitive.Trigger>
-      {/** <ThreadListItemMore /> */}
-      {/** Replace more with just delete */}
-      <ThreadListItemPrimitive.Delete asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="aui-thread-list-item-more data-[state=open]:bg-accent absolute end-1.5 top-1/2 size-6 -translate-y-1/2 p-0 opacity-0 group-hover:opacity-100 group-data-active:opacity-100 data-[state=open]:opacity-100"
-          >
-            <TrashIcon className="size-3.5" />
-            <span className="sr-only">Delete</span>
-          </Button>
-        </ThreadListItemPrimitive.Delete>
+      <ThreadListItemMore />
     </ThreadListItemPrimitive.Root>
   );
 };
 
-/* const ThreadListItemMore: FC = () => {
+const ThreadListItemMore: FC = () => {
   return (
     <ThreadListItemMorePrimitive.Root>
       <ThreadListItemMorePrimitive.Trigger asChild>
@@ -174,12 +163,12 @@ const ThreadListItem: FC = () => {
         sideOffset={6}
         className="aui-thread-list-item-more-content bg-popover/95 text-popover-foreground data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:animate-in data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:animate-out data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-[8rem] overflow-hidden rounded-xl border p-1.5 shadow-lg backdrop-blur-sm"
       >
-        <ThreadListItemPrimitive.Archive asChild>
+        {/** <ThreadListItemPrimitive.Archive asChild>
           <ThreadListItemMorePrimitive.Item className="aui-thread-list-item-more-item hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm outline-none select-none">
             <ArchiveIcon className="size-4" />
             Archive
           </ThreadListItemMorePrimitive.Item>
-        </ThreadListItemPrimitive.Archive>
+        </ThreadListItemPrimitive.Archive> */}
         <ThreadListItemPrimitive.Delete asChild>
           <ThreadListItemMorePrimitive.Item className="aui-thread-list-item-more-item text-destructive hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm outline-none select-none">
             <TrashIcon className="size-4" />
@@ -188,5 +177,5 @@ const ThreadListItem: FC = () => {
         </ThreadListItemPrimitive.Delete>
       </ThreadListItemMorePrimitive.Content>
     </ThreadListItemMorePrimitive.Root>
-  ); 
-}; */
+  );
+};
