@@ -23,11 +23,8 @@ class AbstractChatStore(ABC):
         pass
 
     @abstractmethod
-    def create_session(self, user_email: str, thread_id: str) -> str:
-        """
-        Create a session for the client-provided thread id, or return the existing one.
-        Idempotent on the id. Returns the session id.
-        """
+    def create_session(self, user_email: str) -> str:
+        """Create a new session and return the remoteId."""
         pass
 
     @abstractmethod

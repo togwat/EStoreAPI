@@ -47,7 +47,7 @@ class ChatStore(AbstractChatStore):
             cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS chat_sessions (
-                    id              UUID PRIMARY KEY,
+                    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                     user_email      TEXT NOT NULL,
                     title           TEXT,
                     head_message_id TEXT,
@@ -89,21 +89,16 @@ class ChatStore(AbstractChatStore):
                 for r in cur.fetchall()
             ]
 
-    def create_session(self, user_email: str, thread_id: str) -> str:
+    def create_session(self, user_email: str) -> str:
         """
-        Create a session for the client-provided thread id, or return the existing one.
-        Idempotent on the id (assistant-ui may call initialize more than once).
+        Create a new session and return its server-minted id (the assistant-ui remoteId).
         """
         with self._cursor(commit=True) as cur:
             cur.execute(
-                """
-                INSERT INTO chat_sessions (id, user_email)
-                VALUES (%s, %s)
-                ON CONFLICT (id) DO NOTHING
-                """,
-                (thread_id, user_email),
+                "INSERT INTO chat_sessions (user_email) VALUES (%s) RETURNING id",
+                (user_email,),
             )
-        return thread_id
+            return str(cur.fetchone()["id"])
 
     def get_session(self, user_email: str, session_id: str) -> dict | None:
         """Session metadata, or None if it doesn't exist or isn't owned by this user."""

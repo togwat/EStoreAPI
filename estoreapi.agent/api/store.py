@@ -16,10 +16,6 @@ from store.AbstractChatStore import AbstractChatStore
 router = APIRouter(prefix="/agent/store", tags=["store"])
 
 
-class InitializeRequest(BaseModel):
-    threadId: str
-
-
 class PatchRequest(BaseModel):
     title: str | None = None
 
@@ -40,12 +36,11 @@ def list_threads(
 
 @router.post("")
 def initialize_thread(
-    req: InitializeRequest,
     user_email: str = Depends(get_user_email),
     store: AbstractChatStore = Depends(get_store),
 ):
-    """Adapter `initialize`: create (or no-op return) the client-provided thread id."""
-    remote_id = store.create_session(user_email, req.threadId)
+    """Adapter `initialize`: create a new session and return its remoteId."""
+    remote_id = store.create_session(user_email)
     return {"remoteId": remote_id, "externalId": None}
 
 

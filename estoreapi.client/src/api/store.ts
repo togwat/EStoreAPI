@@ -31,11 +31,10 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
 export const listChats = () =>
 	request<{ threads: ChatSummary[] }>(BASE);
 
-/** Adapter `initialize`: create (or no-op return) the client-provided thread id. */
-export const createChat = (threadId: string) =>
+/** Adapter `initialize`: create a new session server-side and return its remoteId. */
+export const createChat = () =>
 	request<{ remoteId: string; externalId: string | null }>(BASE, {
 		method: "POST",
-		body: JSON.stringify({ threadId }),
 	});
 
 /** Adapter `fetch`: one session's metadata. */

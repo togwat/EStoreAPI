@@ -280,8 +280,8 @@ const remoteThreadListAdapter: RemoteThreadListAdapter = {
             })),
         };
     },
-    async initialize(threadId) {
-        const { remoteId, externalId } = await createChat(threadId);
+    async initialize() {
+        const { remoteId, externalId } = await createChat();
         return { remoteId, externalId: externalId ?? undefined };
     },
     async rename(remoteId, newTitle) {
