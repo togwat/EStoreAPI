@@ -16,6 +16,7 @@ import {
   ToolGroupRoot,
   ToolGroupTrigger,
 } from "src/components/assistant-ui/tool-group";
+import { ChatHeader } from "src/components/assistant-ui/chat-header";
 import { ToolFallback } from "src/components/assistant-ui/tool-fallback";
 import { ToolConfirmation } from "src/components/assistant-ui/tool-confirmation";
 import { Sources } from "src/components/assistant-ui/sources";
@@ -62,6 +63,7 @@ export const Thread: FC = () => {
         ["--composer-padding" as string]: "10px",
       }}
     >
+      <ChatHeader />
       <ThreadPrimitive.Viewport
         turnAnchor="top"
         data-slot="aui_thread-viewport"

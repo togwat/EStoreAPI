@@ -29,7 +29,7 @@ const customer: Customer = {
     address: '',
 }
 
-const device: Device = { id: '1', name: 'iPhone 14', type: 'Smartphone' }
+const device: Device = { id: '1', name: 'iPhone 14', type: 'Smartphone', modelNumber: 'A2649' }
 
 describe('JobCard', () => {
     it('renders the customer name and device name', () => {
