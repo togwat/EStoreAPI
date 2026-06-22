@@ -22,6 +22,11 @@ export const ThreadList: FC = () => {
       <AuiIf condition={(s) => s.threads.isLoading}>
         <ThreadListSkeleton />
       </AuiIf>
+      <AuiIf condition={(s) => !s.threads.isLoading && s.threads.threadIds.length === 0}>
+        <div className="aui-thread-list-empty text-muted-foreground py-4 text-center text-sm">
+          No chat history
+        </div>
+      </AuiIf>
       <AuiIf condition={(s) => !s.threads.isLoading}>
         <ThreadListItems />
       </AuiIf>
