@@ -186,21 +186,21 @@ namespace EStoreAPI.Tests.APITests
         public async Task TestUpdateJob(int id, bool invalidProblems)
         {
             // arrange
-            var dto = _fixture.Build<InJobDTO>()
+            var dto = _fixture.Build<UpdateJobDTO>()
                                 .With(j => j.ProblemIds, invalidProblems ? new List<int>() : new List<int> { 1 })
                                 .Create();
 
             if (id == 1 && !invalidProblems)
             {
-                _service.Setup(s => s.UpdateJobAsync(id, dto)).Returns(Task.CompletedTask);
+                _service.Setup(s => s.UpdateJobAsync(dto)).Returns(Task.CompletedTask);
             }
             else if (id != 1)
             {
-                _service.Setup(s => s.UpdateJobAsync(id, dto)).ThrowsAsync(new KeyNotFoundException("Job not found."));
+                _service.Setup(s => s.UpdateJobAsync(dto)).ThrowsAsync(new KeyNotFoundException("Job not found."));
             }
             else
             {
-                _service.Setup(s => s.UpdateJobAsync(id, dto)).ThrowsAsync(new ValidationException());
+                _service.Setup(s => s.UpdateJobAsync(dto)).ThrowsAsync(new ValidationException());
             }
 
             // act

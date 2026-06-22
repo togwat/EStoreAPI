@@ -58,37 +58,31 @@ public class JobTools
         }
     }
 
-    [McpServerTool, Description("Update a repair job. Only provide the fields that need to change. Omitted fields keep their current values.")]
-    public async Task<OutJobDTO> UpdateJobAsync(
-        [Description("The ID of the job to update.")] int jobId,
-        [Description("Time the device was picked up by the customer.")] DateTime? pickupTime = null,
-        [Description("Updated estimated pickup time.")] DateTime? estimatedPickupTime = null,
-        [Description("Updated note.")] string? note = null,
-        [Description("Updated list of problem IDs. Replaces all current problems if provided.")] List<int>? problemIds = null,
-        [Description("Updated estimated price.")] decimal? estimatedPrice = null,
-        [Description("Updated collected price.")] decimal? collectedPrice = null,
-        [Description("Whether the job is finished.")] bool? isFinished = null)
+    [McpServerTool, Description("Update one or more existing repair jobs. Only provide the fields that need to change. Omitted fields keep their current values. Providing problemIds completely replaces that job's set of problems.")]
+    public async Task<ICollection<OutJobDTO>> UpdateJobsAsync(
+        [Description("The jobs to update. Each must include its JobId.")] ICollection<UpdateJobDTO> dtos)
     {
-        Job existing = await _service.GetJobAsync(jobId)
-            ?? throw new KeyNotFoundException($"Job {jobId} not found.");
-
-        InJobDTO dto = new()
+        try
         {
-            CustomerId = existing.CustomerId,
-            DeviceId = existing.DeviceId,
-            ReceiveTime = existing.ReceiveTime,
-            PickupTime = pickupTime ?? existing.PickupTime,
-            EstimatedPickupTime = estimatedPickupTime ?? existing.EstimatedPickupTime,
-            Note = note ?? existing.Note,
-            ProblemIds = problemIds ?? existing.Problems.Select(p => p.ProblemId).ToList(),
-            EstimatedPrice = estimatedPrice ?? existing.EstimatedPrice,
-            CollectedPrice = collectedPrice ?? existing.CollectedPrice,
-            IsFinished = isFinished ?? existing.IsFinished,
-        };
+            await _service.UpdateJobsAsync(dtos);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            throw new Exception($"Not found: {ex.Message}");
+        }
+        catch (ValidationException ex)
+        {
+            throw new Exception($"Validation failed: {ex.Message}");
+        }
 
-        await _service.UpdateJobAsync(jobId, dto);
-        Job updated = await _service.GetJobAsync(jobId)
-            ?? throw new Exception("Failed to retrieve updated job.");
-        return OutJobDTO.FromModel(updated);
+        // return the updated records
+        List<OutJobDTO> updated = new();
+        foreach (UpdateJobDTO dto in dtos)
+        {
+            Job job = await _service.GetJobAsync(dto.JobId)
+                ?? throw new Exception($"Failed to retrieve updated job {dto.JobId}.");
+            updated.Add(OutJobDTO.FromModel(job));
+        }
+        return updated;
     }
 }

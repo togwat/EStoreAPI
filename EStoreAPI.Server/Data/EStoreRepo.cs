@@ -86,34 +86,6 @@ namespace EStoreAPI.Server.Data
             return customerList;
         }
 
-        public async Task UpdateCustomerAsync(Customer customer)
-        {
-            Customer? customerToChange = await GetCustomerByIdAsync(customer.CustomerId);
-
-            if (customerToChange != null)
-            {
-                if (customer.CustomerName != null && customer.PhoneNumber != null)
-                {
-                    customerToChange.CustomerName = customer.CustomerName;
-                    customerToChange.PhoneNumber = customer.PhoneNumber;
-                }
-                else
-                {
-                    throw new ValidationException();
-                }
-                
-                customerToChange.PhoneNumberSecondary = customer.PhoneNumberSecondary;
-                customerToChange.Email = customer.Email;
-                customerToChange.Address = customer.Address;
-
-                await _dbContext.SaveChangesAsync();
-            }
-            else
-            {
-                throw new KeyNotFoundException("Customer not found.");
-            }
-        }
-
         // device operations
         public async Task<Device?> GetDeviceByIdAsync(int id)
         {
@@ -193,32 +165,6 @@ namespace EStoreAPI.Server.Data
             return devicesList;
         }
 
-        public async Task UpdateDeviceAsync(Device device)
-        {
-            Device? deviceToChange = await GetDeviceByIdAsync(device.DeviceId);
-
-            if (deviceToChange != null)
-            {
-                // check required fields not null
-                if (device.DeviceName != null && device.DeviceType != null)
-                {
-                    deviceToChange.DeviceName = device.DeviceName;
-                    deviceToChange.ModelNumber = device.ModelNumber;
-                    deviceToChange.DeviceType = device.DeviceType;
-                }
-                else
-                {
-                    throw new ValidationException();
-                }
-
-                await _dbContext.SaveChangesAsync();
-            }
-            else
-            {
-                throw new KeyNotFoundException("Device not found.");
-            }
-        }
-
         // problem operations
         public async Task<Problem?> GetProblemByIdAsync(int id)
         {
@@ -265,35 +211,6 @@ namespace EStoreAPI.Server.Data
             return problemList;
         }
 
-        public async Task UpdateProblemAsync(Problem problem)
-        {
-            Problem? problemToChange = await GetProblemByIdAsync(problem.ProblemId);
-
-            if (problemToChange != null)
-            {
-                problemToChange.ProblemName = problem.ProblemName;
-                problemToChange.Price = problem.Price;
-                problemToChange.LabourPrice = problem.LabourPrice;
-
-                // check device id
-                Device? device = await GetDeviceByIdAsync(problem.DeviceId);
-                if (device != null)
-                {
-                    problemToChange.DeviceId = problem.DeviceId;
-                    problemToChange.Device = device;
-                }
-                else
-                {
-                    throw new ValidationException();
-                }
-
-                await _dbContext.SaveChangesAsync();
-            }
-            else
-            {
-                throw new KeyNotFoundException("Problem not found.");
-            }
-        }
         public async Task UpdateDeviceProblemsAsync(ICollection<Problem> toDelete, ICollection<Problem> toUpdate, ICollection<Problem> toAdd)
         {
                 _dbContext.Problems.RemoveRange(toDelete);
@@ -414,41 +331,13 @@ namespace EStoreAPI.Server.Data
             await _dbContext.SaveChangesAsync();
             return jobList;
         }
-
-        public async Task UpdateJobAsync(Job job)
+    
+        public async Task ApplyUpdateAsync()
         {
-            // Include Problems so EF Core can diff the join table
-            Job? jobToChange = await _dbContext.Jobs
-                .Include(j => j.Problems)
-                .FirstOrDefaultAsync(j => j.JobId == job.JobId);
-
-            if (jobToChange != null)
-            {
-                jobToChange.PickupTime = job.PickupTime;
-                jobToChange.EstimatedPickupTime = job.EstimatedPickupTime;
-                jobToChange.Note = job.Note;
-                // update problems
-                if (job.Problems.Count >= 1)
-                {
-                    jobToChange.Problems.Clear();
-                    foreach (var p in job.Problems)
-                        jobToChange.Problems.Add(p);
-                }
-                else
-                {
-                    throw new ValidationException();
-                }
-
-                jobToChange.EstimatedPrice = job.EstimatedPrice;
-                jobToChange.CollectedPrice = job.CollectedPrice;
-                jobToChange.IsFinished = job.IsFinished;
-
-                await _dbContext.SaveChangesAsync();
-            }
-            else
-            {
-                throw new KeyNotFoundException("Job not found.");
-            }
+            // use for any update only operations that mutate an object directly
+            // object must be retrieved from the repo for EF-core to work
+            // validation must happen at the service layer
+            await _dbContext.SaveChangesAsync();
         }
     }
 }

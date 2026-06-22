@@ -69,14 +69,34 @@ namespace EStoreAPI.Server.Services
             return await _repo.AddDevicesAsync(devices);
         }
 
-        public async Task UpdateDeviceAsync(int id, InDeviceDTO dto)
+        public async Task UpdateDeviceAsync(UpdateDeviceDTO dto)
         {
-            Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true); 
-            
-            Device device = dto.ToModel();
-            device.DeviceId = id;
+            await MergeDeviceAsync(dto);
+            await _repo.ApplyUpdateAsync();
+        }
 
-            await _repo.UpdateDeviceAsync(device);
+        public async Task UpdateDevicesAsync(ICollection<UpdateDeviceDTO> dtos)
+        {
+            foreach (UpdateDeviceDTO dto in dtos)
+            {
+                await MergeDeviceAsync(dto);
+            }
+
+            await _repo.ApplyUpdateAsync();
+        }
+
+        // Validate, load, and apply the partial merge onto the tracked entity
+        private async Task MergeDeviceAsync(UpdateDeviceDTO dto)
+        {
+            Validator.ValidateObject(dto, new ValidationContext(dto), validateAllProperties: true);
+            
+            Device existing = await _repo.GetDeviceByIdAsync(dto.DeviceId)
+            ?? throw new KeyNotFoundException($"Device {dto.DeviceId} not found.");
+            
+            // merge
+            existing.DeviceName = dto.DeviceName ?? existing.DeviceName;
+            existing.ModelNumber = dto.ModelNumber ?? existing.ModelNumber;
+            existing.DeviceType = dto.DeviceType?.ToLower() ?? existing.DeviceType;
         }
     }
 }

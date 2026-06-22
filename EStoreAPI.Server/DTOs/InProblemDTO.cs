@@ -6,6 +6,7 @@ namespace EStoreAPI.Server.DTOs
 {
     public class InProblemDTO
     {
+        // id for UpdateDeviceProblemsAsync
         [Description("Problem ID. Only required when updating an existing problem.")]
         public int? ProblemId { get; set; }
 

@@ -75,11 +75,12 @@ namespace EStoreAPI.Server.Controllers
 
         // PUT: api/Customers/update/{id}
         [HttpPut("update/{id}")]
-        public async Task<ActionResult> UpdateCustomerAsync(int id, InCustomerDTO dto)
+        public async Task<ActionResult> UpdateCustomerAsync(int id, UpdateCustomerDTO dto)
         {
             try
             {
-                await _service.UpdateCustomerAsync(id, dto);
+                dto.CustomerId = id;
+                await _service.UpdateCustomerAsync(dto);
                 return NoContent();
             }
             // customer not found
