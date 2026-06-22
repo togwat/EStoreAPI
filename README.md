@@ -26,11 +26,13 @@ E-Store Management Console is a web application that facilitates the data manage
 ## Deploying the application
 **Requirements:**
 - Docker engine
+
 For development:
 - Python 3.14 or above
 - Node.js (npm)
 - PostgreSQL + pgvector extension if using memory
 - `ASP.NET` 10.0
+
 Optional:
 - Ollama (if using OllamaProvider)
 
