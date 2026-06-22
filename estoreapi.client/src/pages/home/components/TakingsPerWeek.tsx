@@ -130,7 +130,8 @@ export default function TakingsPerWeek() {
                                     x={props.x}
                                     y={Number(props.y) - 10}
                                     textAnchor="end"
-                                    className="text-xs font-medium font-mono text-foreground"
+                                    className="text-xs font-medium font-mono"
+                                    fill="var(--foreground)"
                                 >
                                     {formatPrice(Number(props.value))}
                                 </text>
