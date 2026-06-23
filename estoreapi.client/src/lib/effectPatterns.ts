@@ -38,6 +38,15 @@ interface FallingParticle {
     wobble: number,  // drift amplitude
 }
 
+interface TwinklingParticle {
+    x: number,  // starting x pos
+    y: number,  // starting y pos
+    vx: number, // x speed
+    vy: number, // y speed
+    size: number,   // particle size (radius)
+    phase: number,  // twinkle starting phase (brightening & dimming)
+}
+
 /** Patterns */
 
 function makeLeaf(width: number): FallingParticle {
@@ -187,4 +196,84 @@ export function CreateFallingPetals(): PatternEffect<FallingParticle> {
     }
 
     return { seed, frame };
+}
+
+function makeStar(width: number, height: number): TwinklingParticle {
+    return {
+        // spawn point: anywhere on the screen
+        x:  Math.random() * width,
+        y:  Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.15,
+        vy: (Math.random() - 0.5) * 0.15,
+        size: 1.6 + Math.random() * 1.6,
+        phase: Math.random() * Math.PI * 2, // twinkle starts between least & full brightness
+    }
+}
+
+export function CreateNetworkPattern(): PatternEffect<TwinklingParticle> {
+    const STAR_COUNT = 50;
+    const CONNECT_DISTANCE = 120;
+
+    function seed(width: number, height: number): TwinklingParticle[] {
+        const stars: TwinklingParticle[] = [];
+        for (let i = 0; i < STAR_COUNT; i++) {
+            stars.push(makeStar(width, height));
+        }
+        return stars;
+    }
+
+    function frame(
+        ctx: CanvasRenderingContext2D,
+        particles: TwinklingParticle[],
+        { width, height, colour, t }: FrameContext,
+    ) {
+        for (const p of particles) {
+            // move particles
+            p.x += p.vx;
+            p.y += p.vy;
+            // screen wrapping
+            if (p.x < 0) p.x = width;
+            if (p.x > width) p.x = 0;
+            if (p.y < 0) p.y = height;
+            if (p.y > height) p.y = 0;
+        }
+
+        // draw connection lines
+        ctx.strokeStyle = colour;
+        ctx.lineWidth = 1;
+        // O(n^2) match every star
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                // get distance between each star
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                // draw a line if distance is closer than CONNECT_DISTANCE
+                if (distance < CONNECT_DISTANCE) {
+                    // have line get stronger if stars are closer
+                    ctx.globalAlpha = (1 - distance / CONNECT_DISTANCE) * 0.15;
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // draw the stars
+        ctx.fillStyle = colour;
+        for (const p of particles) {
+            // twinkle brightness oscillator between 0 and 1
+            const twinkle = 0.5 + 0.5 * Math.sin(t * 2 + p.phase);
+            // twinkle strength between 100% alpha and 50% alpha
+            ctx.globalAlpha = 0.5 + twinkle * 0.5;
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    return { seed, frame }
 }
