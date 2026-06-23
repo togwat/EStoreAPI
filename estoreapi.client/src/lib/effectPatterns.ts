@@ -93,7 +93,7 @@ export function CreateFallingLeaves(): PatternEffect<FallingParticle> {
         for (let i = 0; i < count; i++) {
             const l = makeLeaf(width);
             // initial spread
-            l.y = Math.random() * innerHeight;
+            l.y = Math.random() * height;
             leaves.push(l);
         }
         return leaves;
