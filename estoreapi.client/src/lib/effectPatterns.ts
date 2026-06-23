@@ -50,6 +50,16 @@ interface TwinklingParticle {
     phase: number,  // twinkle starting phase (brightening & dimming)
 }
 
+interface SpinningCube {
+    x: number,      // screen position (stationary)
+    y: number,
+    size: number,   // cube half-extent
+    ax: number,     // rotation angle around the X axis
+    ay: number,     // rotation angle around the Y axis
+    vax: number,    // angular velocity around X
+    vay: number,    // angular velocity around Y
+}
+
 // Particle count scaled to canvas area, so density stays constant across screen sizes. 
 // areaPerParticle = 2,073,600 / desired number of particles at 1080p
 function particleDensityCount(width: number, height: number, areaPerParticle: number, max: number, min = 0): number {
@@ -289,5 +299,89 @@ export function CreateNetworkPattern(): PatternEffect<TwinklingParticle> {
     }
     
     // reseed stars on resize
+    return { seed, frame, onResize: (_particles, width, height) => seed(width, height) }
+}
+
+function makeCube(width: number, height: number): SpinningCube {
+    return {
+        // stationary: placed once on spawn, never moves
+        x: Math.random() * width,
+        y: Math.random() * height,
+        size: 10 + Math.random() * 10,
+        ax: Math.random() * Math.PI * 2,    // random start orientation
+        ay: Math.random() * Math.PI * 2,
+        vax: (Math.random() - 0.5) * 0.02,  // slow spin, either direction
+        vay: (Math.random() - 0.5) * 0.02,
+    }
+}
+
+export function CreateSpinningCubes(): PatternEffect<SpinningCube> {
+    const FOV = 8; // perspective depth: higher = flatter, lower = stronger 3D
+
+    // unit cube: 8 corners and the 12 edges that connect them
+    const CUBE_VERTS: [number, number, number][] = [
+        [-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1], // front face (z = -1)
+        [-1, -1,  1], [1, -1,  1], [1, 1,  1], [-1, 1,  1], // back face  (z = +1)
+    ];
+
+    const CUBE_EDGES: [number, number][] = [
+        [0, 1], [1, 2], [2, 3], [3, 0], // front square
+        [4, 5], [5, 6], [6, 7], [7, 4], // back square
+        [0, 4], [1, 5], [2, 6], [3, 7], // connectors
+    ];
+
+
+    function seed(width: number, height: number): SpinningCube[] {
+        const cubes: SpinningCube[] = [];
+        // around 24 cubes on 1080p
+        const count = particleDensityCount(width, height, 86400, 48, 6);
+        for (let i = 0; i < count; i++) {
+            cubes.push(makeCube(width, height));
+        }
+        return cubes;
+    }
+
+    function frame(
+        ctx: CanvasRenderingContext2D,
+        particles: SpinningCube[],
+        { colour, sizeMultiplier, dt }: FrameContext,
+    ) {
+        for (const p of particles) {
+            // spin in place around two axes
+            p.ax += p.vax * dt;
+            p.ay += p.vay * dt;
+
+            const cosx = Math.cos(p.ax), sinx = Math.sin(p.ax);
+            const cosy = Math.cos(p.ay), siny = Math.sin(p.ay);
+            const s = p.size * sizeMultiplier;
+
+            // rotate each vertex (X then Y) and project 3D -> 2D
+            const pts = CUBE_VERTS.map(([vx, vy, vz]) => {
+                const y = vy * cosx - vz * sinx;    // rotate around X
+                let z   = vy * sinx + vz * cosx;
+                const x = vx * cosy + z * siny;     // rotate around Y
+                z       = -vx * siny + z * cosy;
+                const scale = FOV / (FOV + z);      // perspective: nearer (smaller z) = larger
+                return [x * s * scale, y * s * scale] as const;
+            });
+
+            ctx.save();
+            ctx.translate(p.x, p.y); // set cube position
+
+            // draw cubes
+            ctx.globalAlpha = 0.75;
+            ctx.strokeStyle = colour;
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            for (const [a, b] of CUBE_EDGES) {
+                ctx.moveTo(pts[a][0], pts[a][1]);
+                ctx.lineTo(pts[b][0], pts[b][1]);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+    }
+
+    // reseed on resize: positions are area-dependent and the cubes never move otherwise
     return { seed, frame, onResize: (_particles, width, height) => seed(width, height) }
 }
