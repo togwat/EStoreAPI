@@ -8,7 +8,8 @@ import { useState } from 'react';
 const themeLabels: Record<ThemeName, string> = {
     "rustic-leather": "Rustic Leather",
     "generic-dark": "Generic Dark",
-    "generic-light": "Generic Light"
+    "generic-light": "Generic Light",
+    "sakura-light": "Sakura Light",
 }
 
 export default function SettingsPage({ title }: { title: string }) {

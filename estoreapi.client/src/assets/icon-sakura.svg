@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="166" viewBox="0 0 192 166">
+  <!-- 5-point outer orange pentagon (no inner "E") -->
+  <polygon points="0,72 78,0 192,10 167,155 40,166" fill="#e67597"/>
+
+  <!-- White E inside polygon-->
+  <g transform="translate(47,33) scale(1.05)">
+    <!-- E vertical component -->
+    <path fill="#f2f1ee" d="
+      M 24 0
+      L 24 104
+      A 24 24 0 0 1 0 80
+      L 0 24
+      A 24 24 0 0 1 24 0
+      Z
+    "/>
+    
+    <!-- E horizontal component 1 -->
+    <path fill="#f2f1ee" d="
+      M 23 0
+      L 108 0
+      A 24 24 0 0 1 84 24
+      L 0 24
+      Z
+    "/>
+
+    <!-- E horizontal component 2 -->
+    <path fill="#f2f1ee" d="
+      M 0 40
+      L 100 40
+      A 24 24 0 0 1 76 64
+      L 0 64
+      Z
+    "/>
+    
+    <!-- E horizontal component 3 -->
+    <path fill="#f2f1ee" d="
+      M 0 80
+      L 108 80
+      A 24 24 0 0 1 84 104
+      L 23 104
+      Z
+    "/>
+  </g>
+</svg>

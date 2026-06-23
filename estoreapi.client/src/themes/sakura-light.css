@@ -1,0 +1,38 @@
+[data-theme="sakura-light"] {
+  /* page + ink */
+  --background: #f2f1ee;
+  --foreground: #1c1917;
+
+  /* cards / surfaces */
+  --card: #f9f9f7;
+  --card-foreground: #1c1917;
+  --popover: #f9f9f7;
+  --popover-foreground: #1c1917;
+  --surface-alt: #f9f9f7;
+
+  /* primary */
+  --primary: #e67597;
+  --primary-foreground: #ffffff;
+
+  /* secondary / muted */
+  --secondary: #f9f9f7;
+  --secondary-foreground: #1c1917;
+  --muted: #f9f9f7;
+  --muted-foreground: #6b6862;
+
+  /* accent */
+  --accent: rgba(224, 83, 125, 0.12);
+  --accent-foreground: #b34264;
+
+  /* destructive */
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  /* borders / inputs / focus rings */
+  --border: #ddd9d4;
+  --border-strong: #c9c3bb;
+  --input: #f9f9f7;
+  --ring: #e67597;
+
+  --radius: 0.625rem;
+}
