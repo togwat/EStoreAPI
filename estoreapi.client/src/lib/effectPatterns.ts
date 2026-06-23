@@ -24,20 +24,9 @@ export interface PatternEffect<TParticle = unknown> {
 // for theme mapping
 export type EffectFactory = () => PatternEffect;
 
-/** Autumn leaves */
+/** Particles */
 
-export function CreateFallingLeaves(): PatternEffect {
-    // TODO:
-    // straight falling leaves with some drift, heavier than petals
-    return {
-        seed: () => [],
-        frame: () => {},
-    };
-}
-
-/** Sakura petals */
-
-interface Petal {
+interface FallingParticle {
     x: number,  // starting x pos
     y: number,  // starting y pos
     size: number,   // particle size
@@ -49,7 +38,80 @@ interface Petal {
     wobble: number,  // drift amplitude
 }
 
-function makePetal(width: number, height: number, fallAngle: number): Petal {
+/** Patterns */
+
+function makeLeaf(width: number): FallingParticle {
+    return {
+        // spawn point: top of the page
+        x: Math.random() * width,
+        y: -10 - Math.random() * 40,
+        size: 12 + Math.random() * 8,
+        rot: Math.random() * Math.PI * 2,   // start angle between 0 and 2π
+        vr: (Math.random() - 0.5) * 0.03,
+        vy: 0.2 + Math.random() * 0.4,
+        drift: Math.random() * Math.PI * 2, // drift starts between 0 and 2π
+        driftSpeed: 0.004 + Math.random() * 0.01,
+        wobble: 0.2 + Math.random() * 0.2,
+    }
+}
+
+export function CreateFallingLeaves(): PatternEffect<FallingParticle> {
+    const LEAF_COUNT = 24;
+
+    function seed(width: number): FallingParticle[] {
+        const leaves: FallingParticle[] = [];
+        for (let i = 0; i < LEAF_COUNT; i++) {
+            const l = makeLeaf(width);
+            // initial spread
+            l.y = Math.random() * innerHeight;
+            leaves.push(l);
+        }
+        return leaves;
+    }
+
+    function frame(
+        ctx: CanvasRenderingContext2D,
+        particles: FallingParticle[],
+        { width, height, colour, sizeMultiplier }: FrameContext,
+    ) {
+        for (const p of particles) {
+            p.y += p.vy;             // fall: add fall speed to vertical position
+            p.rot += p.vr;           // spin: add spin speed to current angle
+            p.drift += p.driftSpeed; // advance the drift phase for this frame
+            p.x += Math.sin(p.drift) * p.wobble;    // horizontal movement = drift
+
+            // recycle once off the bottom edge
+            if (p.y > height + 15) Object.assign(p, makeLeaf(width));
+
+            const s = p.size * sizeMultiplier; // final draw size
+            ctx.save();
+            ctx.translate(p.x, p.y); // move the origin to the leaf's position
+            ctx.rotate(p.rot);       // rotate the canvas to the leaf's current angle
+            ctx.fillStyle = colour;
+
+            // draw leaf
+            ctx.globalAlpha = 0.4;
+            ctx.beginPath();
+            // one lobe = a narrow, long ellipse fanned out from the base with angle
+            const lobe = (angle: number) => {
+                const cx = Math.sin(angle) * s * 0.5;
+                const cy = -Math.cos(angle) * s * 0.5;
+                ctx.ellipse(cx, cy, s * 0.22, s * 0.55, angle, 0, Math.PI * 2);
+            };
+            ctx.beginPath();
+            lobe(-Math.PI / 4); // left lobe, 45 deg
+            lobe(0);            // centre lobe, straight up
+            lobe(Math.PI / 4);  // right lobe, 45 deg mirrored
+            ctx.fill();
+
+            ctx.restore();
+        }
+    }
+
+    return { seed, frame };
+}
+
+function makePetal(width: number, height: number, fallAngle: number): FallingParticle {
   // Petals drift right as they fall, so they spawn through the top and left edges
   // get proportional share of left vs top spawns
   const leftInflow = height * Math.tan(fallAngle);
@@ -70,12 +132,12 @@ function makePetal(width: number, height: number, fallAngle: number): Petal {
   };
 }
 
-export function CreateFallingPetals(): PatternEffect<Petal> {
+export function CreateFallingPetals(): PatternEffect<FallingParticle> {
     const PETAL_COUNT = 32;
     const fallAngle = Math.PI / 4; // (π/4 = 45 deg toward the right)
 
-    function seed(width: number, height: number): Petal[] {
-        const petals: Petal[] = [];
+    function seed(width: number, height: number): FallingParticle[] {
+        const petals: FallingParticle[] = [];
         for (let i = 0; i < PETAL_COUNT; i++) {
             const p = makePetal(width, height, fallAngle);
             // override spawn: spread across full width/height on first paint
@@ -89,7 +151,7 @@ export function CreateFallingPetals(): PatternEffect<Petal> {
 
     function frame(
         ctx: CanvasRenderingContext2D,
-        particles: Petal[],
+        particles: FallingParticle[],
         { width, height, colour, sizeMultiplier }: FrameContext,
     ) {
         for (const p of particles) {
@@ -119,6 +181,7 @@ export function CreateFallingPetals(): PatternEffect<Petal> {
             // lobe 2 mirror
             ctx.ellipse(s * 0.2, 0, s * 0.6, s * 0.3, -0.3, 0, Math.PI * 2);
             ctx.fill();
+
             ctx.restore();
         }
     }
