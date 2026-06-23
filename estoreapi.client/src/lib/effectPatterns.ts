@@ -6,6 +6,9 @@ export interface FrameContext {
   sizeMultiplier: number;
   /** Monotonically increasing time accumulator (~0.01/frame), for things like twinkle. */
   t: number;
+  /** Delta-time multiplier
+   * Multiply every per-frame motion step by this so motion speed is frame-rate independent. */
+  dt: number;
 }
 
 export interface PatternEffect<TParticle = unknown> {
@@ -65,7 +68,7 @@ function makeLeaf(width: number): FallingParticle {
         size: 12 + Math.random() * 8,
         rot: Math.random() * Math.PI * 2,   // start angle between 0 and 2π
         vr: (Math.random() - 0.5) * 0.03,
-        vy: 0.2 + Math.random() * 0.4,
+        vy: 0.3 + Math.random() * 0.6,
         drift: Math.random() * Math.PI * 2, // drift starts between 0 and 2π
         driftSpeed: 0.004 + Math.random() * 0.01,
         wobble: 0.2 + Math.random() * 0.2,
@@ -89,13 +92,13 @@ export function CreateFallingLeaves(): PatternEffect<FallingParticle> {
     function frame(
         ctx: CanvasRenderingContext2D,
         particles: FallingParticle[],
-        { width, height, colour, sizeMultiplier }: FrameContext,
+        { width, height, colour, sizeMultiplier, dt }: FrameContext,
     ) {
         for (const p of particles) {
-            p.y += p.vy;             // fall: add fall speed to vertical position
-            p.rot += p.vr;           // spin: add spin speed to current angle
-            p.drift += p.driftSpeed; // advance the drift phase for this frame
-            p.x += Math.sin(p.drift) * p.wobble;    // horizontal movement = drift
+            p.y += p.vy * dt;             // fall: add fall speed to vertical position
+            p.rot += p.vr * dt;           // spin: add spin speed to current angle
+            p.drift += p.driftSpeed * dt; // advance the drift phase for this frame
+            p.x += Math.sin(p.drift) * p.wobble * dt;    // horizontal movement = drift
 
             // recycle once off the bottom edge
             if (p.y > height + 15) Object.assign(p, makeLeaf(width));
@@ -142,7 +145,7 @@ function makePetal(width: number, height: number, fallAngle: number): FallingPar
     size: 8 + Math.random() * 8,
     rot: Math.random() * Math.PI * 2,   // start angle between 0 and 2π
     vr: (Math.random() - 0.5) * 0.03,
-    vy: 0.3 + Math.random() * 0.6,
+    vy: 0.4 + Math.random() * 0.8,
     drift: Math.random() * Math.PI * 2, // drift starts between 0 and 2π
     driftSpeed: 0.005 + Math.random() * 0.01,
     wobble: 0.2 + Math.random() * 0.4,
@@ -170,14 +173,14 @@ export function CreateFallingPetals(): PatternEffect<FallingParticle> {
     function frame(
         ctx: CanvasRenderingContext2D,
         particles: FallingParticle[],
-        { width, height, colour, sizeMultiplier }: FrameContext,
+        { width, height, colour, sizeMultiplier, dt }: FrameContext,
     ) {
         for (const p of particles) {
-            p.y += p.vy;             // fall: add fall speed to vertical position
-            p.rot += p.vr;           // spin: add spin speed to current angle
-            p.drift += p.driftSpeed; // advance the drift phase for this frame
+            p.y += p.vy * dt;             // fall: add fall speed to vertical position
+            p.rot += p.vr * dt;           // spin: add spin speed to current angle
+            p.drift += p.driftSpeed * dt; // advance the drift phase for this frame
             // horizontal movement = the fall angle applied to this petal's fall speed + drift
-            p.x += p.vy * Math.tan(fallAngle) + Math.sin(p.drift) * p.wobble;
+            p.x += (p.vy * Math.tan(fallAngle) + Math.sin(p.drift) * p.wobble) * dt;
 
             // recycle once off the bottom or right edge (+16px offscreen margin)
             if (p.y > height + 16 || p.x > width + 16) Object.assign(p, makePetal(width, height, fallAngle));
@@ -212,8 +215,8 @@ function makeStar(width: number, height: number): TwinklingParticle {
         // spawn point: anywhere on the screen
         x:  Math.random() * width,
         y:  Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.15,
-        vy: (Math.random() - 0.5) * 0.15,
+        vx: (Math.random() - 0.5) * 0.25,
+        vy: (Math.random() - 0.5) * 0.25,
         size: 1.6 + Math.random() * 1.6,
         phase: Math.random() * Math.PI * 2, // twinkle starts between least & full brightness
     }
@@ -235,12 +238,12 @@ export function CreateNetworkPattern(): PatternEffect<TwinklingParticle> {
     function frame(
         ctx: CanvasRenderingContext2D,
         particles: TwinklingParticle[],
-        { width, height, colour, t }: FrameContext,
+        { width, height, colour, t, dt }: FrameContext,
     ) {
         for (const p of particles) {
             // move particles
-            p.x += p.vx;
-            p.y += p.vy;
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
             // screen wrapping
             if (p.x < 0) p.x = width;
             if (p.x > width) p.x = 0;
