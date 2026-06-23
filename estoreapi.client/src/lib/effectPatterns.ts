@@ -47,6 +47,14 @@ interface TwinklingParticle {
     phase: number,  // twinkle starting phase (brightening & dimming)
 }
 
+// Particle count scaled to canvas area, so density stays constant across screen sizes. 
+// areaPerParticle = 2,073,600 / desired number of particles at 1080p
+function particleDensityCount(width: number, height: number, areaPerParticle: number, max: number, min = 0): number {
+    // one particle per areaPerParticle px^2
+    const particles = Math.round((width * height) / areaPerParticle); 
+    return Math.max(min, Math.min(max, particles));
+}
+
 /** Patterns */
 
 function makeLeaf(width: number): FallingParticle {
@@ -65,11 +73,11 @@ function makeLeaf(width: number): FallingParticle {
 }
 
 export function CreateFallingLeaves(): PatternEffect<FallingParticle> {
-    const LEAF_COUNT = 24;
-
-    function seed(width: number): FallingParticle[] {
+    function seed(width: number, height: number): FallingParticle[] {
         const leaves: FallingParticle[] = [];
-        for (let i = 0; i < LEAF_COUNT; i++) {
+        // around 32 leaves on 1080p
+        const count = particleDensityCount(width, height, 64800, 64, 8);
+        for (let i = 0; i < count; i++) {
             const l = makeLeaf(width);
             // initial spread
             l.y = Math.random() * innerHeight;
@@ -142,12 +150,13 @@ function makePetal(width: number, height: number, fallAngle: number): FallingPar
 }
 
 export function CreateFallingPetals(): PatternEffect<FallingParticle> {
-    const PETAL_COUNT = 32;
     const fallAngle = Math.PI / 4; // (π/4 = 45 deg toward the right)
 
     function seed(width: number, height: number): FallingParticle[] {
         const petals: FallingParticle[] = [];
-        for (let i = 0; i < PETAL_COUNT; i++) {
+        // around 48 petals on 1080p
+        const count = particleDensityCount(width, height, 43200, 96, 12);
+        for (let i = 0; i < count; i++) {
             const p = makePetal(width, height, fallAngle);
             // override spawn: spread across full width/height on first paint
             p.x = Math.random() * width;
@@ -212,19 +221,11 @@ function makeStar(width: number, height: number): TwinklingParticle {
 
 export function CreateNetworkPattern(): PatternEffect<TwinklingParticle> {
     const CONNECT_DISTANCE = 120;
-    // one star per AREA_PER_STAR px^2, 
-    // around 50 stars on 1080p
-    const AREA_PER_STAR = 18000;
-    const MAX_STARS = 100;
-
-    function starCount(width: number, height: number): number {
-        const stars = Math.round((width * height) / AREA_PER_STAR); // scale count with canvas area
-        return Math.min(MAX_STARS, stars);
-    }
 
     function seed(width: number, height: number): TwinklingParticle[] {
         const stars: TwinklingParticle[] = [];
-        const count = starCount(width, height);
+        // around 80 stars on 1080p
+        const count = particleDensityCount(width, height, 25920, 160, 20);
         for (let i = 0; i < count; i++) {
             stars.push(makeStar(width, height));
         }
