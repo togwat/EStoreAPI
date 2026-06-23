@@ -211,12 +211,21 @@ function makeStar(width: number, height: number): TwinklingParticle {
 }
 
 export function CreateNetworkPattern(): PatternEffect<TwinklingParticle> {
-    const STAR_COUNT = 50;
     const CONNECT_DISTANCE = 120;
+    // one star per AREA_PER_STAR px^2, 
+    // around 50 stars on 1080p
+    const AREA_PER_STAR = 18000;
+    const MAX_STARS = 100;
+
+    function starCount(width: number, height: number): number {
+        const stars = Math.round((width * height) / AREA_PER_STAR); // scale count with canvas area
+        return Math.min(MAX_STARS, stars);
+    }
 
     function seed(width: number, height: number): TwinklingParticle[] {
         const stars: TwinklingParticle[] = [];
-        for (let i = 0; i < STAR_COUNT; i++) {
+        const count = starCount(width, height);
+        for (let i = 0; i < count; i++) {
             stars.push(makeStar(width, height));
         }
         return stars;
@@ -274,6 +283,7 @@ export function CreateNetworkPattern(): PatternEffect<TwinklingParticle> {
             ctx.fill();
         }
     }
-
-    return { seed, frame }
+    
+    // reseed stars on resize
+    return { seed, frame, onResize: (_particles, width, height) => seed(width, height) }
 }
