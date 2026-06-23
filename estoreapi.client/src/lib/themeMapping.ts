@@ -7,6 +7,7 @@ import EStoreGLIcon from '../assets/icon-gl.svg';
 import EStoreSakuraFull from '../assets/E-Store-sakura.svg';
 import EStoreSakuraIcon from '../assets/icon-sakura.svg';
 import type { ThemeName } from './theme';
+import { EffectFactory, CreateFallingLeaves, CreateFallingPetals } from './effectPatterns';
 
 // Add an entry here whenever a new theme is introduced.
 export const themeLogos: Record<ThemeName, string> = {
@@ -23,3 +24,9 @@ export const themeIcons: Record<ThemeName, string> = {
     'sakura-light': EStoreSakuraIcon,
 }
 
+export const themeEffectBackgrounds: Record<ThemeName, EffectFactory> = {
+    'rustic-leather': CreateFallingLeaves,
+    'generic-dark': CreateFallingLeaves,
+    'generic-light': CreateFallingLeaves,
+    'sakura-light': CreateFallingPetals,
+}
