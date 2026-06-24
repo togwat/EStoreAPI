@@ -268,5 +268,57 @@ namespace EStoreAPI.Tests.APITests
                 Assert.Equal("Customer not found.", notFoundResult.Value);
             }
         }
+
+        // POST: api/Jobs/create — a warranty parent not found surfaces as 400 with the service message
+        [Fact]
+        public async Task TestCreateJob_WarrantyParentNotFound_ReturnsBadRequest()
+        {
+            var dto = _fixture.Build<InJobDTO>()
+                                .With(j => j.CustomerId, 1)
+                                .With(j => j.DeviceId, 1)
+                                .With(j => j.ProblemIds, new List<int> { 1 })
+                                .With(j => j.WarrantyOfJobId, (int?)999)
+                                .Create();
+            _service.Setup(s => s.CreateJobAsync(dto))
+                    .ThrowsAsync(new KeyNotFoundException("Job 999 not found when linking for warranty."));
+
+            var result = await _controller.CreateJobAsync(dto);
+
+            var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);   // 400 with message
+            Assert.Contains("warranty", badRequest.Value!.ToString());
+        }
+
+        // PUT: api/Jobs/update/{id} — a warranty parent not found surfaces as 404 with the service message
+        [Fact]
+        public async Task TestUpdateJob_WarrantyParentNotFound_ReturnsNotFound()
+        {
+            var dto = _fixture.Build<UpdateJobDTO>()
+                                .Without(j => j.ProblemIds)
+                                .With(j => j.WarrantyOfJobId, (int?)999)
+                                .Create();
+            _service.Setup(s => s.UpdateJobAsync(It.IsAny<UpdateJobDTO>()))
+                    .ThrowsAsync(new KeyNotFoundException("Job 999 not found when linking for warranty."));
+
+            var result = await _controller.UpdateJobAsync(1, dto);
+
+            var notFound = Assert.IsType<NotFoundObjectResult>(result);  // 404 with message
+            Assert.Contains("warranty", notFound.Value!.ToString());
+        }
+
+        // PUT: api/Jobs/update/{id} — a self-link rejected by the service surfaces as 400
+        [Fact]
+        public async Task TestUpdateJob_SelfLink_ReturnsBadRequest()
+        {
+            var dto = _fixture.Build<UpdateJobDTO>()
+                                .Without(j => j.ProblemIds)
+                                .With(j => j.WarrantyOfJobId, (int?)1)
+                                .Create();
+            _service.Setup(s => s.UpdateJobAsync(It.IsAny<UpdateJobDTO>()))
+                    .ThrowsAsync(new ValidationException("A job cannot link itself as warranty."));
+
+            var result = await _controller.UpdateJobAsync(1, dto);
+
+            Assert.IsType<BadRequestResult>(result);    // 400 (ValidationException -> BadRequest, no body)
+        }
     }
 }

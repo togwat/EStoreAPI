@@ -6,6 +6,7 @@ using EStoreAPI.Server.Models;
 using EStoreAPI.Server.Services;
 using EStoreAPI.Tests.APITests;
 using Moq;
+using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Tests.ServiceTests
 {
@@ -293,6 +294,155 @@ namespace EStoreAPI.Tests.ServiceTests
             Assert.Equal("second note", second.Note);
             Assert.Equal(secondOriginalFinished, second.IsFinished);
             _repo.Verify(r => r.ApplyUpdateAsync(), Times.AtLeastOnce);
+        }
+
+        // --- Warranty linking ---
+
+        // creating a warranty job validates the parent exists and carries the link onto the saved job
+        [Fact]
+        public async Task CreateJob_WithExistingWarrantyParent_PersistsLink()
+        {
+            var problems = _fixture.CreateMany<Problem>(2).ToList();
+            var parent = _fixture.Build<Job>().With(j => j.JobId, 50).Create();
+            var created = _fixture.Create<Job>();
+            var dto = _fixture.Build<InJobDTO>()
+                .With(d => d.ProblemIds, problems.Select(p => p.ProblemId).ToList())
+                .With(d => d.WarrantyOfJobId, (int?)50)
+                .Create();
+            _repo.Setup(r => r.GetProblemsByIdsAsync(It.IsAny<ICollection<int>>())).ReturnsAsync(problems);
+            _repo.Setup(r => r.GetJobByIdAsync(50)).ReturnsAsync(parent);
+
+            // capture the job handed to the repo so we can assert the link survived ToModel
+            Job? saved = null;
+            _repo.Setup(r => r.AddJobAsync(It.IsAny<Job>()))
+                .Callback<Job>(j => saved = j)
+                .ReturnsAsync(created);
+
+            await _jobService.CreateJobAsync(dto);
+
+            Assert.Equal(50, saved!.WarrantyOfJobId);
+            _repo.Verify(r => r.GetJobByIdAsync(50), Times.Once);
+        }
+
+        // a warranty link to a non-existent parent is rejected and nothing is persisted
+        [Fact]
+        public async Task CreateJob_WarrantyParentNotFound_ThrowsAndPersistsNothing()
+        {
+            var problems = _fixture.CreateMany<Problem>(2).ToList();
+            var dto = _fixture.Build<InJobDTO>()
+                .With(d => d.ProblemIds, problems.Select(p => p.ProblemId).ToList())
+                .With(d => d.WarrantyOfJobId, (int?)999)
+                .Create();
+            _repo.Setup(r => r.GetProblemsByIdsAsync(It.IsAny<ICollection<int>>())).ReturnsAsync(problems);
+            _repo.Setup(r => r.GetJobByIdAsync(999)).ReturnsAsync((Job?)null);
+
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _jobService.CreateJobAsync(dto));
+            _repo.Verify(r => r.AddJobAsync(It.IsAny<Job>()), Times.Never);
+        }
+
+        // omitting the warranty id creates an ordinary job with no link and no parent lookup
+        [Fact]
+        public async Task CreateJob_NoWarrantyId_DoesNotLinkOrValidate()
+        {
+            var problems = _fixture.CreateMany<Problem>(2).ToList();
+            var created = _fixture.Create<Job>();
+            var dto = _fixture.Build<InJobDTO>()
+                .With(d => d.ProblemIds, problems.Select(p => p.ProblemId).ToList())
+                .With(d => d.WarrantyOfJobId, (int?)null)
+                .Create();
+            _repo.Setup(r => r.GetProblemsByIdsAsync(It.IsAny<ICollection<int>>())).ReturnsAsync(problems);
+
+            Job? saved = null;
+            _repo.Setup(r => r.AddJobAsync(It.IsAny<Job>()))
+                .Callback<Job>(j => saved = j)
+                .ReturnsAsync(created);
+
+            await _jobService.CreateJobAsync(dto);
+
+            Assert.Null(saved!.WarrantyOfJobId);
+            // no warranty id means the parent existence check is skipped entirely
+            _repo.Verify(r => r.GetJobByIdAsync(It.IsAny<int>()), Times.Never);
+        }
+
+        // in a bulk create, one bad warranty link rejects the whole batch before anything is saved
+        [Fact]
+        public async Task CreateJobs_OneWarrantyParentNotFound_ThrowsAndPersistsNothing()
+        {
+            var problems = _fixture.CreateMany<Problem>(2).ToList();
+            var problemIds = problems.Select(p => p.ProblemId).ToList();
+            var goodDto = _fixture.Build<InJobDTO>()
+                .With(d => d.ProblemIds, problemIds.ToList())
+                .With(d => d.WarrantyOfJobId, (int?)null)
+                .Create();
+            var badDto = _fixture.Build<InJobDTO>()
+                .With(d => d.ProblemIds, problemIds.ToList())
+                .With(d => d.WarrantyOfJobId, (int?)999)
+                .Create();
+            _repo.Setup(r => r.GetProblemsByIdsAsync(It.IsAny<ICollection<int>>())).ReturnsAsync(problems);
+            _repo.Setup(r => r.GetJobByIdAsync(999)).ReturnsAsync((Job?)null);
+
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _jobService.CreateJobsAsync(new List<InJobDTO> { goodDto, badDto }));
+            _repo.Verify(r => r.AddJobsAsync(It.IsAny<ICollection<Job>>()), Times.Never);
+        }
+
+        // linking an existing job to a valid parent (without touching problems) sets the link
+        [Fact]
+        public async Task UpdateJob_LinkWarrantyToExistingParent_SetsLink()
+        {
+            var existing = _fixture.Build<Job>().With(j => j.JobId, 5).With(j => j.WarrantyOfJobId, (int?)null).Create();
+            var parent = _fixture.Build<Job>().With(j => j.JobId, 50).Create();
+            _repo.Setup(r => r.GetJobByIdAsync(5)).ReturnsAsync(existing);
+            _repo.Setup(r => r.GetJobByIdAsync(50)).ReturnsAsync(parent);
+
+            var dto = new UpdateJobDTO { JobId = 5, WarrantyOfJobId = 50 };
+
+            await _jobService.UpdateJobAsync(dto);
+
+            Assert.Equal(50, existing.WarrantyOfJobId);
+            _repo.Verify(r => r.ApplyUpdateAsync(), Times.Once);
+        }
+
+        // linking to a non-existent parent must be rejected even when no problems are being changed
+        [Fact]
+        public async Task UpdateJob_WarrantyParentNotFound_Throws()
+        {
+            var existing = _fixture.Build<Job>().With(j => j.JobId, 5).Create();
+            _repo.Setup(r => r.GetJobByIdAsync(5)).ReturnsAsync(existing);
+            _repo.Setup(r => r.GetJobByIdAsync(999)).ReturnsAsync((Job?)null);
+
+            // no ProblemIds supplied: the warranty check must still run
+            var dto = new UpdateJobDTO { JobId = 5, WarrantyOfJobId = 999 };
+
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _jobService.UpdateJobAsync(dto));
+        }
+
+        // a job cannot be linked as a warranty of itself, even when no problems are being changed
+        [Fact]
+        public async Task UpdateJob_SelfLink_Throws()
+        {
+            var existing = _fixture.Build<Job>().With(j => j.JobId, 5).Create();
+            _repo.Setup(r => r.GetJobByIdAsync(5)).ReturnsAsync(existing);
+
+            var dto = new UpdateJobDTO { JobId = 5, WarrantyOfJobId = 5 };
+
+            await Assert.ThrowsAsync<ValidationException>(() => _jobService.UpdateJobAsync(dto));
+        }
+
+        // omitting the warranty id on update leaves an existing link untouched and looks up no parent
+        [Fact]
+        public async Task UpdateJob_OmitWarrantyId_LeavesExistingLinkUnchanged()
+        {
+            var existing = _fixture.Build<Job>().With(j => j.JobId, 5).With(j => j.WarrantyOfJobId, (int?)7).Create();
+            _repo.Setup(r => r.GetJobByIdAsync(5)).ReturnsAsync(existing);
+
+            // dto with no warranty id supplied, only an unrelated change
+            var dto = new UpdateJobDTO { JobId = 5, Note = "unrelated change" };
+
+            await _jobService.UpdateJobAsync(dto);
+
+            Assert.Equal(7, existing.WarrantyOfJobId);
+            // nothing should look up a warranty parent when none was supplied
+            _repo.Verify(r => r.GetJobByIdAsync(7), Times.Never);
         }
     }
 }
