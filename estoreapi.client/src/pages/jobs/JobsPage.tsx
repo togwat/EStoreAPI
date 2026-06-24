@@ -48,6 +48,8 @@ export default function JobsPage({ title }: { title: string }) {
     const [editedPickupTime, setEditedPickupTime] = useState('');
     const [editedCollectedPrice, setEditedCollectedPrice] = useState('');
     const [editedNote, setEditedNote] = useState('');
+    // warranty
+    const [isAddingWarranty, setIsAddingWarranty] = useState(false);
 
     // async makes sure all 3 fetches happen together, so no issues like jobs proceeding before customers are fetched
     useEffect(() => {
@@ -95,6 +97,7 @@ export default function JobsPage({ title }: { title: string }) {
         setEditedPickupTime('');
         setEditedCollectedPrice('');
         setEditedNote('');
+        setIsAddingWarranty(false);
     }
 
     // reset to page 1 whenever the filter or layout changes
@@ -176,113 +179,158 @@ export default function JobsPage({ title }: { title: string }) {
             )}
         </div>
     );
+
+    const editJobPanel = (selectedJob: Job) => (
+        <div className="w-full h-full overflow-auto">
+            {/** header */}
+            <div className={`flex items-center justify-between ${isMobile ? "p-4" : "pb-4"} border-b`}>
+                <div className="flex items-center justify-start gap-2">
+                    <span className="text-lg text-primary font-mono">#{selectedJob.jobId}</span>
+                    <span className="text-lg text-foreground font-bold">{selectedCustomer?.name}</span>
+                </div>
+                <Button variant="outline" size="icon" onClick={() => setSelectedJob(null)}><X /></Button>
+            </div>
+            {/** customer section */}
+            <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
+                <span className="text-muted-foreground">CUSTOMER</span>
+                <InfoRow icon={PhoneIcon}>
+                    <span>{formatPhone(selectedCustomer?.phone)}</span>
+                </InfoRow>
+                {selectedCustomer?.secondPhone && <InfoRow>
+                    <span>{formatPhone(selectedCustomer.secondPhone)}</span>
+                </InfoRow>}
+                {selectedCustomer?.email && <InfoRow icon={MailIcon}>
+                    <span>{selectedCustomer.email}</span>
+                </InfoRow>}
+                {selectedCustomer?.address && <InfoRow icon={MapPinIcon}>
+                    <span>{selectedCustomer.address}</span>
+                </InfoRow>}
+            </div>
+            {/** job's device info */}
+            <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
+                <span className="text-muted-foreground">DEVICE</span>
+                <div className="flex flex-row items-center gap-2">
+                    <span>{selectedDevice?.name}</span>
+                    <span className="text-muted-foreground text-sm">{selectedDevice?.type}</span>
+                </div>
+                <span className="text-muted-foreground">PROBLEMS</span>
+                <div className="flex flex-row flex-wrap gap-2">
+                    {selectedJob.problems.map(p => (
+                        <div key={p.id} className="flex flew-row gap-4 bg-muted text-muted-foreground px-1 rounded-lg">
+                            <span>{p.name}</span>
+                            <span>{formatPrice(p.price)}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+            {/** Estimation info */}
+            <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
+                <div className="grid grid-cols-2 gap-2">
+                    <InfoItem title={"RECEIVED"}>
+                        <span>{formatDate(selectedJob.receiveTime, { year: false, time: true })}</span>
+                    </InfoItem>
+                    {selectedJob.estimatedPickupTime && <InfoItem title="EST. PICKUP">
+                        <span>{formatDate(selectedJob.estimatedPickupTime, { year: false, time: true })}</span>
+                    </InfoItem>}
+                    {selectedJob.estimatedPrice != null && <InfoItem title="EST. PRICE">
+                        <span>{formatPrice(selectedJob.estimatedPrice)}</span>
+                    </InfoItem>}
+                </div>
+            </div>
+            {/** editable info */}
+            <div className={`py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
+                <div className="flex items-center justify-start gap-2">
+                    <span className={isEditing ? "text-primary" : "text-foreground"}>UPDATE</span>
+                    {!isEditing && <Button variant="ghost" size="icon" onClick={() => {
+                        setIsEditing(true);
+                        setEditedIsFinished(selectedJob.isFinished);
+                        setEditedPickupTime(selectedJob.pickupTime ? toLocalDatetimeInputValue(selectedJob.pickupTime) : '');
+                        setEditedCollectedPrice(selectedJob.collectedPrice != null ? String(selectedJob.collectedPrice) : '');
+                        setEditedNote(selectedJob.note ?? '');
+                    }}><PencilIcon /></Button>}
+                </div>
+                <InfoItem title={"STATUS"}>
+                    {isEditing ? 
+                    <div className="w-fit rounded-full border border-border bg-input">
+                        <Button className="rounded-full" variant={!editedIsFinished ? "default" : "ghost"} onClick={() => setEditedIsFinished(false)}>In progress</Button>
+                        <Button className="rounded-full" variant={editedIsFinished ? "default" : "ghost"} onClick={() => setEditedIsFinished(true)}>Finished</Button>
+                    </div>
+                    : <span>{selectedJob.isFinished ? "Finished" : "In progress"}</span>
+                    }
+                </InfoItem>
+                <InfoItem title={"PICKUP TIME"}>
+                    {isEditing ? <Input type="datetime-local" value={editedPickupTime} onChange={e => setEditedPickupTime(e.target.value)}/>
+                    : selectedJob.pickupTime ? <span>{formatDate(selectedJob.pickupTime, { time: true })}</span> : <span className="text-muted-foreground">Not picked up yet</span>
+                    }
+                    
+                </InfoItem>
+                <InfoItem title={"COLLECTED PRICE"}>
+                    {isEditing ? <Input type="number" value={editedCollectedPrice} onChange={e => setEditedCollectedPrice(e.target.value)}/>
+                    : selectedJob.collectedPrice != null ? <span>{formatPrice(selectedJob.collectedPrice)}</span> : <span className="text-muted-foreground">---</span>
+                    }
+                </InfoItem>
+                <InfoItem title={"NOTES"}>
+                    {isEditing ? <Textarea value={editedNote} onChange={e => setEditedNote(e.target.value)} />
+                    : selectedJob.note ? <p>{selectedJob.note}</p> : <span className="text-muted-foreground">---</span>
+                    }
+                </InfoItem>
+                {isEditing && 
+                    <div className="flex justify-end gap-2 p-4">
+                        <Button variant="outline" onClick={handleCancel}>Cancel</Button>
+                        <Button onClick={handleConfirm}>Confirm</Button>
+                    </div>
+                }
+            </div>
+            {/** 
+             * Create warranty job 
+             * Shows up on finished jobs only
+             * Hidden when in edit mode to not overcrowd
+             * */}
+            {selectedJob.isFinished && !isEditing &&
+                <div className="flex justify-end p-4">
+                    <Button onClick={() => {setIsAddingWarranty(true)}}>Create warranty job</Button>
+                </div>
+            }
+        </div>
+    )
     
+    async function handleAddWarranty() {
+        handleCancel();
+    }
+
+    const addWarrantyPanel = (selectedJob: Job) => (
+        <div className="w-full h-full overflow-auto">
+            {/** header */}
+            <div className={`flex items-center justify-between ${isMobile ? "p-4" : "pb-4"} border-b`}>
+                <span className="text-lg text-foreground font-bold">
+                    Add warranty for <span className="text-lg text-primary font-mono font-normal">#{selectedJob.jobId}</span>
+                </span>
+                <Button variant="outline" size="icon" onClick={() => setSelectedJob(null)}><X /></Button>
+            </div>
+            {/** warning if original job is over warranty period */}
+            <div>
+            </div>
+            {/** editable fields of est.pickup and notes */}
+            <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
+                <InfoItem title={"EST. PICKUP TIME"}>
+                    <Input type="datetime-local" />
+                </InfoItem>
+                <InfoItem title={"NOTES"}>
+                    <Textarea />
+                </InfoItem>
+
+            </div>
+            <div className="flex justify-end gap-2 p-4">
+                <Button variant="outline" onClick={handleCancel}>Cancel</Button>
+                <Button onClick={handleAddWarranty}>Confirm</Button>
+            </div>
+        </div>
+    )
+
     return (
         <PanelDrawer
             open={selectedJob !== null}
-            drawerContent={selectedJob && (
-                <div className="w-full h-full overflow-auto">
-                    {/** header */}
-                    <div className={`flex items-center justify-between ${isMobile ? "p-4" : "pb-4"} border-b`}>
-                        <div className="flex items-center justify-start gap-2">
-                            <span className="text-lg text-primary font-mono">#{selectedJob.jobId}</span>
-                            <span className="text-lg text-foreground font-bold">{selectedCustomer?.name}</span>
-                        </div>
-                        <Button variant="outline" size="icon" onClick={() => setSelectedJob(null)}><X /></Button>
-                    </div>
-                    {/** customer section */}
-                    <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
-                        <span className="text-muted-foreground">CUSTOMER</span>
-                        <InfoRow icon={PhoneIcon}>
-                            <span>{formatPhone(selectedCustomer?.phone)}</span>
-                        </InfoRow>
-                        {selectedCustomer?.secondPhone && <InfoRow>
-                            <span>{formatPhone(selectedCustomer.secondPhone)}</span>
-                        </InfoRow>}
-                        {selectedCustomer?.email && <InfoRow icon={MailIcon}>
-                            <span>{selectedCustomer.email}</span>
-                        </InfoRow>}
-                        {selectedCustomer?.address && <InfoRow icon={MapPinIcon}>
-                            <span>{selectedCustomer.address}</span>
-                        </InfoRow>}
-                    </div>
-                    {/** job's device info */}
-                    <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
-                        <span className="text-muted-foreground">DEVICE</span>
-                        <div className="flex flex-row items-center gap-2">
-                            <span>{selectedDevice?.name}</span>
-                            <span className="text-muted-foreground text-sm">{selectedDevice?.type}</span>
-                        </div>
-                        <span className="text-muted-foreground">PROBLEMS</span>
-                        <div className="flex flex-row flex-wrap gap-2">
-                            {selectedJob.problems.map(p => (
-                                <div key={p.id} className="flex flew-row gap-4 bg-muted text-muted-foreground px-1 rounded-lg">
-                                    <span>{p.name}</span>
-                                    <span>{formatPrice(p.price)}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    {/** Estimation info */}
-                    <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
-                        <div className="grid grid-cols-2 gap-2">
-                            <InfoItem title={"RECEIVED"}>
-                                <span>{formatDate(selectedJob.receiveTime, { year: false, time: true })}</span>
-                            </InfoItem>
-                            {selectedJob.estimatedPickupTime && <InfoItem title="EST. PICKUP">
-                                <span>{formatDate(selectedJob.estimatedPickupTime, { year: false, time: true })}</span>
-                            </InfoItem>}
-                            {selectedJob.estimatedPrice != null && <InfoItem title="EST. PRICE">
-                                <span>{formatPrice(selectedJob.estimatedPrice)}</span>
-                            </InfoItem>}
-                        </div>
-                    </div>
-                    {/** editable info */}
-                    <div className={`py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
-                        <div className="flex items-center justify-start gap-2">
-                            <span className={isEditing ? "text-primary" : "text-foreground"}>UPDATE</span>
-                            {!isEditing && <Button variant="ghost" size="icon" onClick={() => {
-                                setIsEditing(true);
-                                setEditedIsFinished(selectedJob.isFinished);
-                                setEditedPickupTime(selectedJob.pickupTime ? toLocalDatetimeInputValue(selectedJob.pickupTime) : '');
-                                setEditedCollectedPrice(selectedJob.collectedPrice != null ? String(selectedJob.collectedPrice) : '');
-                                setEditedNote(selectedJob.note ?? '');
-                            }}><PencilIcon /></Button>}
-                        </div>
-                        <InfoItem title={"STATUS"}>
-                            {isEditing ? 
-                            <div className="w-fit rounded-full border border-border bg-input">
-                                <Button className="rounded-full" variant={!editedIsFinished ? "default" : "ghost"} onClick={() => setEditedIsFinished(false)}>In progress</Button>
-                                <Button className="rounded-full" variant={editedIsFinished ? "default" : "ghost"} onClick={() => setEditedIsFinished(true)}>Finished</Button>
-                            </div>
-                            : <span>{selectedJob.isFinished ? "Finished" : "In progress"}</span>
-                            }
-                        </InfoItem>
-                        <InfoItem title={"PICKUP TIME"}>
-                            {isEditing ? <Input type="datetime-local" value={editedPickupTime} onChange={e => setEditedPickupTime(e.target.value)}/>
-                            : selectedJob.pickupTime ? <span>{formatDate(selectedJob.pickupTime, { time: true })}</span> : <span className="text-muted-foreground">Not picked up yet</span>
-                            }
-                            
-                        </InfoItem>
-                        <InfoItem title={"COLLECTED PRICE"}>
-                            {isEditing ? <Input type="number" value={editedCollectedPrice} onChange={e => setEditedCollectedPrice(e.target.value)}/>
-                            : selectedJob.collectedPrice != null ? <span>{formatPrice(selectedJob.collectedPrice)}</span> : <span className="text-muted-foreground">---</span>
-                            }
-                        </InfoItem>
-                        <InfoItem title={"NOTES"}>
-                            {isEditing ? <Textarea value={editedNote} onChange={e => setEditedNote(e.target.value)} />
-                            : selectedJob.note ? <p>{selectedJob.note}</p> : <span className="text-muted-foreground">---</span>
-                            }
-                        </InfoItem>
-                        {isEditing && 
-                            <div className="flex justify-end gap-2 p-4">
-                                    <Button variant="outline" onClick={handleCancel}>Cancel</Button>
-                                    <Button onClick={handleConfirm}>Confirm</Button>
-                            </div>
-                        }
-                    </div>
-                </div>
-            )}
+            drawerContent={selectedJob && (isAddingWarranty ? addWarrantyPanel(selectedJob) : editJobPanel(selectedJob))}
         >
             {/** main body */}
             {isMobile
