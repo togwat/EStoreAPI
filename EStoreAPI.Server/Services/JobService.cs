@@ -30,7 +30,7 @@ namespace EStoreAPI.Server.Services
 
             if (customer is null)
             {
-                throw new KeyNotFoundException($"Customer {customer} not found.");
+                throw new KeyNotFoundException($"Customer {customerId} not found.");
             }
             else
             {
@@ -69,6 +69,11 @@ namespace EStoreAPI.Server.Services
             {
                 throw new KeyNotFoundException("One or more problem IDs are invalid.");
             }
+            // if warranty, validate warranty parent exists
+            if (dto.WarrantyOfJobId != null)
+            {
+                await ValidateWarrantyLink(dto.WarrantyOfJobId.Value, null);
+            }
 
             Job job = dto.ToModel(problems);
 
@@ -87,6 +92,11 @@ namespace EStoreAPI.Server.Services
                 if (problems.Count != dto.ProblemIds.Count)
                 {
                     throw new KeyNotFoundException($"One or more problem IDs are invalid for job with customerId {dto.CustomerId}.");
+                }
+                // if warranty, validate warranty parents exist
+                if (dto.WarrantyOfJobId != null)
+                {
+                    await ValidateWarrantyLink(dto.WarrantyOfJobId.Value, null);
                 }
 
                 jobs.Add(dto.ToModel(problems));
@@ -139,12 +149,35 @@ namespace EStoreAPI.Server.Services
                 existing.Problems.Clear();
                 foreach (Problem p in problems) existing.Problems.Add(p);
             }
+            // if warranty, validate warranty parent
+            if (dto.WarrantyOfJobId != null)
+            {
+                await ValidateWarrantyLink(dto.WarrantyOfJobId.Value, dto.JobId);
+            }
+            
             existing.PickupTime = dto.PickupTime ?? existing.PickupTime;
             existing.EstimatedPickupTime = dto.EstimatedPickupTime ?? existing.EstimatedPickupTime;
             existing.Note = dto.Note ?? existing.Note;
             existing.EstimatedPrice = dto.EstimatedPrice ?? existing.EstimatedPrice;
             existing.CollectedPrice = dto.CollectedPrice ?? existing.CollectedPrice;
             existing.IsFinished = dto.IsFinished ?? existing.IsFinished;
+            existing.WarrantyOfJobId = dto.WarrantyOfJobId ?? existing.WarrantyOfJobId;
+        }
+
+        // check if warranty exists, and check if a job isn't linking itself
+        private async Task ValidateWarrantyLink(int parentId, int? selfId)
+        {
+            // check for self linking
+            if (selfId == parentId)
+            {
+                throw new ValidationException("A job cannot link itself as warranty.");
+            }
+            // check parent exists
+            Job? parent = await _repo.GetJobByIdAsync(parentId);
+            if (parent is null)
+            {
+                throw new KeyNotFoundException($"Job {parentId} not found when linking for warranty.");
+            }
         }
     }
 }

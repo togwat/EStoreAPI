@@ -40,6 +40,9 @@ namespace EStoreAPI.Server.DTOs
         [Description("Whether the job is finished. Defaults to false.")]
         public bool IsFinished { get; set; } = false;
 
+        [Description("ID of the prior job this one is a warranty for. Set only when the repair is a warranty follow-up to an earlier job, omit for normal jobs. Search that customer's jobs to find the ID.")]
+        public int? WarrantyOfJobId { get; set; }
+
         // problems must be resolved from ProblemIds by the service before calling this
         public Job ToModel(ICollection<Problem> problems) => new()
         {
@@ -53,6 +56,7 @@ namespace EStoreAPI.Server.DTOs
             EstimatedPrice = EstimatedPrice ?? problems.Sum(p => p.Price + p.LabourPrice + p.RiskCost),
             CollectedPrice = CollectedPrice,
             IsFinished = IsFinished,
+            WarrantyOfJobId = WarrantyOfJobId
         };
     }
 }

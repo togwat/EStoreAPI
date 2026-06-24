@@ -29,5 +29,8 @@ namespace EStoreAPI.Server.DTOs
 
         [Description("Whether the job is finished.")]
         public bool? IsFinished { get; set; }
+
+        [Description("ID of the prior job this one is a warranty for. Set to link this job as a warranty follow-up. Search the customer's jobs to find the ID.")]
+        public int? WarrantyOfJobId { get; set; }
     }
 }

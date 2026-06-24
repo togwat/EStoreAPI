@@ -33,5 +33,7 @@ namespace EStoreAPI.Server.Models
         public Decimal? CollectedPrice { get; set; }
 
         public bool IsFinished { get; set; } = false;
+
+        public int? WarrantyOfJobId { get; set; }
     }
 }

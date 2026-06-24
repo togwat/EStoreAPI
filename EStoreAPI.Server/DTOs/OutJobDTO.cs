@@ -15,6 +15,7 @@ namespace EStoreAPI.Server.DTOs
         public decimal? EstimatedPrice { get; set; }
         public decimal? CollectedPrice { get; set; }
         public bool IsFinished { get; set; }
+        public int? WarrantyOfJobId { get; set; }
 
         public static OutJobDTO FromModel(Job j) => new()
         {
@@ -29,6 +30,7 @@ namespace EStoreAPI.Server.DTOs
             EstimatedPrice = j.EstimatedPrice,
             CollectedPrice = j.CollectedPrice,
             IsFinished = j.IsFinished,
+            WarrantyOfJobId = j.WarrantyOfJobId
         };
     }
 }
