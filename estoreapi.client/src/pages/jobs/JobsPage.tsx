@@ -8,28 +8,13 @@ import { getCustomers, Customer } from '@/api/customers';
 import { getDevices, Device } from '@/api/devices';
 import { JobCard, formatPhone, formatDate } from './components/JobCard';
 import { Filter, FilterSearch, FilterSelect } from '@/components/Filter';
-import { CircleCheckIcon, Inbox, X, PencilIcon, PhoneIcon, MapPinIcon, MailIcon, type LucideIcon } from 'lucide-react';
+import { CircleCheckIcon, Inbox, X, PencilIcon, PhoneIcon, MapPinIcon, MailIcon } from 'lucide-react';
 import { WorkingPagination } from '@/components/WorkingPagination';
 import { formatPrice } from '@/lib/formatPrice';
 import { toLocalDatetimeInputValue } from '@/lib/toLocalDatetime';
 import { Textarea } from '@/components/ui/textarea';
-
-// for in panels like customer info, device info
-const InfoRow = ({ icon: Icon, children }: { icon?: LucideIcon, children: React.ReactNode }) => (
-    <span className="flex flex-row items-center gap-2">
-        {/** w-4 placeholder if no icon for indentation */}
-        {Icon ? <Icon className="text-muted-foreground" size={16} /> : <span className="w-4" />}
-        {children}
-    </span>
-);
-
-// for in panels like estimations
-const InfoItem = ({ title, children }: {title: string, children: React.ReactNode}) => (
-    <div className="flex flex-col align-start">
-        <span className="text-muted-foreground">{title}</span>
-        {children}
-    </div>
-)
+import { InfoItem, InfoRow } from './components/InfoItem';
+import AddWarrantyPanel from './components/AddWarrantyPanel';
 
 export default function JobsPage({ title }: { title: string }) {
     const isMobile = useIsMobile();
@@ -84,10 +69,7 @@ export default function JobsPage({ title }: { title: string }) {
         }
 
         await updateJob(selectedJob!.jobId, updatedJob);
-        // get latest data to refresh
-        const refreshed = await getJobs();
-        setJobs(refreshed);
-        setSelectedJob(refreshed.find(j => j.jobId === selectedJob!.jobId) ?? selectedJob!);
+        await refreshJobs();
         handleCancel();
     }
 
@@ -98,6 +80,14 @@ export default function JobsPage({ title }: { title: string }) {
         setEditedCollectedPrice('');
         setEditedNote('');
         setIsAddingWarranty(false);
+    }
+
+    // get latest data to refresh
+    async function refreshJobs() {
+        const refreshed = await getJobs();
+        setJobs(refreshed);
+        // keep open the original job's panel
+        setSelectedJob(prev => prev ? refreshed.find(j => j.jobId === prev.jobId) ?? prev : null);
     }
 
     // reset to page 1 whenever the filter or layout changes
@@ -293,44 +283,17 @@ export default function JobsPage({ title }: { title: string }) {
             }
         </div>
     )
-    
-    async function handleAddWarranty() {
-        handleCancel();
-    }
-
-    const addWarrantyPanel = (selectedJob: Job) => (
-        <div className="w-full h-full overflow-auto">
-            {/** header */}
-            <div className={`flex items-center justify-between ${isMobile ? "p-4" : "pb-4"} border-b`}>
-                <span className="text-lg text-foreground font-bold">
-                    Add warranty for <span className="text-lg text-primary font-mono font-normal">#{selectedJob.jobId}</span>
-                </span>
-                <Button variant="outline" size="icon" onClick={() => setSelectedJob(null)}><X /></Button>
-            </div>
-            {/** warning if original job is over warranty period */}
-            <div>
-            </div>
-            {/** editable fields of est.pickup and notes */}
-            <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
-                <InfoItem title={"EST. PICKUP TIME"}>
-                    <Input type="datetime-local" />
-                </InfoItem>
-                <InfoItem title={"NOTES"}>
-                    <Textarea />
-                </InfoItem>
-
-            </div>
-            <div className="flex justify-end gap-2 p-4">
-                <Button variant="outline" onClick={handleCancel}>Cancel</Button>
-                <Button onClick={handleAddWarranty}>Confirm</Button>
-            </div>
-        </div>
-    )
 
     return (
         <PanelDrawer
             open={selectedJob !== null}
-            drawerContent={selectedJob && (isAddingWarranty ? addWarrantyPanel(selectedJob) : editJobPanel(selectedJob))}
+            drawerContent={selectedJob && (isAddingWarranty
+                ? <AddWarrantyPanel
+                    original={selectedJob}
+                    onCancel={handleCancel}
+                    onConfirm={async () => { await refreshJobs(); handleCancel(); }}
+                  />
+                : editJobPanel(selectedJob))}
         >
             {/** main body */}
             {isMobile

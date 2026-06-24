@@ -1,0 +1,68 @@
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { X } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Job, addJob } from '@/api/jobs';
+import { InfoItem } from './InfoItem';
+
+interface AddWarrantyPanelProps {
+    original: Job;
+    onCancel: () => void;
+    onConfirm: () => void;
+}
+
+export default function AddWarrantyPanel({ original, onCancel, onConfirm }: AddWarrantyPanelProps) {
+    const isMobile = useIsMobile();
+    // in months
+    // const WARRANTY_PERIOD = 3;
+
+    async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+        e.preventDefault();
+        const form = new FormData(e.currentTarget);
+        const pickup = form.get('pickup')?.toString();
+        const note = form.get('note')?.toString() ?? '';
+
+        // a warranty job reuses the original's customer and device, but starts with no problems
+        await addJob({
+            jobId: '',
+            customerId: original.customerId,
+            deviceId: original.deviceId,
+            receiveTime: '',    // default to now
+            pickupTime: '',
+            estimatedPickupTime: pickup ? new Date(pickup).toISOString() : null,
+            note,
+            problems: [],
+            estimatedPrice: null,
+            collectedPrice: null,
+            isFinished: false,
+            warrantyOfJobId: original.jobId,
+        });
+        onConfirm();
+    }
+
+    return (
+        <form onSubmit={handleSubmit} className="w-full h-full overflow-auto">
+            {/** header */}
+            <div className={`flex items-center justify-between ${isMobile ? "p-4" : "pb-4"} border-b`}>
+                <span className="text-lg text-foreground font-bold">
+                    Add warranty for <span className="text-lg text-primary font-mono font-normal">#{original.jobId}</span>
+                </span>
+                <Button type="button" variant="outline" size="icon" onClick={onCancel}><X /></Button>
+            </div>
+            {/** editable fields of est.pickup and notes */}
+            <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
+                <InfoItem title={"EST. PICKUP TIME"}>
+                    <Input type="datetime-local" name="pickup" />
+                </InfoItem>
+                <InfoItem title={"NOTES"}>
+                    <Textarea name="note" />
+                </InfoItem>
+            </div>
+            <div className="flex justify-end gap-2 p-4">
+                <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+                <Button type="submit">Confirm</Button>
+            </div>
+        </form>
+    );
+}
