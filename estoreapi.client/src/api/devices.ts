@@ -63,7 +63,7 @@ export async function addDevice(device: Device): Promise<Device> {
     }
 
     try {
-        const response = await axios.post("/api/Devices/create", payload);
+        const response = await api.post("/api/Devices/create", payload);
         
         toast.success("Device created", `${response.data.deviceName} with id ${response.data.deviceId}`);
 
@@ -93,7 +93,7 @@ export async function updateDevice(id: string, device: Device) {
     }
 
     try {
-        await axios.put(`/api/Devices/update/${id}`, body);
+        await api.put(`/api/Devices/update/${id}`, body);
     } catch (error) {
         let message;
 

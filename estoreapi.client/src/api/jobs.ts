@@ -106,7 +106,8 @@ export async function addJob(job: Job): Promise<Job> {
     }
 
     try {
-        const response = await axios.post("api/Jobs/create", payload);
+        const response = await api
+        .post("api/Jobs/create", payload);
 
         toast.success("Job created", `Id: #${response.data.jobId}`);
 
@@ -146,7 +147,7 @@ export async function updateJob(jobId: string, job: Job): Promise<void> {
     };
 
     try {
-        await axios.put(`/api/Jobs/update/${jobId}`, body);
+        await api.put(`/api/Jobs/update/${jobId}`, body);
     } catch (error) {
         let message;
 
@@ -167,7 +168,7 @@ export async function updateJob(jobId: string, job: Job): Promise<void> {
 
 export async function submitJob(payload: SubmitJobPayload): Promise<{ jobId: number }> {
     try {
-        const response = await axios.post<{ jobId: number }>('/api/Form/submit', payload);
+        const response = await api.post<{ jobId: number }>('/api/Form/submit', payload);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {

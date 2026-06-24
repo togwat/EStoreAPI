@@ -38,7 +38,7 @@ export async function updateProblems(deviceId: string, problems: Problem[]) {
     }));
 
     try {
-        await axios.put(`/api/problems/device/${deviceId}`, body);
+        await api.put(`/api/problems/device/${deviceId}`, body);
     } catch (error) {
         let message;
 
