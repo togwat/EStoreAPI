@@ -10,12 +10,13 @@ export type Job = {
     deviceId: string
     receiveTime: string
     pickupTime: string
-    estimatedPickupTime: string
+    estimatedPickupTime?: string | null
     note: string
     problems: Problem[]
-    estimatedPrice: string | null
-    collectedPrice: string | null
+    estimatedPrice?: string | null
+    collectedPrice?: string | null
     isFinished: boolean
+    warrantyOfJobId?: string | null
 }
 
 function _mapJob(j: {
@@ -30,6 +31,7 @@ function _mapJob(j: {
     estimatedPrice: number;
     collectedPrice: number;
     isFinished: boolean;
+    warrantyOfJobId: number;
 }): Job {
     return {
         jobId: String(j.jobId),
@@ -49,6 +51,7 @@ function _mapJob(j: {
         estimatedPrice: j.estimatedPrice != null ? String(j.estimatedPrice) : null,
         collectedPrice: j.collectedPrice != null ? String(j.collectedPrice) : null,
         isFinished: j.isFinished,
+        warrantyOfJobId: j.warrantyOfJobId != null ? String(j.warrantyOfJobId) : null,
     };
 }
 
@@ -84,7 +87,48 @@ type UpdateJobPayload = {
     estimatedPrice?: number | null;
     collectedPrice?: number | null;
     isFinished: boolean;
+    warrantyOfJobId?: number | null;
 };
+
+export async function addJob(job: Job): Promise<Job> {
+    const payload = {
+        customerId: parseInt(job.customerId),
+        deviceId: parseInt(job.deviceId),
+        receiveTime: job.receiveTime,
+        pickupTime: job.pickupTime,
+        estimatedPickupTime: job.estimatedPickupTime,
+        note: job.note,
+        problemIds: job.problems.map(j => parseInt(j.id)),
+        estimatedPrice: job.estimatedPrice ? parseFloat(job.estimatedPrice) : null, 
+        collectedPrice: job.collectedPrice ? parseFloat(job.collectedPrice) : null,
+        isFinished: job.isFinished,
+        warrantyOfJobId: job.warrantyOfJobId ? parseInt(job.warrantyOfJobId) : null,
+    }
+
+    try {
+        const response = await axios.post("api/Jobs/create", payload);
+
+        toast.success("Job created", `Id: #${response.data.jobId}`);
+
+        return _mapJob(response.data);
+    } catch (error) {
+        let message;
+
+        if (axios.isAxiosError(error)) {
+            const data = error.response?.data;
+            const text = typeof data === 'string' ? data : null;
+
+            if (error.response?.status === 400) {
+                message = text ?? "One or more validation errors occurred.";
+            } else if (error.response?.status === 404) {
+                message = text ?? "Device not found.";
+            }
+        }
+
+        toast.error(message ?? "Something went wrong.");
+        throw error;
+    }
+}
 
 export async function updateJob(jobId: string, job: Job): Promise<void> {
     const body: UpdateJobPayload = {
@@ -98,6 +142,7 @@ export async function updateJob(jobId: string, job: Job): Promise<void> {
         estimatedPrice: job.estimatedPrice ? parseFloat(job.estimatedPrice) : null, 
         collectedPrice: job.collectedPrice ? parseFloat(job.collectedPrice) : null,
         isFinished: job.isFinished,
+        warrantyOfJobId: job.warrantyOfJobId ? parseInt(job.warrantyOfJobId) : null,
     };
 
     try {
