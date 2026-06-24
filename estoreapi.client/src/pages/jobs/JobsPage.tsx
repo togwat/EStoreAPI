@@ -173,12 +173,19 @@ export default function JobsPage({ title }: { title: string }) {
     const editJobPanel = (selectedJob: Job) => (
         <div className="w-full h-full overflow-auto">
             {/** header */}
-            <div className={`flex items-center justify-between ${isMobile ? "p-4" : "pb-4"} border-b`}>
-                <div className="flex items-center justify-start gap-2">
-                    <span className="text-lg text-primary font-mono">#{selectedJob.jobId}</span>
-                    <span className="text-lg text-foreground font-bold">{selectedCustomer?.name}</span>
+            <div className={`flex flex-col gap-2 ${isMobile ? "p-4" : "pb-4"} border-b`}>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-start gap-2">
+                        <span className="text-lg text-primary font-mono">#{selectedJob.jobId}</span>
+                        <span className="text-lg text-foreground font-bold">{selectedCustomer?.name}</span>
+                    </div>
+                    <Button variant="outline" size="icon" onClick={() => setSelectedJob(null)}><X /></Button>
                 </div>
-                <Button variant="outline" size="icon" onClick={() => setSelectedJob(null)}><X /></Button>
+                {selectedJob.warrantyOfJobId &&
+                    <span>
+                        Warranty of <span className="text-primary font-mono font-normal">#{selectedJob.warrantyOfJobId}</span>
+                    </span>
+                }
             </div>
             {/** customer section */}
             <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
@@ -203,15 +210,19 @@ export default function JobsPage({ title }: { title: string }) {
                     <span>{selectedDevice?.name}</span>
                     <span className="text-muted-foreground text-sm">{selectedDevice?.type}</span>
                 </div>
-                <span className="text-muted-foreground">PROBLEMS</span>
-                <div className="flex flex-row flex-wrap gap-2">
-                    {selectedJob.problems.map(p => (
-                        <div key={p.id} className="flex flew-row gap-4 bg-muted text-muted-foreground px-1 rounded-lg">
-                            <span>{p.name}</span>
-                            <span>{formatPrice(p.price)}</span>
-                        </div>
-                    ))}
+                {selectedJob.problems.length > 1 &&
+                <div>
+                    <span className="text-muted-foreground">PROBLEMS</span>
+                    <div className="flex flex-row flex-wrap gap-2">
+                        {selectedJob.problems.map(p => (
+                            <div key={p.id} className="flex flew-row gap-4 bg-muted text-muted-foreground px-1 rounded-lg">
+                                <span>{p.name}</span>
+                                <span>{formatPrice(p.price)}</span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
+                }
             </div>
             {/** Estimation info */}
             <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
@@ -222,7 +233,9 @@ export default function JobsPage({ title }: { title: string }) {
                     {selectedJob.estimatedPickupTime && <InfoItem title="EST. PICKUP">
                         <span>{formatDate(selectedJob.estimatedPickupTime, { year: false, time: true })}</span>
                     </InfoItem>}
-                    {selectedJob.estimatedPrice != null && <InfoItem title="EST. PRICE">
+                    {/** Warranty jobs have no price */}
+                    {selectedJob.estimatedPrice != null && selectedJob.warrantyOfJobId == null &&
+                     <InfoItem title="EST. PRICE">
                         <span>{formatPrice(selectedJob.estimatedPrice)}</span>
                     </InfoItem>}
                 </div>
@@ -254,11 +267,14 @@ export default function JobsPage({ title }: { title: string }) {
                     }
                     
                 </InfoItem>
-                <InfoItem title={"COLLECTED PRICE"}>
-                    {isEditing ? <Input type="number" value={editedCollectedPrice} onChange={e => setEditedCollectedPrice(e.target.value)}/>
-                    : selectedJob.collectedPrice != null ? <span>{formatPrice(selectedJob.collectedPrice)}</span> : <span className="text-muted-foreground">---</span>
-                    }
-                </InfoItem>
+                {/** Warranty jobs have no price */}
+                {selectedJob.warrantyOfJobId == null &&
+                    <InfoItem title={"COLLECTED PRICE"}>
+                        {isEditing ? <Input type="number" value={editedCollectedPrice} onChange={e => setEditedCollectedPrice(e.target.value)}/>
+                        : selectedJob.collectedPrice != null ? <span>{formatPrice(selectedJob.collectedPrice)}</span> : <span className="text-muted-foreground">---</span>
+                        }
+                    </InfoItem>
+                }
                 <InfoItem title={"NOTES"}>
                     {isEditing ? <Textarea value={editedNote} onChange={e => setEditedNote(e.target.value)} />
                     : selectedJob.note ? <p>{selectedJob.note}</p> : <span className="text-muted-foreground">---</span>

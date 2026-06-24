@@ -77,7 +77,11 @@ export function JobCard({ job, customer, device, isSelected, onClick }: JobCardP
                         <span className="font-bold text-lg">{customer.name}</span>
                         <span className="text-muted-foreground flex flex-row items-center gap-1"><PhoneIcon size={12}/>{formatPhone(customer.phone)}</span>
                     </div>
-                    {job.collectedPrice != null ?
+                    {job.warrantyOfJobId ?
+                        <span>
+                            Warranty of <span className="text-primary font-mono font-normal">#{job.warrantyOfJobId}</span>
+                        </span>
+                    : job.collectedPrice != null ?
                         <span className="text-foreground font-mono">{formatPrice(job.collectedPrice)}</span>
                     : job.estimatedPrice != null ?
                         <span className="text-primary font-mono">{formatPrice(job.estimatedPrice)}</span>
