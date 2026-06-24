@@ -306,6 +306,7 @@ export default function JobsPage({ title }: { title: string }) {
             drawerContent={selectedJob && (isAddingWarranty
                 ? <AddWarrantyPanel
                     original={selectedJob}
+                    onClose={() => setSelectedJob(null)}
                     onCancel={handleCancel}
                     onConfirm={async () => { await refreshJobs(); handleCancel(); }}
                   />

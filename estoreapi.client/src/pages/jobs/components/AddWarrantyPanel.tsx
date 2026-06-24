@@ -11,11 +11,12 @@ import { getTomorrow } from '@/lib/getTomorrow';
 
 interface AddWarrantyPanelProps {
     original: Job;
+    onClose: () => void;
     onCancel: () => void;
     onConfirm: () => void;
 }
 
-export default function AddWarrantyPanel({ original, onCancel, onConfirm }: AddWarrantyPanelProps) {
+export default function AddWarrantyPanel({ original, onClose, onCancel, onConfirm }: AddWarrantyPanelProps) {
     const isMobile = useIsMobile();
     // in months
     const WARRANTY_PERIOD = 3;
@@ -59,7 +60,7 @@ export default function AddWarrantyPanel({ original, onCancel, onConfirm }: AddW
                 <span className="text-lg text-foreground font-bold">
                     Add warranty for <span className="text-lg text-primary font-mono font-normal">#{original.jobId}</span>
                 </span>
-                <Button type="button" variant="outline" size="icon" onClick={onCancel}><X /></Button>
+                <Button type="button" variant="outline" size="icon" onClick={onClose}><X /></Button>
             </div>
             {/** Alert for expired warranty */}
             { isExpired && warrantyExpiry &&
