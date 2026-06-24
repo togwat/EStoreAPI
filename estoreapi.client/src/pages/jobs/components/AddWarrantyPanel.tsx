@@ -1,10 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { X } from 'lucide-react';
+import { AlertTriangleIcon, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Job, addJob } from '@/api/jobs';
 import { InfoItem } from './InfoItem';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { formatDate } from './JobCard';
+import { getTomorrow } from '@/lib/getTomorrow';
 
 interface AddWarrantyPanelProps {
     original: Job;
@@ -15,7 +18,15 @@ interface AddWarrantyPanelProps {
 export default function AddWarrantyPanel({ original, onCancel, onConfirm }: AddWarrantyPanelProps) {
     const isMobile = useIsMobile();
     // in months
-    // const WARRANTY_PERIOD = 3;
+    const WARRANTY_PERIOD = 0;
+    const pickupDate = original.pickupTime ? new Date(original.pickupTime) : null;
+    const warrantyExpiry = pickupDate ? new Date(
+        new Date(pickupDate).setMonth(pickupDate.getMonth() + WARRANTY_PERIOD)
+    ) : null;
+    let isExpired = false;
+    if (warrantyExpiry && warrantyExpiry.getTime() < Date.now()) {
+        isExpired = true;
+    }
 
     async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -50,10 +61,20 @@ export default function AddWarrantyPanel({ original, onCancel, onConfirm }: AddW
                 </span>
                 <Button type="button" variant="outline" size="icon" onClick={onCancel}><X /></Button>
             </div>
+            {/** Alert for expired warranty */}
+            { isExpired && warrantyExpiry &&
+                <Alert className="w-full mt-4">
+                    <AlertTriangleIcon className="!text-destructive" />
+                    <AlertTitle className="text-destructive">Warranty expired</AlertTitle>
+                    <AlertDescription>
+                        Job {original.jobId}'s {WARRANTY_PERIOD} month warranty period expired at {formatDate(warrantyExpiry.toISOString())}.
+                    </AlertDescription>
+                </Alert>
+            }
             {/** editable fields of est.pickup and notes */}
             <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
                 <InfoItem title={"EST. PICKUP TIME"}>
-                    <Input type="datetime-local" name="pickup" />
+                    <Input type="datetime-local" name="pickup" min={new Date().toISOString().split('T')[0]} defaultValue={getTomorrow()} />
                 </InfoItem>
                 <InfoItem title={"NOTES"}>
                     <Textarea name="note" />

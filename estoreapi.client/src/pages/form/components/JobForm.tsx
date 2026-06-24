@@ -8,14 +8,7 @@ import { Device, getDevices, getDeviceTypes, searchDeviceType } from '@/api/devi
 import { Problem, getProblems } from '@/api/problems';
 import { submitJob } from '@/api/jobs';
 import { toast } from '@/components/CustomToast';
-import { toLocalDatetimeInputValue } from '@/lib/toLocalDatetime';
-
-// for estimated pickup date, which for now is today + 1
-function getTomorrow(): string {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return toLocalDatetimeInputValue(d.toISOString());
-}
+import { getTomorrow } from '@/lib/getTomorrow';
 
 export default function JobForm() {
     const [deviceTypes, setDeviceTypes] = useState<string[]>([]);
