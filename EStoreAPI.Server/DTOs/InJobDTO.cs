@@ -27,8 +27,7 @@ namespace EStoreAPI.Server.DTOs
         public string? Note { get; set; }
 
         [Required]
-        [MinLength(1)]
-        [Description("List of problem IDs to fix. At least one required. Retrieve problem IDs from the device's problem catalogue.")]
+        [Description("List of problem IDs to fix. Retrieve problem IDs from the device's problem catalogue.")]
         public List<int> ProblemIds { get; set; } = new();
 
         [Description("Estimated price. Defaults to the sum of the selected problems' prices if omitted.")]

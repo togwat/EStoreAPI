@@ -183,14 +183,14 @@ namespace EStoreAPI.Tests.APITests
         // PUT: api/Jobs/update/{id}
         [Theory]
         [MemberData(nameof(UpdateJobData))]
-        public async Task TestUpdateJob(int id, bool invalidProblems)
+        public async Task TestUpdateJob(int id, bool invalidData)
         {
             // arrange
             var dto = _fixture.Build<UpdateJobDTO>()
-                                .With(j => j.ProblemIds, invalidProblems ? new List<int>() : new List<int> { 1 })
+                                .With(j => j.ProblemIds, new List<int> { 1 })
                                 .Create();
 
-            if (id == 1 && !invalidProblems)
+            if (id == 1 && !invalidData)
             {
                 _service.Setup(s => s.UpdateJobAsync(dto)).Returns(Task.CompletedTask);
             }
@@ -207,7 +207,7 @@ namespace EStoreAPI.Tests.APITests
             var result = await _controller.UpdateJobAsync(id, dto);
 
             // assert
-            if (id == 1 && !invalidProblems)
+            if (id == 1 && !invalidData)
             {
                 Assert.IsType<NoContentResult>(result); // returns 204 no content
             }
@@ -226,7 +226,7 @@ namespace EStoreAPI.Tests.APITests
             [
                 [1, false],     // valid id, valid data
                 [2, false],     // invalid id, valid data
-                [1, true],      // valid id, invalid data (no problems)
+                [1, true],      // valid id, service rejects with a ValidationException
             ];
 
         // GET: api/Jobs/customer/{customerId}

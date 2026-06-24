@@ -24,9 +24,7 @@ namespace EStoreAPI.Server.Models
 
         public string? Note { get; set; }
 
-        [Required]
-        [MinLength(1)]
-        public virtual ICollection<Problem> Problems { get; set; }
+        public virtual ICollection<Problem>? Problems { get; set; }
 
         public Decimal? EstimatedPrice { get; set; }
 

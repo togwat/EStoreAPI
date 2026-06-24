@@ -290,7 +290,7 @@ namespace EStoreAPI.Server.Data
             // check if required attributes are entered
             Customer? customer = await GetCustomerByIdAsync(job.CustomerId);
             Device? device = await GetDeviceByIdAsync(job.DeviceId);
-            if (customer != null && device != null && job.Problems.Count >= 1)
+            if (customer != null && device != null)
             {
                 EntityEntry<Job> e = await _dbContext.Jobs.AddAsync(job);
                 Job j = e.Entity;
@@ -320,10 +320,6 @@ namespace EStoreAPI.Server.Data
                 if (device == null)
                 {
                     throw new ValidationException($"Job at index {i} is missing a valid device.");
-                }
-                if (job.Problems.Count < 1)
-                {
-                    throw new ValidationException($"Job at index {i} is missing at least one problem.");
                 }
             }
 

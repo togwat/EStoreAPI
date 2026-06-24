@@ -138,10 +138,6 @@ namespace EStoreAPI.Server.Services
                 {
                     throw new KeyNotFoundException("One or more problem IDs are invalid.");
                 }
-                if (problems.Count < 1)
-                {
-                    throw new ValidationException("A job must have at least one problem.");
-                }
 
                 // Replace in place: mutate the tracked collection instead of swapping the
                 // reference, so EF diffs the join table correctly — and so nothing downstream
