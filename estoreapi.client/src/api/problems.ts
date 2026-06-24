@@ -1,6 +1,5 @@
-import axios from 'axios';
-import { toast } from '@/components/CustomToast';
 import { api } from './client';
+import { handleApiError } from './apiHelpers';
 
 // follow OutProblemDTO
 export type Problem = {
@@ -26,9 +25,18 @@ export async function getProblems(deviceId: string): Promise<Problem[]> {
     return response.data.map(_mapProblem);
 }
 
-export async function updateProblems(deviceId: string, problems: Problem[]) {
-    // InProblemDTO body
-    const body = problems.map(p => ({
+// follow InProblemDTO
+type ProblemPayload = {
+    problemId: number | null;
+    problemName: string;
+    deviceId: number;
+    price: number;
+    labourPrice: number;
+    riskCost: number;
+};
+
+export async function updateDeviceProblems(deviceId: string, problems: Problem[]): Promise<void> {
+    const body: ProblemPayload[] = problems.map(p => ({
         problemId: p.id ? parseInt(p.id) : null,    // null id means to add
         problemName: p.name,
         deviceId: parseInt(deviceId),
@@ -40,21 +48,10 @@ export async function updateProblems(deviceId: string, problems: Problem[]) {
     try {
         await api.put(`/api/problems/device/${deviceId}`, body);
     } catch (error) {
-        let message;
-
-        if (axios.isAxiosError(error)) {
-            const data = error.response?.data;
-            const text = typeof data === 'string' ? data : null;
-
-            if (error.response?.status === 409) {
-                message = text ?? "One or more problems are in use by a job and cannot be deleted.";
-            } else if (error.response?.status === 404) {
-                message = text ?? "Device not found.";
-            } else if (error.response?.status === 400) {
-                message = text ?? "One or more validation errors occurred.";
-            }
-        }
-
-        toast.error(message ?? "Something went wrong.");
+        handleApiError(error, {
+            409: "One or more problems are in use by a job and cannot be deleted.",
+            404: "Device not found.",
+            400: "One or more validation errors occurred.",
+        }, "Couldn't update problems");
     }
 }

@@ -6,7 +6,7 @@ import { DeviceCard } from './components/DeviceCard';
 import ProblemEdit, { ProblemEditHandle } from './components/ProblemEdit';
 import { Filter, FilterSearch, FilterSelect, FilterSort } from '@/components/Filter';
 import { Device, addDevice, updateDevice, getDevices, getDeviceTypes } from '@/api/devices';
-import { updateProblems } from '@/api/problems';
+import { updateDeviceProblems } from '@/api/problems';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PencilIcon, PlusIcon, X } from 'lucide-react';
@@ -80,14 +80,14 @@ export default function DevicesPage({ title }: { title: string }) {
         if (!selectedDevice!.id) {
             // add mode
             const newDevice = await addDevice({ id: '', name, modelNumber, type });
-            await updateProblems(newDevice.id, updatedProblems);
+            await updateDeviceProblems(newDevice.id, updatedProblems);
             setDevices(await getDevices());
             // triggers useEffect: resets isEditing + name/type; ProblemEdit refetches via deviceId change
             setSelectedDevice(newDevice);
         } else {
             // update mode
             await updateDevice(selectedDevice!.id, { id: selectedDevice!.id, name, modelNumber, type });
-            await updateProblems(selectedDevice!.id, updatedProblems);
+            await updateDeviceProblems(selectedDevice!.id, updatedProblems);
             // get latest data to refresh
             const refreshed = await getDevices();
             setDevices(refreshed);

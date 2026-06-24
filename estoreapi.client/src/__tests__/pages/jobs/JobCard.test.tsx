@@ -39,12 +39,12 @@ describe('JobCard', () => {
     })
 
     it('shows collectedPrice when set', () => {
-        render(<JobCard job={{ ...baseJob, collectedPrice: '80' }} customer={customer} device={device} onClick={vi.fn()} />)
+        render(<JobCard job={{ ...baseJob, collectedPrice: 80 }} customer={customer} device={device} onClick={vi.fn()} />)
         expect(screen.getByText('$80.00')).toBeInTheDocument()
     })
 
     it('shows estimatedPrice when collectedPrice is absent', () => {
-        render(<JobCard job={{ ...baseJob, estimatedPrice: '250' }} customer={customer} device={device} onClick={vi.fn()} />)
+        render(<JobCard job={{ ...baseJob, estimatedPrice: 250 }} customer={customer} device={device} onClick={vi.fn()} />)
         expect(screen.getByText('$250.00')).toBeInTheDocument()
     })
 

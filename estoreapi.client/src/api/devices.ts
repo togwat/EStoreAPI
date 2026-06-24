@@ -1,6 +1,6 @@
 import { toast } from '@/components/CustomToast';
-import axios from 'axios';
 import { api } from './client';
+import { handleApiError } from './apiHelpers';
 
 // follow OutDeviceDTO
 export type Device = {
@@ -24,19 +24,7 @@ export async function getDevice(id: string): Promise<Device> {
         const response = await api.get(`/api/Devices/${id}`);
         return _mapDevice(response.data);
     } catch (error) {
-        let message;
-
-        if (axios.isAxiosError(error)) {
-            const data = error.response?.data;
-            const text = typeof data === 'string' ? data : null;
-
-            if (error.response?.status === 404) {
-                message = text ?? "Device not found.";
-            }
-        }
-
-        toast.error(message ?? "Something went wrong.");
-        throw error;
+        handleApiError(error, { 404: "Device not found." }, "Couldn't load device");
     }
 }
 
@@ -55,38 +43,38 @@ export async function searchDeviceType(type: string): Promise<Device[]> {
     return response.data.map(_mapDevice);
 }
 
+// follow InDeviceDTO
+type CreateDevicePayload = {
+    deviceName: string;
+    modelNumber?: string | null;
+    deviceType: string;
+};
+
+// follow UpdateDeviceDTO
+type UpdateDevicePayload = {
+    deviceName?: string | null;
+    modelNumber?: string | null;
+    deviceType?: string | null;
+};
+
 export async function addDevice(device: Device): Promise<Device> {
-    const payload = {
+    const payload: CreateDevicePayload = {
         deviceName: device.name,
         modelNumber: device.modelNumber,
         deviceType: device.type,
     }
 
     try {
-        const response = await api.post("/api/Devices/create", payload);
-        
+        const response = await api.post('/api/Devices/create', payload);
         toast.success("Device created", `${response.data.deviceName} with id ${response.data.deviceId}`);
-
         return _mapDevice(response.data);
     } catch (error) {
-        let message;
-
-        if (axios.isAxiosError(error)) {
-            const data = error.response?.data;
-            const text = typeof data === 'string' ? data : null;
-
-            if (error.response?.status === 400) {
-                message = text ?? "One or more validation errors occurred.";
-            }
-        }
-
-        toast.error(message ?? "Something went wrong.");
-        throw error;
+        handleApiError(error, { 400: "One or more validation errors occurred." }, "Couldn't create device");
     }
 }
 
-export async function updateDevice(id: string, device: Device) {
-    const body = {
+export async function updateDevice(id: string, device: Device): Promise<void> {
+    const body: UpdateDevicePayload = {
         deviceName: device.name,
         modelNumber: device.modelNumber,
         deviceType: device.type,
@@ -95,19 +83,9 @@ export async function updateDevice(id: string, device: Device) {
     try {
         await api.put(`/api/Devices/update/${id}`, body);
     } catch (error) {
-        let message;
-
-        if (axios.isAxiosError(error)) {
-            const data = error.response?.data;
-            const text = typeof data === 'string' ? data : null;
-
-            if (error.response?.status === 404) {
-                message = text ?? "Device not found.";
-            } else if (error.response?.status === 400) {
-                message = text ?? "One or more validation errors occurred.";
-            }
-        }
-
-        toast.error(message ?? "Something went wrong.");
+        handleApiError(error, {
+            404: "Device not found.",
+            400: "One or more validation errors occurred.",
+        }, "Couldn't update device");
     }
 }

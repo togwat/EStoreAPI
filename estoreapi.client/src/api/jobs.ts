@@ -2,6 +2,7 @@ import axios from "axios";
 import { toast } from '@/components/CustomToast';
 import { Problem } from "./problems";
 import { api } from './client';
+import { handleApiError } from './apiHelpers';
 
 // follow OutJobDTO
 export type Job = {
@@ -13,8 +14,8 @@ export type Job = {
     estimatedPickupTime?: string | null
     note: string
     problems: Problem[]
-    estimatedPrice?: string | null
-    collectedPrice?: string | null
+    estimatedPrice?: number | null
+    collectedPrice?: number | null
     isFinished: boolean
     warrantyOfJobId?: string | null
 }
@@ -48,8 +49,8 @@ function _mapJob(j: {
             labourPrice: p.labourPrice,
             riskCost: p.riskCost
         })),
-        estimatedPrice: j.estimatedPrice != null ? String(j.estimatedPrice) : null,
-        collectedPrice: j.collectedPrice != null ? String(j.collectedPrice) : null,
+        estimatedPrice: j.estimatedPrice ?? null,
+        collectedPrice: j.collectedPrice ?? null,
         isFinished: j.isFinished,
         warrantyOfJobId: j.warrantyOfJobId != null ? String(j.warrantyOfJobId) : null,
     };
@@ -76,7 +77,7 @@ type SubmitJobPayload = {
 };
 
 // follow InJobDTO
-type UpdateJobPayload = {
+type CreateJobPayload = {
     customerId: number;
     deviceId: number;
     receiveTime?: string | null;
@@ -90,58 +91,53 @@ type UpdateJobPayload = {
     warrantyOfJobId?: number | null;
 };
 
+// follow UpdateJobDTO
+type UpdateJobPayload = {
+    pickupTime?: string | null;
+    estimatedPickupTime?: string | null;
+    note?: string | null;
+    problemIds: number[];
+    estimatedPrice?: number | null;
+    collectedPrice?: number | null;
+    isFinished: boolean;
+    warrantyOfJobId?: number | null;
+};
+
 export async function addJob(job: Job): Promise<Job> {
-    const payload = {
+    const payload: CreateJobPayload = {
         customerId: parseInt(job.customerId),
         deviceId: parseInt(job.deviceId),
-        receiveTime: job.receiveTime,
-        pickupTime: job.pickupTime,
-        estimatedPickupTime: job.estimatedPickupTime,
-        note: job.note,
-        problemIds: job.problems.map(j => parseInt(j.id)),
-        estimatedPrice: job.estimatedPrice ? parseFloat(job.estimatedPrice) : null, 
-        collectedPrice: job.collectedPrice ? parseFloat(job.collectedPrice) : null,
+        receiveTime: job.receiveTime || null,
+        pickupTime: job.pickupTime || null,
+        estimatedPickupTime: job.estimatedPickupTime || null,
+        note: job.note || null,
+        problemIds: job.problems.map(p => parseInt(p.id)),
+        estimatedPrice: job.estimatedPrice ?? null,
+        collectedPrice: job.collectedPrice ?? null,
         isFinished: job.isFinished,
         warrantyOfJobId: job.warrantyOfJobId ? parseInt(job.warrantyOfJobId) : null,
-    }
+    };
 
     try {
-        const response = await api
-        .post("api/Jobs/create", payload);
-
+        const response = await api.post('/api/Jobs/create', payload);
         toast.success("Job created", `Id: #${response.data.jobId}`);
-
         return _mapJob(response.data);
     } catch (error) {
-        let message;
-
-        if (axios.isAxiosError(error)) {
-            const data = error.response?.data;
-            const text = typeof data === 'string' ? data : null;
-
-            if (error.response?.status === 400) {
-                message = text ?? "One or more validation errors occurred.";
-            } else if (error.response?.status === 404) {
-                message = text ?? "Device not found.";
-            }
-        }
-
-        toast.error(message ?? "Something went wrong.");
-        throw error;
+        handleApiError(error, {
+            400: "One or more validation errors occurred.",
+            404: "Customer, device, or warranty job not found.",
+        }, "Couldn't create job");
     }
 }
 
 export async function updateJob(jobId: string, job: Job): Promise<void> {
     const body: UpdateJobPayload = {
-        customerId: parseInt(job.customerId),
-        deviceId: parseInt(job.deviceId),
-        receiveTime: job.receiveTime,
-        pickupTime: job.pickupTime,
-        estimatedPickupTime: job.estimatedPickupTime,
-        note: job.note,
+        pickupTime: job.pickupTime || null,
+        estimatedPickupTime: job.estimatedPickupTime || null,
+        note: job.note || null,
         problemIds: job.problems.map(p => parseInt(p.id)),
-        estimatedPrice: job.estimatedPrice ? parseFloat(job.estimatedPrice) : null, 
-        collectedPrice: job.collectedPrice ? parseFloat(job.collectedPrice) : null,
+        estimatedPrice: job.estimatedPrice ?? null,
+        collectedPrice: job.collectedPrice ?? null,
         isFinished: job.isFinished,
         warrantyOfJobId: job.warrantyOfJobId ? parseInt(job.warrantyOfJobId) : null,
     };
@@ -149,24 +145,15 @@ export async function updateJob(jobId: string, job: Job): Promise<void> {
     try {
         await api.put(`/api/Jobs/update/${jobId}`, body);
     } catch (error) {
-        let message;
-
-        if (axios.isAxiosError(error)) {
-            const data = error.response?.data;
-            const text = typeof data === 'string' ? data : null;
-
-            if (error.response?.status === 404) {
-                message = text ?? "Job not found.";
-            } else if (error.response?.status === 400) {
-                message = text ?? "One or more validation errors occurred.";
-            }
-        }
-
-        toast.error(message ?? "Something went wrong.");
+        handleApiError(error, {
+            404: "Job not found.",
+            400: "One or more validation errors occurred.",
+        }, "Couldn't update job");
     }
 }
 
 export async function submitJob(payload: SubmitJobPayload): Promise<{ jobId: number }> {
+    // the form page renders its own inline error, so this defers toasting to the caller
     try {
         const response = await api.post<{ jobId: number }>('/api/Form/submit', payload);
         return response.data;

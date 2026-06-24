@@ -59,8 +59,6 @@ interface JobCardProps {
 }
 
 export function JobCard({ job, customer, device, isSelected, onClick }: JobCardProps) {
-    console.log(job.collectedPrice);
-
     return (
         <Card
             size="sm"
@@ -79,10 +77,10 @@ export function JobCard({ job, customer, device, isSelected, onClick }: JobCardP
                         <span className="font-bold text-lg">{customer.name}</span>
                         <span className="text-muted-foreground flex flex-row items-center gap-1"><PhoneIcon size={12}/>{formatPhone(customer.phone)}</span>
                     </div>
-                    {job.collectedPrice && !isNaN(parseFloat(job.collectedPrice)) ?
-                        <span className="text-foreground font-mono">{formatPrice(parseFloat(job.collectedPrice))}</span>
-                    : job.estimatedPrice && !isNaN(parseFloat(job.estimatedPrice)) ?
-                        <span className="text-primary font-mono">{formatPrice(parseFloat(job.estimatedPrice))}</span>
+                    {job.collectedPrice != null ?
+                        <span className="text-foreground font-mono">{formatPrice(job.collectedPrice)}</span>
+                    : job.estimatedPrice != null ?
+                        <span className="text-primary font-mono">{formatPrice(job.estimatedPrice)}</span>
                     : null
                     }
                 </CardTitle>

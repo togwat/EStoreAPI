@@ -1,6 +1,5 @@
-import { toast } from '@/components/CustomToast';
-import axios from "axios";
 import { api } from './client';
+import { handleApiError } from './apiHelpers';
 
 // follow OutCustomerDTO
 export type Customer = {
@@ -24,27 +23,15 @@ function _mapCustomer(c: { customerId: string; customerName: string; phoneNumber
 }
 
 export async function getCustomers(): Promise<Customer[]> {
-    const response = await api.get('api/Customers');
+    const response = await api.get('/api/Customers');
     return response.data.map(_mapCustomer);
 }
 
 export async function getCustomer(id: string): Promise<Customer> {
     try {
-        const response = await api.get(`api/Customers/${id}`);
+        const response = await api.get(`/api/Customers/${id}`);
         return _mapCustomer(response.data);
     } catch (error) {
-        let message;
-
-        if (axios.isAxiosError(error)) {
-            const data = error.response?.data;
-            const text = typeof data === 'string' ? data : null;
-
-            if (error.response?.status === 404) {
-                message = text ?? "Customer not found.";
-            }
-        }
-
-        toast.error(message ?? "Something went wrong.");
-        throw error;
+        handleApiError(error, { 404: "Customer not found." }, "Couldn't load customer");
     }
 }

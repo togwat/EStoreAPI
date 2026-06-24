@@ -77,7 +77,7 @@ export default function JobsPage({ title }: { title: string }) {
         const updatedJob: Job = {...selectedJob!,
             isFinished: editedIsFinished ?? selectedJob!.isFinished,
             pickupTime: newPickupTime || selectedJob!.pickupTime,
-            collectedPrice: editedCollectedPrice || selectedJob!.collectedPrice,
+            collectedPrice: editedCollectedPrice ? parseFloat(editedCollectedPrice) : selectedJob!.collectedPrice,
             note: editedNote || selectedJob!.note
         }
 
@@ -232,8 +232,8 @@ export default function JobsPage({ title }: { title: string }) {
                             {selectedJob.estimatedPickupTime && <InfoItem title="EST. PICKUP">
                                 <span>{formatDate(selectedJob.estimatedPickupTime, { year: false, time: true })}</span>
                             </InfoItem>}
-                            {selectedJob.estimatedPrice && <InfoItem title="EST. PRICE">
-                                <span>{formatPrice(parseFloat(selectedJob.estimatedPrice))}</span>
+                            {selectedJob.estimatedPrice != null && <InfoItem title="EST. PRICE">
+                                <span>{formatPrice(selectedJob.estimatedPrice)}</span>
                             </InfoItem>}
                         </div>
                     </div>
@@ -245,7 +245,7 @@ export default function JobsPage({ title }: { title: string }) {
                                 setIsEditing(true);
                                 setEditedIsFinished(selectedJob.isFinished);
                                 setEditedPickupTime(selectedJob.pickupTime ? toLocalDatetimeInputValue(selectedJob.pickupTime) : '');
-                                setEditedCollectedPrice(selectedJob.collectedPrice ?? '');
+                                setEditedCollectedPrice(selectedJob.collectedPrice != null ? String(selectedJob.collectedPrice) : '');
                                 setEditedNote(selectedJob.note ?? '');
                             }}><PencilIcon /></Button>}
                         </div>
@@ -266,7 +266,7 @@ export default function JobsPage({ title }: { title: string }) {
                         </InfoItem>
                         <InfoItem title={"COLLECTED PRICE"}>
                             {isEditing ? <Input type="number" value={editedCollectedPrice} onChange={e => setEditedCollectedPrice(e.target.value)}/>
-                            : selectedJob.collectedPrice ? <span>{formatPrice(parseFloat(selectedJob.collectedPrice))}</span> : <span className="text-muted-foreground">---</span>
+                            : selectedJob.collectedPrice != null ? <span>{formatPrice(selectedJob.collectedPrice)}</span> : <span className="text-muted-foreground">---</span>
                             }
                         </InfoItem>
                         <InfoItem title={"NOTES"}>

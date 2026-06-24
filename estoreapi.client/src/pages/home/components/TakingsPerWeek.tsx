@@ -44,7 +44,7 @@ function buildChartData(jobs: Job[]) {
 
         const weekKey = getWeekEndingSunday(new Date(job.pickupTime));
         if (weekKey in weekTakings) {
-            weekTakings[weekKey] += parseFloat(job.collectedPrice);
+            weekTakings[weekKey] += job.collectedPrice;
         }
     }
 
