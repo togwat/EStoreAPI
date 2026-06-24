@@ -1,4 +1,3 @@
-import axios from "axios";
 import { toast } from '@/components/CustomToast';
 import { Problem } from "./problems";
 import { api } from './client';
@@ -153,16 +152,13 @@ export async function updateJob(jobId: string, job: Job): Promise<void> {
 }
 
 export async function submitJob(payload: SubmitJobPayload): Promise<{ jobId: number }> {
-    // the form page renders its own inline error, so this defers toasting to the caller
     try {
         const response = await api.post<{ jobId: number }>('/api/Form/submit', payload);
+        toast.success("Success", `Job ${response.data.jobId} has been created.`);
         return response.data;
     } catch (error) {
-        if (axios.isAxiosError(error)) {
-            const data = error.response?.data;
-            const message = typeof data === 'string' ? data : (data?.title ?? error.message);
-            throw new Error(message);
-        }
-        throw error;
+        handleApiError(error, {
+            400: "Submission failed. Please check the form and try again.",
+        }, "Submission failed");
     }
 }

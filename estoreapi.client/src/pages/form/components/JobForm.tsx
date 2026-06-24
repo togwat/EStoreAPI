@@ -7,7 +7,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Device, getDevices, getDeviceTypes, searchDeviceType } from '@/api/devices';
 import { Problem, getProblems } from '@/api/problems';
 import { submitJob } from '@/api/jobs';
-import { toast } from '@/components/CustomToast';
 import { getTomorrow } from '@/lib/getTomorrow';
 
 export default function JobForm() {
@@ -101,7 +100,7 @@ export default function JobForm() {
         const form = event.currentTarget;
         setSubmitting(true);
         try {
-            const result = await submitJob({
+            await submitJob({
                 name,
                 phoneNumber: phone,
                 phoneNumberSecondary: phone2,
@@ -117,10 +116,8 @@ export default function JobForm() {
             // reset form
             form.reset();
             setSelectedType('');
-
-            toast.success("Success", `Job ${result.jobId} has been created.`);
-        } catch (error) {
-            toast.error("Submission failed", error instanceof Error ? error.message : 'An unexpected error occurred.');
+        } catch {
+            // success and error toasts are handled by the api layer
         } finally {
             setSubmitting(false);
         }
