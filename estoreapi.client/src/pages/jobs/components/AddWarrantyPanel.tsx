@@ -18,7 +18,7 @@ interface AddWarrantyPanelProps {
 export default function AddWarrantyPanel({ original, onCancel, onConfirm }: AddWarrantyPanelProps) {
     const isMobile = useIsMobile();
     // in months
-    const WARRANTY_PERIOD = 0;
+    const WARRANTY_PERIOD = 3;
     const pickupDate = original.pickupTime ? new Date(original.pickupTime) : null;
     const warrantyExpiry = pickupDate ? new Date(
         new Date(pickupDate).setMonth(pickupDate.getMonth() + WARRANTY_PERIOD)
