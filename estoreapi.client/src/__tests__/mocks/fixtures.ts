@@ -58,14 +58,14 @@ export const deviceTypeFixtures = ['Smartphone', 'Laptop', 'Tablet']
 
 export const problemFixtures: Record<string, object[]> = {
     '1': [
-        { problemId: '1', problemName: 'Screen Replacement', price: '250', labourPrice: '100', riskCost: '50' },
-        { problemId: '2', problemName: 'Battery Replacement', price: '80', labourPrice: '40', riskCost: '20' },
+        { problemId: '1', problemName: 'Screen Replacement', price: '250', labourPrice: '100', riskCost: '50', partsPrice: '35' },
+        { problemId: '2', problemName: 'Battery Replacement', price: '80', labourPrice: '40', riskCost: '20', partsPrice: '18' },
     ],
     '2': [
-        { problemId: '3', problemName: 'Battery Replacement', price: '80', labourPrice: '40', riskCost: '20' },
-        { problemId: '4', problemName: 'Charging Port Repair', price: '60', labourPrice: '30', riskCost: '15' },
+        { problemId: '3', problemName: 'Battery Replacement', price: '80', labourPrice: '40', riskCost: '20', partsPrice: '18' },
+        { problemId: '4', problemName: 'Charging Port Repair', price: '60', labourPrice: '30', riskCost: '15', partsPrice: '12' },
     ],
     '3': [
-        { problemId: '5', problemName: 'SSD Replacement', price: '350', labourPrice: '120', riskCost: '70' },
+        { problemId: '5', problemName: 'SSD Replacement', price: '350', labourPrice: '120', riskCost: '70', partsPrice: '45' },
     ],
 }

@@ -16,7 +16,7 @@ type RawJob = {
     pickupTime: string | null
     estimatedPickupTime: string | null
     note: string | null
-    problems: { problemId: number; problemName: string; deviceId: number; price: number; labourPrice: number; riskCost: number }[]
+    problems: { problemId: number; problemName: string; deviceId: number; price: number; labourPrice: number; riskCost: number; partsPrice: number }[]
     estimatedPrice: number | null
     collectedPrice: number | null
     isFinished: boolean

@@ -46,13 +46,15 @@ describe('DevicesPage', () => {
         expect(await screen.findByText('Screen Replacement')).toBeInTheDocument()
         expect(screen.getByText('Battery Replacement')).toBeInTheDocument()
 
-        // The parts price, labour price, and risk cost columns render their formatted values
+        // The price, labour price, risk cost, and parts price columns render their formatted values
         expect(screen.getByText('Price')).toBeInTheDocument()
         expect(screen.getByText('Labour price')).toBeInTheDocument()
         expect(screen.getByText('Risk cost')).toBeInTheDocument()
-        expect(screen.getByText('$250.00')).toBeInTheDocument()  // Screen Replacement parts price
+        expect(screen.getByText('Parts price')).toBeInTheDocument()
+        expect(screen.getByText('$250.00')).toBeInTheDocument()  // Screen Replacement price
         expect(screen.getByText('$100.00')).toBeInTheDocument()  // Screen Replacement labour price
         expect(screen.getByText('$50.00')).toBeInTheDocument()   // Screen Replacement risk cost
+        expect(screen.getByText('$35.00')).toBeInTheDocument()   // Screen Replacement parts price
     })
 
     it('clicking Add device opens the panel in edit mode', async () => {
