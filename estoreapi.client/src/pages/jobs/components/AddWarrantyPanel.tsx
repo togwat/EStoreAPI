@@ -8,6 +8,7 @@ import { InfoItem } from './InfoItem';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { formatDate } from './JobCard';
 import { getTomorrow } from '@/lib/getTomorrow';
+import { toLocalDateKey } from '@/lib/localDateKey';
 
 interface AddWarrantyPanelProps {
     original: Job;
@@ -75,7 +76,7 @@ export default function AddWarrantyPanel({ original, onClose, onCancel, onConfir
             {/** editable fields of est.pickup and notes */}
             <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
                 <InfoItem title={"EST. PICKUP TIME"}>
-                    <Input type="datetime-local" name="pickup" min={new Date().toISOString().split('T')[0]} defaultValue={getTomorrow()} />
+                    <Input type="datetime-local" name="pickup" min={toLocalDateKey(new Date())} defaultValue={getTomorrow()} />
                 </InfoItem>
                 <InfoItem title={"NOTES"}>
                     <Textarea name="note" />

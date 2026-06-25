@@ -2,6 +2,7 @@ import { Job, getJobs } from "@/api/jobs";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { useEffect, useState } from "react";
+import { toLocalDateKey, parseLocalDateKey } from "@/lib/localDateKey";
 
 // 1 month chart range
 const startDate = new Date();
@@ -14,8 +15,8 @@ function generateDateRange(start: Date, end: Date): Record<string, number> {
     const current = new Date(start);
 
     while (current <= end) {
-        // YYYY-MM-DD
-        const dateString = current.toISOString().slice(0, 10);
+        // local YYYY-MM-DD
+        const dateString = toLocalDateKey(current);
         dates[dateString] = 0;
 
         // increment date
@@ -30,8 +31,8 @@ function buildChartData(jobs: Job[]) {
 
     for (const job of jobs) {
         const receiveTime = job.receiveTime;
-        // extract only the date, act as key
-        const date = new Date(receiveTime).toISOString().slice(0, 10);
+        // extract only the local date, act as key
+        const date = toLocalDateKey(new Date(receiveTime));
 
         if (date in dateCounts) {
             dateCounts[date]++;
@@ -70,7 +71,7 @@ export default function JobIntake() {
                         tickMargin={8}
                         minTickGap={32}
                         tickFormatter={(value) => {
-                            const date = new Date(value);
+                            const date = parseLocalDateKey(value);
                             return date.toLocaleDateString("en-NZ", {
                                 month: "short",
                                 day: "numeric",
@@ -90,7 +91,7 @@ export default function JobIntake() {
                         content={
                             <ChartTooltipContent
                                 labelFormatter={(value) => {
-                                    return new Date(value).toLocaleDateString("en-NZ", {
+                                    return parseLocalDateKey(value).toLocaleDateString("en-NZ", {
                                         month: "short",
                                         day: "numeric",
                                         year: "numeric",

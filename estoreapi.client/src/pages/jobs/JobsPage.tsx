@@ -12,6 +12,7 @@ import { CircleCheckIcon, Inbox, X, PencilIcon, PhoneIcon, MapPinIcon, MailIcon 
 import { WorkingPagination } from '@/components/WorkingPagination';
 import { formatPrice } from '@/lib/formatPrice';
 import { toLocalDatetimeInputValue } from '@/lib/toLocalDatetime';
+import { toLocalDateKey } from '@/lib/localDateKey';
 import { Textarea } from '@/components/ui/textarea';
 import { InfoItem, InfoRow } from './components/InfoItem';
 import AddWarrantyPanel from './components/AddWarrantyPanel';
@@ -262,7 +263,7 @@ export default function JobsPage({ title }: { title: string }) {
                     }
                 </InfoItem>
                 <InfoItem title={"PICKUP TIME"}>
-                    {isEditing ? <Input type="datetime-local" value={editedPickupTime} onChange={e => setEditedPickupTime(e.target.value)}/>
+                    {isEditing ? <Input type="datetime-local" value={editedPickupTime} onChange={e => setEditedPickupTime(e.target.value)} max={toLocalDateKey(new Date())}/>
                     : selectedJob.pickupTime ? <span>{formatDate(selectedJob.pickupTime, { time: true })}</span> : <span className="text-muted-foreground">Not picked up yet</span>
                     }
                     

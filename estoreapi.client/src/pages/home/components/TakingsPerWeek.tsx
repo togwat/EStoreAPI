@@ -3,18 +3,19 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } f
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { useEffect, useState } from "react";
 import { formatPrice } from "@/lib/formatPrice";
+import { toLocalDateKey, parseLocalDateKey } from "@/lib/localDateKey";
 
 // 2 month chart range
 const startDate = new Date();
 startDate.setMonth(startDate.getMonth() - 2);
 const endDate = new Date();
 
-// Returns the ISO date string of the Sunday ending the week that contains `date`
+// Returns the local date key of the Sunday ending the week that contains `date`
 function getWeekEndingSunday(date: Date): string {
     const d = new Date(date);
     const day = d.getDay(); // 0=Sun ... 6=Sat
     d.setDate(d.getDate() + (day === 0 ? 0 : 7 - day));
-    return d.toISOString().slice(0, 10);
+    return toLocalDateKey(d);
 }
 
 // Generates one entry per Mon–Sun week between start and end, keyed by Sunday date
@@ -29,7 +30,7 @@ function generateWeekRange(start: Date, end: Date): Record<string, number> {
     while (current <= end) {
         const sunday = new Date(current);
         sunday.setDate(sunday.getDate() + 6);
-        weeks[sunday.toISOString().slice(0, 10)] = 0;
+        weeks[toLocalDateKey(sunday)] = 0;
         current.setDate(current.getDate() + 7);
     }
 
@@ -82,7 +83,7 @@ export default function TakingsPerWeek() {
                         tickMargin={8}
                         minTickGap={32}
                         tickFormatter={(value) =>
-                            new Date(value).toLocaleDateString("en-NZ", { month: "short", day: "numeric" })
+                            parseLocalDateKey(value).toLocaleDateString("en-NZ", { month: "short", day: "numeric" })
                         }
                         tick={{ fill: "var(--muted-foreground)" }}
                     />
@@ -100,7 +101,7 @@ export default function TakingsPerWeek() {
                         content={
                             <ChartTooltipContent
                                 labelFormatter={(value) =>
-                                    `Week ending ${new Date(value).toLocaleDateString("en-NZ", {
+                                    `Week ending ${parseLocalDateKey(value).toLocaleDateString("en-NZ", {
                                         month: "short",
                                         day: "numeric",
                                         year: "numeric",

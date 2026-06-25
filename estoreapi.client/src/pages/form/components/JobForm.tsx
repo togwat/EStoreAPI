@@ -8,6 +8,7 @@ import { Device, getDevices, getDeviceTypes, searchDeviceType } from '@/api/devi
 import { Problem, getProblems } from '@/api/problems';
 import { submitJob } from '@/api/jobs';
 import { getTomorrow } from '@/lib/getTomorrow';
+import { toLocalDateKey } from '@/lib/localDateKey';
 
 export default function JobForm() {
     const [deviceTypes, setDeviceTypes] = useState<string[]>([]);
@@ -196,7 +197,7 @@ export default function JobForm() {
                 </Field>
                 <Field>
                     <FieldLabel htmlFor="pickup">Estimated pickup date</FieldLabel>
-                    <Input id="pickup" name="pickup" type="datetime-local" min={new Date().toISOString().split('T')[0]} defaultValue={getTomorrow()} />
+                    <Input id="pickup" name="pickup" type="datetime-local" min={toLocalDateKey(new Date())} defaultValue={getTomorrow()} />
                 </Field>
                 <Field>
                     <FieldLabel htmlFor="notes">Notes</FieldLabel>
