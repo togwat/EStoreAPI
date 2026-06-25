@@ -73,7 +73,7 @@ export default function JobForm() {
     }
 
     // Suggest estimated price as sum of inputted problem prices
-    const problemPriceMap = new Map(problemSuggestions.map(p => [p.name.toLowerCase().trim(), p.price + p.labourPrice + p.riskCost]));
+    const problemPriceMap = new Map(problemSuggestions.map(p => [p.name.toLowerCase().trim(), p.price]));
     const estimatedPrice = problems.reduce((sum, name) => sum + (problemPriceMap.get(name.toLowerCase().trim()) ?? 0), 0);
 
     async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
