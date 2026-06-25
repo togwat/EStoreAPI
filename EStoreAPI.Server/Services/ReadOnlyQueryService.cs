@@ -6,7 +6,7 @@ namespace EStoreAPI.Server.Services
     public class ReadOnlyQueryService : IReadOnlyQueryService
     {
         // Hard cap on returned rows so a broad SELECT cannot flood the model's context.
-        private const int MaxRows = 200;
+        private const int MaxRows = 100;
 
         private readonly string _connectionString;
 
