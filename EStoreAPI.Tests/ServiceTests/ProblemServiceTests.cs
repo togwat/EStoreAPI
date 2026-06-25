@@ -97,10 +97,11 @@ namespace EStoreAPI.Tests.ServiceTests
             var originalName = original.ProblemName;
             var originalLabour = original.LabourPrice;
             var originalRisk = original.RiskCost;
+            var originalParts = original.PartsPrice;
             var originalDeviceId = original.DeviceId;
             _repo.Setup(r => r.GetProblemByIdAsync(original.ProblemId)).ReturnsAsync(original);
 
-            // only the parts price is supplied
+            // only the price is supplied
             var dto = new UpdateProblemDTO { ProblemId = original.ProblemId, Price = 99.99m };
 
             await _problemService.UpdateProblemAsync(dto);
@@ -109,6 +110,7 @@ namespace EStoreAPI.Tests.ServiceTests
             Assert.Equal(originalName, original.ProblemName);
             Assert.Equal(originalLabour, original.LabourPrice);
             Assert.Equal(originalRisk, original.RiskCost);
+            Assert.Equal(originalParts, original.PartsPrice);
             Assert.Equal(originalDeviceId, original.DeviceId);
             _repo.Verify(r => r.ApplyUpdateAsync(), Times.Once);
         }

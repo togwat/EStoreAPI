@@ -77,10 +77,10 @@ namespace EStoreAPI.Tests.APITests
         // POST: api/Problems/create
         [Theory]
         [MemberData(nameof(CreateProblemData))]
-        public async Task TestCreateProblem(string name, int deviceId, decimal? price, decimal? labourPrice, decimal? riskCost)
+        public async Task TestCreateProblem(string name, int deviceId, decimal? price, decimal? labourPrice, decimal? riskCost, decimal? partsPrice)
         {
             // arrange
-            var dto = new InProblemDTO { ProblemName = name, DeviceId = deviceId, Price = price ?? 0, LabourPrice = labourPrice ?? 0, RiskCost = riskCost ?? 0 };
+            var dto = new InProblemDTO { ProblemName = name, DeviceId = deviceId, Price = price ?? 0, LabourPrice = labourPrice ?? 0, RiskCost = riskCost ?? 0, PartsPrice = partsPrice ?? 0 };
             Problem newProblem = _fixture.Build<Problem>()
                                     .With(p => p.ProblemId, 1)
                                     .With(p => p.ProblemName, name)
@@ -88,9 +88,10 @@ namespace EStoreAPI.Tests.APITests
                                     .With(p => p.Price, price ?? 0)
                                     .With(p => p.LabourPrice, labourPrice ?? 0)
                                     .With(p => p.RiskCost, riskCost ?? 0)
+                                    .With(p => p.PartsPrice, partsPrice ?? 0)
                                     .Create();
 
-            if (name == "name" && deviceId == 1 && price == 100.00m && labourPrice == 50.00m && riskCost == 25.00m)
+            if (name == "name" && deviceId == 1 && price == 100.00m && labourPrice == 50.00m && riskCost == 25.00m && partsPrice == 30.00m)
             {
                 _service.Setup(s => s.CreateProblemAsync(dto)).ReturnsAsync(newProblem);
             }
@@ -103,7 +104,7 @@ namespace EStoreAPI.Tests.APITests
             var result = await _controller.CreateProblemAsync(dto);
 
             // assert
-            if (name == "name" && deviceId == 1 && price == 100.00m && labourPrice == 50.00m && riskCost == 25.00m)
+            if (name == "name" && deviceId == 1 && price == 100.00m && labourPrice == 50.00m && riskCost == 25.00m && partsPrice == 30.00m)
             {
                 var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
                 var createdProblem = Assert.IsAssignableFrom<OutProblemDTO>(createdResult.Value);
@@ -112,6 +113,7 @@ namespace EStoreAPI.Tests.APITests
                 Assert.Equal(newProblem.Price, createdProblem.Price);
                 Assert.Equal(newProblem.LabourPrice, createdProblem.LabourPrice);
                 Assert.Equal(newProblem.RiskCost, createdProblem.RiskCost);
+                Assert.Equal(newProblem.PartsPrice, createdProblem.PartsPrice);
                 Assert.Equal(newProblem.DeviceId, createdProblem.DeviceId);
             }
             else
@@ -122,11 +124,11 @@ namespace EStoreAPI.Tests.APITests
 
         public static IEnumerable<object[]> CreateProblemData =>
             [
-                ["name", 1, 100.00m, 50.00m, 25.00m],   // valid
-                [null, 1, 100.00m, 50.00m, 25.00m],     // invalid name
-                ["name", 2, 100.00m, 50.00m, 25.00m],   // invalid device
-                ["name", 1, null, 50.00m, 25.00m],      // invalid price
-                [null, -1, null, null, null]          // invalid everything
+                ["name", 1, 100.00m, 50.00m, 25.00m, 30.00m],   // valid
+                [null, 1, 100.00m, 50.00m, 25.00m, 30.00m],     // invalid name
+                ["name", 2, 100.00m, 50.00m, 25.00m, 30.00m],   // invalid device
+                ["name", 1, null, 50.00m, 25.00m, 30.00m],      // invalid price
+                [null, -1, null, null, null, null]          // invalid everything
             ];
 
         // POST: api/Problems/create-bulk
@@ -143,6 +145,7 @@ namespace EStoreAPI.Tests.APITests
                                 .With(p => p.Price, 100.00m)
                                 .With(p => p.LabourPrice, 50.00m)
                                 .With(p => p.RiskCost, 25.00m)
+                                .With(p => p.PartsPrice, 30.00m)
                                 .CreateMany(3).ToList();
 
             if (invalidIndex >= 0)
@@ -159,6 +162,7 @@ namespace EStoreAPI.Tests.APITests
                     .With(p => p.Price, d.Price)
                     .With(p => p.LabourPrice, d.LabourPrice)
                     .With(p => p.RiskCost, d.RiskCost)
+                    .With(p => p.PartsPrice, d.PartsPrice)
                     .Create()).ToList();
 
                 _service.Setup(s => s.CreateProblemsAsync(It.IsAny<ICollection<InProblemDTO>>()))
@@ -199,6 +203,7 @@ namespace EStoreAPI.Tests.APITests
                                 .With(p => p.Price, 100.00m)
                                 .With(p => p.LabourPrice, 50.00m)
                                 .With(p => p.RiskCost, 25.00m)
+                                .With(p => p.PartsPrice, 30.00m)
                                 .CreateMany(3).ToList();
 
             if (deviceId != 1)
@@ -239,14 +244,14 @@ namespace EStoreAPI.Tests.APITests
         // PUT: api/Problems/update/{id}
         [Theory]
         [MemberData(nameof(UpdateProblemData))]
-        public async Task TestUpdateProblem(int id, string name, int deviceId, decimal price, decimal labourPrice, decimal riskCost)
+        public async Task TestUpdateProblem(int id, string name, int deviceId, decimal price, decimal labourPrice, decimal riskCost, decimal partsPrice)
         {
             // arrange
-            var dto = new UpdateProblemDTO { ProblemId = id, ProblemName = name, DeviceId = deviceId, Price = price, LabourPrice = labourPrice, RiskCost = riskCost };
+            var dto = new UpdateProblemDTO { ProblemId = id, ProblemName = name, DeviceId = deviceId, Price = price, LabourPrice = labourPrice, RiskCost = riskCost, PartsPrice = partsPrice };
 
             if (id == 1)
             {
-                if (name == "newname" && deviceId == 1 && price == 99.99m && labourPrice == 49.99m && riskCost == 24.99m)
+                if (name == "newname" && deviceId == 1 && price == 99.99m && labourPrice == 49.99m && riskCost == 24.99m && partsPrice == 29.99m)
                     _service.Setup(s => s.UpdateProblemAsync(dto)).Returns(Task.CompletedTask);
                 else
                     _service.Setup(s => s.UpdateProblemAsync(dto)).ThrowsAsync(new ValidationException());
@@ -262,7 +267,7 @@ namespace EStoreAPI.Tests.APITests
             // assert
             if (id == 1)
             {
-                if (name == "newname" && deviceId == 1 && price == 99.99m && labourPrice == 49.99m && riskCost == 24.99m)
+                if (name == "newname" && deviceId == 1 && price == 99.99m && labourPrice == 49.99m && riskCost == 24.99m && partsPrice == 29.99m)
                     Assert.IsType<NoContentResult>(result); // returns 204 no content
                 else
                     Assert.IsType<BadRequestResult>(result);    // returns 400 bad request
@@ -276,14 +281,14 @@ namespace EStoreAPI.Tests.APITests
 
         public static IEnumerable<object[]> UpdateProblemData =>
             [
-                [1, "newname", 1, 99.99m, 49.99m, 24.99m],   // valid
-                [2, "newname", 1, 99.99m, 49.99m, 24.99m],   // invalid id, valid data
-                [1, null, 1, 99.99m, 49.99m, 24.99m],        // valid id, invalid name
-                [1, "newname", 2, 99.99m, 49.99m, 24.99m],   // valid id, invalid device
-                [1, null, 2, 0m, 0m, 0m],                // valid id, invalid data
-                [2, null, 1, 99.99m, 49.99m, 24.99m],        // invalid id, invalid data
-                [2, "newname", 2, 99.99m, 49.99m, 24.99m],   // invalid id, invalid data
-                [2, null, 2, 0m, 0m, 0m]                 // invalid id, invalid data
+                [1, "newname", 1, 99.99m, 49.99m, 24.99m, 29.99m],   // valid
+                [2, "newname", 1, 99.99m, 49.99m, 24.99m, 29.99m],   // invalid id, valid data
+                [1, null, 1, 99.99m, 49.99m, 24.99m, 29.99m],        // valid id, invalid name
+                [1, "newname", 2, 99.99m, 49.99m, 24.99m, 29.99m],   // valid id, invalid device
+                [1, null, 2, 0m, 0m, 0m, 0m],                // valid id, invalid data
+                [2, null, 1, 99.99m, 49.99m, 24.99m, 29.99m],        // invalid id, invalid data
+                [2, "newname", 2, 99.99m, 49.99m, 24.99m, 29.99m],   // invalid id, invalid data
+                [2, null, 2, 0m, 0m, 0m, 0m]                 // invalid id, invalid data
             ];
     }
 }
