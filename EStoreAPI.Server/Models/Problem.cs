@@ -16,6 +16,7 @@ namespace EStoreAPI.Server.Models
 
         [Required]
         public decimal Price { get; set; }
+        public decimal PartsPrice { get; set; }
         public decimal LabourPrice { get; set; }
         public decimal RiskCost { get; set; }
     }

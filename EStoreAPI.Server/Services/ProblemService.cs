@@ -84,6 +84,7 @@ namespace EStoreAPI.Server.Services
             existing.ProblemName = dto.ProblemName?.ToLower() ?? existing.ProblemName;
             existing.DeviceId = dto.DeviceId ?? existing.DeviceId;
             existing.Price = dto.Price ?? existing.Price;
+            existing.PartsPrice = dto.PartsPrice ?? existing.PartsPrice;
             existing.LabourPrice = dto.LabourPrice ?? existing.LabourPrice;
             existing.RiskCost = dto.RiskCost ?? existing.RiskCost;
         }
