@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { themeIcons } from './themeMapping';
 
 export const themes = ['rustic-leather', 'generic-dark', 'generic-light', 'sakura-light'] as const;
 export type ThemeName = typeof themes[number];
@@ -10,6 +11,9 @@ export function setTheme(name: ThemeName): void {
     try { localStorage.setItem('theme', name); } catch { /* storage unavailable */ }
     // emit event for useTheme hook
     window.dispatchEvent(new CustomEvent('theme-change', { detail: name }));
+    // change favicon
+    const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (link) link.href = themeIcons[name];
 }
 
 export function getTheme(): ThemeName {
