@@ -6,15 +6,17 @@ export type Problem = {
     id: string
     name: string
     price: number
+    partsPrice: number
     labourPrice: number
     riskCost: number
 }
 
-function _mapProblem(d: { problemId: string; problemName: string; price: string; labourPrice: string; riskCost: string }): Problem {
+function _mapProblem(d: { problemId: string; problemName: string; price: string; partsPrice: string; labourPrice: string; riskCost: string }): Problem {
     return {
         id: String(d.problemId),
         name: d.problemName,
         price: parseFloat(d.price),
+        partsPrice: parseFloat(d.partsPrice),
         labourPrice: parseFloat(d.labourPrice),
         riskCost: parseFloat(d.riskCost)
     };
@@ -31,6 +33,7 @@ type ProblemPayload = {
     problemName: string;
     deviceId: number;
     price: number;
+    partsPrice: number;
     labourPrice: number;
     riskCost: number;
 };
@@ -41,6 +44,7 @@ export async function updateDeviceProblems(deviceId: string, problems: Problem[]
         problemName: p.name,
         deviceId: parseInt(deviceId),
         price: p.price,
+        partsPrice: p.partsPrice,
         labourPrice: p.labourPrice,
         riskCost: p.riskCost
     }));

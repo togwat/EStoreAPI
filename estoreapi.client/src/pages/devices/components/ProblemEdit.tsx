@@ -56,6 +56,7 @@ const ProblemEdit = forwardRef<ProblemEditHandle, {
     const [problems, setProblems] = useState<Problem[]>([]);
     const [editedProblems, setEditedProblems] = useState<Record<string, string>>({});
     const [editedPrices, setEditedPrices] = useState<Record<string, string>>({});
+    const [editedPartsPrices, setEditedPartsPrices] = useState<Record<string, string>>({});
     const [editedLabourPrices, setEditedLabourPrices] = useState<Record<string, string>>({});
     const [editedRiskCosts, setEditedRiskCosts] = useState<Record<string, string>>({}); 
     const isMobile = useIsMobile();
@@ -75,6 +76,10 @@ const ProblemEdit = forwardRef<ProblemEditHandle, {
     const handleEditPrice = useCallback((id: string, value: string) => {
         setEditedPrices(prev => ({ ...prev, [id]: value }));
     }, []);
+    
+    const handleEditPartsPrice = useCallback((id: string, value: string) => {
+        setEditedPartsPrices(prev => ({ ...prev, [id]: value }));
+    }, []);
 
     const handleEditLabourPrice = useCallback((id: string, value: string) => {
         setEditedLabourPrices(prev => ({ ...prev, [id]: value}));
@@ -89,7 +94,7 @@ const ProblemEdit = forwardRef<ProblemEditHandle, {
     }, []);
 
     function handleAddProblem() {
-        setProblems(prev => [...prev, { id: `new-${newProblemCounter.current++}`, name: '', price: 0, labourPrice: 0, riskCost: 0 }]);
+        setProblems(prev => [...prev, { id: `new-${newProblemCounter.current++}`, name: '', price: 0, partsPrice: 0, labourPrice: 0, riskCost: 0 }]);
     }
 
     // Expose these two functions to the parent via the forwarded ref.
@@ -101,6 +106,7 @@ const ProblemEdit = forwardRef<ProblemEditHandle, {
             id: p.id.startsWith('new-') ? '' : p.id,    // if it is a 'new' id, send it as none
             name: editedProblems[p.id] || p.name,
             price: editedPrices[p.id] ? parseFloat(editedPrices[p.id]) : p.price,
+            partsPrice: editedPartsPrices[p.id] ? parseFloat(editedPartsPrices[p.id]) : p.partsPrice,
             labourPrice: editedLabourPrices[p.id] ? parseFloat(editedLabourPrices[p.id]) : p.labourPrice,
             riskCost: editedRiskCosts[p.id] ? parseFloat(editedRiskCosts[p.id]) : p.riskCost
         })),
@@ -108,10 +114,11 @@ const ProblemEdit = forwardRef<ProblemEditHandle, {
             setProblems(await getProblems(deviceId));
             setEditedProblems({});
             setEditedPrices({});
+            setEditedPartsPrices({});
             setEditedLabourPrices({});
             setEditedRiskCosts({});
         },
-    }), [problems, editedProblems, editedPrices, editedLabourPrices, editedRiskCosts, deviceId]);
+    }), [problems, editedProblems, editedPrices, editedPartsPrices, editedLabourPrices, editedRiskCosts, deviceId]);
 
     const columns = useMemo<ColumnDef<Problem>[]>(() => [
         {
@@ -127,6 +134,13 @@ const ProblemEdit = forwardRef<ProblemEditHandle, {
             cell: ({ row }) => isEditing
                 ? <EditablePriceCell id={row.original.id} placeholder={formatPrice(row.original.price)} onEdit={handleEditPrice} />
                 : <div className="text-right font-medium">{formatPrice(row.getValue("price"))}</div>
+        },
+        {
+            accessorKey: "partsPrice",
+            header: () => <div className="text-right">Parts price</div>,
+            cell: ({ row }) => isEditing
+                ? <EditablePriceCell id={row.original.id} placeholder={formatPrice(row.original.partsPrice)} onEdit={handleEditPartsPrice} />
+                : <div className="text-right font-medium">{formatPrice(row.getValue("partsPrice"))}</div>
         },
         {
             accessorKey: "labourPrice",
