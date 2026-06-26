@@ -4,7 +4,7 @@ import FormPage from './pages/form/FormPage';
 import JobsPage from './pages/jobs/JobsPage';
 import DevicesPage from './pages/devices/DevicesPage';
 import NotFoundPage from './pages/404/NotFoundPage';
-import Chat from './components/Chat';
+import Chat from './components/chat/Chat';
 import { Navbar } from './components/Navbar';
 import { TooltipProvider } from './components/ui/tooltip';
 import { ToastContainer } from 'react-toastify';
