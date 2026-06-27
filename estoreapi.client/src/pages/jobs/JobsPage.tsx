@@ -211,7 +211,7 @@ export default function JobsPage({ title }: { title: string }) {
                     <span>{selectedDevice?.name}</span>
                     <span className="text-muted-foreground text-sm">{selectedDevice?.type}</span>
                 </div>
-                {selectedJob.problems.length > 1 &&
+                {selectedJob.problems.length >= 1 &&
                 <div>
                     <span className="text-muted-foreground">PROBLEMS</span>
                     <div className="flex flex-row flex-wrap gap-2">
