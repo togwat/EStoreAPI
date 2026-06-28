@@ -21,7 +21,8 @@ CONFIRMATION_REQUIRED_TOOLS: set[str] = {
     "update_problems",
     "update_jobs",
     "submit_form",
-    "web_search"
+    "web_search",
+    "web_fetch"
 }
 
 

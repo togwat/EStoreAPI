@@ -28,6 +28,7 @@ class Registry:
         self._register_get_time()
         self._register_update_description()
         self._register_web_search()
+        self._register_web_fetch()
         self._register_memory_search()
 
     def __contains__(self, name: str) -> bool:
@@ -89,7 +90,7 @@ class Registry:
         )
 
     def _register_web_search(self):
-        default = "Search the web for current information. Use for recent events, prices, or anything requiring up-to-date data."
+        default = "Search the web for current information (recent events, prices, up-to-date data). Returns the top 5 results, each with a short summary. Use web_fetch on a result's URL to read a full page."
         self._tools["web_search"] = CustomTool(
             schema={
                 "name": "web_search",
@@ -103,6 +104,29 @@ class Registry:
                         }
                     },
                     "required": ["query"],
+                },
+            },
+            default_description=default,
+        )
+
+    def _register_web_fetch(self):
+        default = (
+            "Fetch a specific web page and return its full contents as readable text."
+            "Use when the user gives you an exact URL to read, or to explore a promising web_search result in depth."
+        )
+        self._tools["web_fetch"] = CustomTool(
+            schema={
+                "name": "web_fetch",
+                "description": default,
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "url": {
+                            "type": "string",
+                            "description": "The full URL of the page to fetch, including https://",
+                        }
+                    },
+                    "required": ["url"],
                 },
             },
             default_description=default,
