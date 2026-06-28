@@ -198,6 +198,7 @@ const Composer: FC = () => {
             rows={1}
             autoFocus
             aria-label="Message input"
+            unstable_insertNewlineOnTouchEnter
           />
           <ComposerAction onBeforeSend={cancelPendingBeforeSend} />
         </div>
