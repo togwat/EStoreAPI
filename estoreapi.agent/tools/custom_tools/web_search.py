@@ -3,7 +3,7 @@ from config import TAVILY_KEY
 
 _client = TavilyClient(api_key=TAVILY_KEY)
 
-def _format_result(response: dict) -> str:
+def _format_search_result(response: dict) -> str:
     """Makes result compatible with assistant-ui's sources component"""
     import json
     sources = [
@@ -16,12 +16,30 @@ def _format_result(response: dict) -> str:
     )
     return json.dumps({"text": text, "sources": sources})
 
+def _format_fetch_result(response: dict) -> str:
+    """Extract returns page bodies under raw_content"""
+    return "\n\n".join(
+        r.get("raw_content", "")
+        for r in response["results"]
+    )
 
 def web_search(query: str) -> str:
+    # search the web based on the query and return top 5 most relevant results
     response = _client.search(query, 
         max_results=5, 
         search_depth="basic",   # basic costs 1 credit, advanced 2
         country="new zealand"
     )
 
-    return _format_result(response)
+    return _format_search_result(response)
+
+def web_fetch(url: str) -> str:
+    # fetch and read the provided website
+    response = _client.extract(
+        urls=[url],
+        extract_depth="advanced",
+        include_images=False,
+        format="markdown"
+    )
+
+    return _format_fetch_result(response)
