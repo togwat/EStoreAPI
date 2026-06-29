@@ -1,4 +1,5 @@
 import type { ChatModelAdapter, ThreadMessage } from "@assistant-ui/react";
+import type { ThreadTokenUsage } from "@assistant-ui/react-ai-sdk";
 
 /**
  * Wire protocol and stream handling for the `/agent/chat` endpoint.
@@ -55,6 +56,8 @@ export type StreamEvent =
     | ["reasoning", string]
     | ["tool_calls", Array<{ id: string; name: string; arguments: Record<string, unknown> }>]
     | ["tool_result", string, unknown]
+    // Token counts for the latest model call; the frontend keeps the most recent.
+    | ["usage", ThreadTokenUsage]
     // The listed tool calls need user approval; the backend ends the stream here.
     | ["confirmation_required", string[]];
 
@@ -136,6 +139,8 @@ class TurnAccumulator {
     private readonly toolCalls: ToolCallPart[] = [];
     private readonly toolCallMap = new Map<string, ToolCallPart>();
     private readonly sources: SourcePart[] = [];
+    // Latest token usage reported during the turn; surfaced as message metadata for the context indicator.
+    usage: ThreadTokenUsage | undefined;
     // Set when the backend pauses for confirmation; drives the final status.
     awaitingConfirmation = false;
 
@@ -158,7 +163,7 @@ class TurnAccumulator {
         } else if (type === "reasoning") {
             this.reasoning += rest[0] as string;
         } else if (type === "tool_calls") {
-            for (const call of rest[0] as StreamEvent[1] & object[]) {
+            for (const call of rest[0] as Array<{ id: string; name: string; arguments: Record<string, unknown> }>) {
                 const part: ToolCallPart = {
                     type: "tool-call",
                     toolCallId: call.id,
@@ -181,6 +186,9 @@ class TurnAccumulator {
                     part.result = result;
                 }
             }
+        } else if (type === "usage") {
+            // Keep the most recent counts; the last model call reflects the fullest context.
+            this.usage = rest[0] as ThreadTokenUsage;
         } else if (type === "confirmation_required") {
             // Tool call(s) await user approval; the stream ends after this.
             this.awaitingConfirmation = true;
@@ -256,11 +264,17 @@ export const agentAdapter: ChatModelAdapter = {
         const turn = new TurnAccumulator();
         turn.seedSources(current.content);
 
+        // Token usage rides along as message metadata under `custom.usage`, where
+        // useThreadTokenUsage() reads it to drive the context-usage indicator. It also
+        // persists with the message, so the indicator survives a reload.
+        const usageMeta = () =>
+            turn.usage ? { metadata: { custom: { usage: turn.usage } } } : {};
+
         // Emit on every chunk that carried at least one event, so the UI streams.
         for await (const events of readNdjsonLines(res.body)) {
             if (events.length === 0) continue;
             for (const event of events) turn.apply(event);
-            yield { content: turn.build() as never[] };
+            yield { content: turn.build() as never[], ...usageMeta() };
         }
 
         // Final emit. When the backend paused for confirmation, mark the message
@@ -269,6 +283,7 @@ export const agentAdapter: ChatModelAdapter = {
         // run. Otherwise the message completes normally.
         yield {
             content: turn.build() as never[],
+            ...usageMeta(),
             ...(turn.awaitingConfirmation
                 ? { status: { type: "requires-action", reason: "tool-calls" } as const }
                 : {}),

@@ -52,6 +52,8 @@ import {
   SquareIcon,
 } from "lucide-react";
 import type { FC } from "react";
+import { ContextDisplayBar } from "./context-display";
+import { useModelContextWindow } from "src/api/agent";
 
 export const Thread: FC = () => {
   return (
@@ -208,9 +210,15 @@ const Composer: FC = () => {
 };
 
 const ComposerAction: FC<{ onBeforeSend: () => void }> = ({ onBeforeSend }) => {
+  const modelContextWindow = useModelContextWindow();
+  
   return (
     <div className="aui-composer-action-wrapper relative flex items-center justify-between">
       <ComposerAddAttachment />
+      <div className="flex items-center">
+        {modelContextWindow !== undefined && (
+          <ContextDisplayBar modelContextWindow={modelContextWindow} />
+        )}
       <AuiIf condition={(s) => !s.thread.isRunning}>
         <ComposerPrimitive.Send asChild>
           <TooltipIconButton
@@ -240,6 +248,7 @@ const ComposerAction: FC<{ onBeforeSend: () => void }> = ({ onBeforeSend }) => {
           </Button>
         </ComposerPrimitive.Cancel>
       </AuiIf>
+      </div>
     </div>
   );
 };

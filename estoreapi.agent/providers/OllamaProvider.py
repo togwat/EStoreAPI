@@ -8,19 +8,41 @@ class OllamaProvider(ChatProvider):
         self.model = model
         self.host = host
         self._client = Client(host=host)
-        print(f"Provider Ollama connected at {host}. Model: {self.model}")
+        self._context_window: int | None = self._model_max_context()
+        print(f"Provider Ollama connected at {host}. Model: {self.model}. Context window: {self._context_window}")
+
+    @property
+    def context_window(self) -> int | None:
+        """The model's max context length from Ollama's show() metadata, or None if unavailable."""
+        return self._context_window
+
+    def _model_max_context(self) -> int | None:
+        """Return the model's max context length from show()"""
+        try:
+            info = self._client.show(self.model).modelinfo or {}
+            for key, value in info.items():
+                # key is shaped like 'gemma4.context_length'
+                if key.endswith(".context_length"):
+                    return int(value)
+        except Exception as e:
+            print(f"Could not read Ollama model context length: {e}")
+        return None
 
     def stream_chat_with_tools(self, messages: list[dict], tools: list[dict]) \
     -> Iterator[tuple]:
         """
         Stream a response with tools. Yields:
           ("chunk", text)                              — partial text token
+          ("usage", {inputTokens, outputTokens, totalTokens}) — token counts for this call
           ("tool_calls", list[dict], assistant_msg)   — model chose to call tools
         Tool calls, if any, are emitted as a single event at the end of the stream.
         """
         ollama_tools = self._to_ollama_tools(tools)
         content_parts: list[str] = []
         final_tool_calls = None
+        # Token counts arrive on the final (done) chunk, capture and emit after the loop
+        prompt_tokens = None
+        completion_tokens = None
 
         for chunk in self._client.chat(
             model=self.model,
@@ -37,6 +59,18 @@ class OllamaProvider(ChatProvider):
             if msg.tool_calls:
                 # Tool calls arrive on the final chunk; capture and emit after the loop
                 final_tool_calls = msg.tool_calls
+            if chunk.prompt_eval_count is not None:
+                prompt_tokens = chunk.prompt_eval_count
+            if chunk.eval_count is not None:
+                completion_tokens = chunk.eval_count
+
+        # emit usage event
+        if prompt_tokens is not None:
+            yield ("usage", {
+                "inputTokens": prompt_tokens,
+                "outputTokens": completion_tokens or 0,
+                "totalTokens": prompt_tokens + (completion_tokens or 0),
+            })
 
         if final_tool_calls:
             normalized = self._normalize_tool_calls(final_tool_calls)

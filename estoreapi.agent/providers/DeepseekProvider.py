@@ -1,5 +1,6 @@
 import json
 from providers.AbstractProvider import ChatProvider
+from providers.model_registry import get_context_window
 from typing import Iterator
 from openai import OpenAI
 
@@ -8,9 +9,14 @@ class DeepseekProvider(ChatProvider):
     def __init__(self, model, host, key):
         self.model = model
         self.host = host
+        self._context_window = get_context_window("deepseek", model)
         # Deepseek can use OpenAI api
         self._client = OpenAI(api_key=key, base_url=host)
-        print(f"Provider Deepseek connected at {host}. Model: {self.model}")
+        print(f"Provider Deepseek connected at {host}. Model: {self.model}. Context window: {self._context_window}")
+
+    @property
+    def context_window(self) -> int | None:
+        return self._context_window
 
     def stream_chat_with_tools(self, messages: list[dict], tools: list[dict]) \
     -> Iterator[tuple]:
@@ -18,6 +24,7 @@ class DeepseekProvider(ChatProvider):
         Stream a response with tools. Yields:
           ("reasoning", text)                          — partial reasoning/thinking token
           ("chunk", text)                              — partial text token
+          ("usage", {inputTokens, outputTokens, totalTokens, ...}) — token counts for this call
           ("tool_calls", list[dict], assistant_msg)   — model chose to call tools
         Tool calls, if any, are emitted as a single event at the end of the stream.
         """
@@ -28,16 +35,21 @@ class DeepseekProvider(ChatProvider):
         # OpenAI streams tool calls as fragments keyed by index: the name arrives once and
         # the JSON arguments are delivered in pieces, so accumulate per index until the end.
         tool_acc: dict[int, dict] = {}
+        # With include_usage, the final chunk carries usage and has empty choices.
+        usage = None
 
         for chunk in self._client.chat.completions.create(
             model=self.model,
             messages=self._normalise_messages(messages),  # type: ignore[arg-type]
             tools=self._to_openai_tools(tools),  # type: ignore[arg-type]
             stream=True,
+            stream_options={"include_usage": True},
             reasoning_effort="high",
             parallel_tool_calls=False,
             extra_body={"thinking": {"type": "enabled"}},
         ):
+            if chunk.usage:
+                usage = chunk.usage
             if not chunk.choices:
                 continue
             delta = chunk.choices[0].delta
@@ -59,6 +71,9 @@ class DeepseekProvider(ChatProvider):
                         entry["name"] = tc.function.name
                     if tc.function and tc.function.arguments:
                         entry["arguments"] += tc.function.arguments
+
+        if usage:
+            yield ("usage", self._usage_event(usage))
 
         if tool_acc:
             normalised = self._normalise_tool_calls(tool_acc)
@@ -86,6 +101,22 @@ class DeepseekProvider(ChatProvider):
         # OpenAI requires tool_call_id to match the assistant's tool_calls[].id exactly, so
         # results bind to the right call even when the same tool is called multiple times.
         return {"role": "tool", "tool_call_id": tool_call_id, "content": result}
+
+    def _usage_event(self, usage) -> dict:
+        """Map an OpenAI CompletionUsage to the frontend's token-usage shape, including the
+        optional cached-input and reasoning breakdowns when the API reports them."""
+        event = {
+            "inputTokens": usage.prompt_tokens,
+            "outputTokens": usage.completion_tokens,
+            "totalTokens": usage.total_tokens,
+        }
+        prompt_details = getattr(usage, "prompt_tokens_details", None)
+        if prompt_details and getattr(prompt_details, "cached_tokens", None):
+            event["cachedInputTokens"] = prompt_details.cached_tokens
+        completion_details = getattr(usage, "completion_tokens_details", None)
+        if completion_details and getattr(completion_details, "reasoning_tokens", None):
+            event["reasoningTokens"] = completion_details.reasoning_tokens
+        return event
 
     def _to_openai_tools(self, tools: list[dict]) -> list[dict]:
         """Convert MCP tool format (input_schema) to OpenAI's expected format (parameters)."""

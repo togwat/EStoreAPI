@@ -45,11 +45,12 @@ def _run_agentic_loop(
     """
     Core agentic loop. Yields tuples that map directly to the frontend wire protocol:
 
-      ("chunk",                text)                     — incremental text token
-      ("tool_calls",           [{id, name, arguments}])  — model requested tools (before execution)
-      ("tool_result",          id, result)               — result for a single tool call
-      ("reasoning",            text)                     — incremental reasoning token (provider-dependent)
-      ("confirmation_required", [id])                    — the gated tool needs user approval; stream ends
+    ("chunk",                text)                     — incremental text token
+    ("tool_calls",           [{id, name, arguments}])  — model requested tools (before execution)
+    ("tool_result",          id, result)               — result for a single tool call
+    ("reasoning",            text)                     — incremental reasoning token (provider-dependent)
+    ("confirmation_required", [id])                    — the gated tool needs user approval; stream ends
+    ("usage",                {inputTokens, ...})       — token counts for the latest model call (provider-dependent)
 
     Tools run strictly one per turn. 
     When a tool requires confirmation the loop emits ("confirmation_required", [id]) and returns without 
@@ -96,6 +97,9 @@ def _run_agentic_loop(
                 messages.append(provider.make_tool_result_message(original["id"], result))
 
                 had_tool_calls = True
+            # chat metadata
+            elif event[0] == "usage":
+                yield ("usage", event[1])
 
         if not had_tool_calls:
             break
@@ -178,3 +182,11 @@ def run_tool(
     if not requires_confirmation(req.name):
         raise HTTPException(status_code=403, detail=f"Tool '{req.name}' is not confirmable")
     return {"result": tool_router.route(req.name).call_tool(req.name, req.arguments)}
+
+
+@router.get("/agent/metadata")
+def agent_metadata(provider: ChatProvider = Depends(get_provider)):
+    """
+    Get model metadata, such as context window size.
+    """
+    return {"modelContextWindow": provider.context_window}
