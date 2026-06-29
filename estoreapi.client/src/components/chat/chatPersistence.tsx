@@ -1,5 +1,5 @@
 import type { FC, PropsWithChildren } from "react";
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import {
     RuntimeAdapterProvider,
     useAui,
@@ -88,41 +88,65 @@ function orderParentFirst(repo: ExportedMessageRepository): ExportedMessageRepos
 }
 
 /**
- * Per-thread history adapter, injected into each thread's runtime via context.
- * Mirrors assistant-ui's cloud adapter: the remoteId is read from the active thread
- * list item, and `initialize()` is awaited before the first write so a brand-new
- * thread is created server-side exactly once.
+ * Per-thread history adapter. Buffers a turn's user message until the replies
+ * finalise, then persists the turn as an atomic unit
+ */
+class ChatHistoryAdapter implements ThreadHistoryAdapter {
+    // Serialises writes so they never overlap
+    private queue: Promise<unknown> = Promise.resolve();
+    // The turn's user message, held until the reply decides commit or drop
+    private pending: ExportedMessageRepositoryItem[] = [];
+
+    constructor(private readonly aui: ReturnType<typeof useAui>) {}
+
+    async load(): Promise<ExportedMessageRepository> {
+        const remoteId = this.aui.threadListItem().getState().remoteId;
+        if (!remoteId) return { messages: [] };
+        // read-time inversion guard (see orderParentFirst)
+        return orderParentFirst(await getMessages(remoteId));
+    }
+
+    append(item: ExportedMessageRepositoryItem): Promise<void> {
+        const msg = item.message;
+        // Buffer the user message
+        if (msg.role !== "assistant") {
+            this.pending.push(item);
+            return Promise.resolve();
+        }
+        const status = msg.status;
+        const errored = status?.type === "incomplete" && status.reason === "error";
+        // Drop the whole turn (user message + error reply) if the run errored
+        const batch = errored ? [] : [...this.pending, item];
+        this.pending = [];
+        return this.commit(batch);
+    }
+
+    // Persist a turn's messages in one batch
+    // the user message (parent) is always stored before the children (replies)
+    private commit(batch: ExportedMessageRepositoryItem[]): Promise<void> {
+        // batch length 0 is from errors, so persist nothing
+        if (batch.length === 0) return Promise.resolve();
+
+        const run = this.queue.then(async () => {
+            const { remoteId } = await this.aui.threadListItem().initialize();
+            for (const it of batch) {
+                await appendMessage(remoteId, { ...it, message: stripAttachmentFiles(it.message) });
+            }
+        });
+        // Keep the chain alive on failure so one bad append can't wedge the queue.
+        this.queue = run.catch(() => {});
+        return run;
+    }
+}
+
+/**
+ * Injects a per-thread ChatHistoryAdapter into the active thread's runtime via context.
+ * One instance per thread (memoized on the stable aui), so each thread keeps its own
+ * write queue and pending buffer.
  */
 const HistoryProvider: FC<PropsWithChildren> = ({ children }) => {
     const aui = useAui();
-    // mutable queue survive across renders
-    const queueRef = useRef<Promise<unknown>>(Promise.resolve());
-    const history = useMemo<ThreadHistoryAdapter>(
-        () => ({
-            async load() {
-                const remoteId = aui.threadListItem().getState().remoteId;
-                if (!remoteId) return { messages: [] };
-                // load messages with read time inversion guard
-                return orderParentFirst(await getMessages(remoteId));
-            },
-            // Write time inversion guard:
-            // useLocalRuntime fires the user-message append without awaiting it before starting 
-            // the run, so on a slow turn its POST can land after the assistant reply's and invert
-            // their stored order (child before parent), which breaks load. 
-            // Chaining each append onto the previous one persists them in call order when writing
-            // to ChatStore db.
-            append(item) {
-                const run = queueRef.current.then(async () => {
-                    const { remoteId } = await aui.threadListItem().initialize();
-                    await appendMessage(remoteId, { ...item, message: stripAttachmentFiles(item.message) });
-                });
-                // Keep the chain alive on failure so one bad append can't wedge the queue.
-                queueRef.current = run.catch(() => {});
-                return run;
-            },
-        }),
-        [aui],
-    );
+    const history = useMemo(() => new ChatHistoryAdapter(aui), [aui]);
     return (
         <RuntimeAdapterProvider adapters={{ history }}>
             {children}
