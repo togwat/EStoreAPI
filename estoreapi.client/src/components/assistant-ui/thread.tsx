@@ -24,6 +24,7 @@ import { TooltipIconButton } from "src/components/assistant-ui/tooltip-icon-butt
 import { Button } from "src/components/ui/button";
 import { cn } from "src/lib/utils";
 import { usePendingConfirmations } from "src/hooks/use-pending-confirmations";
+import { useThreadHasError } from "src/hooks/use-thread-has-error";
 import {
   ActionBarMorePrimitive,
   ActionBarPrimitive,
@@ -167,6 +168,7 @@ const CANCEL_ON_SEND_REASON =
 
 const Composer: FC = () => {
   const { hasPending, cancelAll } = usePendingConfirmations();
+  const hasError = useThreadHasError();
   const composer = useComposerRuntime();
 
   // Sending a message while a tool awaits confirmation is an implicit "no":
@@ -179,9 +181,19 @@ const Composer: FC = () => {
     }
   };
 
+  // Prevent new messages from submitting if the thread has error.
+  // There is also button disabling in ComposerAction
+  const onSubmit = (e: { preventDefault: () => void }) => {
+    if (hasError) {
+      e.preventDefault();
+      return;
+    }
+    cancelPendingBeforeSend();
+  };
+
   return (
     <ComposerPrimitive.Root
-      onSubmit={cancelPendingBeforeSend}
+      onSubmit={onSubmit}
       className="aui-composer-root relative flex w-full flex-col"
     >
       <ComposerPrimitive.AttachmentDropzone asChild>
@@ -192,9 +204,9 @@ const Composer: FC = () => {
           <ComposerAttachments />
           <ComposerPrimitive.Input
             placeholder={
-              hasPending
-                ? "Sending will cancel the pending tool..."
-                : "Send a message..."
+              hasError ? "There has been an error. Reload the page to continue."
+              : hasPending ? "Sending will cancel the pending tool..."
+              : "Send a message..."
             }
             className="aui-composer-input max-h-32 min-h-10 w-full resize-none bg-transparent px-1.75 py-1 text-sm outline-none placeholder:text-muted-foreground/80"
             rows={1}
@@ -202,14 +214,20 @@ const Composer: FC = () => {
             aria-label="Message input"
             unstable_insertNewlineOnTouchEnter
           />
-          <ComposerAction onBeforeSend={cancelPendingBeforeSend} />
+          <ComposerAction
+            onBeforeSend={cancelPendingBeforeSend}
+            hasError={hasError}
+          />
         </div>
       </ComposerPrimitive.AttachmentDropzone>
     </ComposerPrimitive.Root>
   );
 };
 
-const ComposerAction: FC<{ onBeforeSend: () => void }> = ({ onBeforeSend }) => {
+const ComposerAction: FC<{ onBeforeSend: () => void; hasError: boolean }> = ({
+  onBeforeSend,
+  hasError,
+}) => {
   const modelContextWindow = useModelContextWindow();
   
   return (
@@ -220,7 +238,7 @@ const ComposerAction: FC<{ onBeforeSend: () => void }> = ({ onBeforeSend }) => {
           <ContextDisplayBar modelContextWindow={modelContextWindow} />
         )}
       <AuiIf condition={(s) => !s.thread.isRunning}>
-        <ComposerPrimitive.Send asChild>
+        <ComposerPrimitive.Send asChild disabled={hasError}>
           <TooltipIconButton
             onClick={onBeforeSend}
             tooltip="Send message"
