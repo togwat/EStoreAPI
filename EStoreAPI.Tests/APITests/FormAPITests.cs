@@ -17,7 +17,7 @@ namespace EStoreAPI.Tests.APITests
         {
             // arrange
             var dto = _fixture.Build<InFormDTO>()
-                                .With(f => f.PhoneNumber, "12345")
+                                .With(f => f.PrimaryContact, "test@email")
                                 .With(f => f.DeviceName, "phone")
                                 .With(f => f.Problems, ["broken screen"])
                                 .Create();

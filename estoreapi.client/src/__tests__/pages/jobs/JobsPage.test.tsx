@@ -4,8 +4,8 @@ import { describe, it, expect } from 'vitest'
 import JobsPage from '@/pages/jobs/JobsPage'
 
 // MSW fixture data:
-//   Job 1 — John Smith, iPhone 14, Screen Replacement — in progress
-//   Job 2 — Jane Doe,   Samsung S22, Battery Replacement — finished
+//   Job 1 — John Smith (contact 0211234567),      iPhone 14,   Screen Replacement — in progress
+//   Job 2 — Jane Doe   (contact jane@example.com), Samsung S22, Battery Replacement — finished
 
 describe('JobsPage', () => {
     it('renders IN PROGRESS and FINISHED sections with the correct cards', async () => {
@@ -52,6 +52,24 @@ describe('JobsPage', () => {
         // match by device name — Samsung S22 belongs to Jane Doe
         await userEvent.clear(search)
         await userEvent.type(search, 'Samsung')
+        expect(screen.queryByText('John Smith')).not.toBeInTheDocument()
+        expect(screen.getByText('Jane Doe')).toBeInTheDocument()
+    })
+
+    it('filters cards by matching the customer primary contact', async () => {
+        render(<JobsPage title="Jobs" />)
+        await screen.findByText('John Smith')
+
+        const search = screen.getByPlaceholderText(/search jobs/i)
+
+        // phone-style primary contact — John's is 0211234567
+        await userEvent.type(search, '021123')
+        expect(screen.getByText('John Smith')).toBeInTheDocument()
+        expect(screen.queryByText('Jane Doe')).not.toBeInTheDocument()
+
+        // non-phone primary contact — Jane's is jane@example.com
+        await userEvent.clear(search)
+        await userEvent.type(search, 'jane@')
         expect(screen.queryByText('John Smith')).not.toBeInTheDocument()
         expect(screen.getByText('Jane Doe')).toBeInTheDocument()
     })

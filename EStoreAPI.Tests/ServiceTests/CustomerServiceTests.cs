@@ -6,6 +6,7 @@ using EStoreAPI.Server.Models;
 using EStoreAPI.Server.Services;
 using EStoreAPI.Tests.APITests;
 using Moq;
+using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Tests.ServiceTests
 {
@@ -61,25 +62,25 @@ namespace EStoreAPI.Tests.ServiceTests
             Assert.Null(result);
         }
 
-        // an existing phone resolves to that customer (used by the form flow to avoid duplicates)
+        // an existing primary contact resolves to that customer (used by the form flow to avoid duplicates)
         [Fact]
-        public async Task GetCustomerByPhone_Exists_ReturnsCustomer()
+        public async Task GetCustomerByPrimaryContact_Exists_ReturnsCustomer()
         {
             var customer = _fixture.Create<Customer>();
-            _repo.Setup(r => r.GetCustomerByPhoneAsync(customer.PhoneNumber)).ReturnsAsync(customer);
+            _repo.Setup(r => r.GetCustomerByPrimaryContactAsync(customer.PrimaryContact)).ReturnsAsync(customer);
 
-            var result = await _customerService.GetCustomerByPhoneAsync(customer.PhoneNumber);
+            var result = await _customerService.GetCustomerByPrimaryContactAsync(customer.PrimaryContact);
 
-            Assert.Equal(customer.PhoneNumber, result?.PhoneNumber);
+            Assert.Equal(customer.PrimaryContact, result?.PrimaryContact);
         }
 
-        // an unknown phone returns null
+        // an unknown primary contact returns null
         [Fact]
-        public async Task GetCustomerByPhone_NotFound_ReturnsNull()
+        public async Task GetCustomerByPrimaryContact_NotFound_ReturnsNull()
         {
-            _repo.Setup(r => r.GetCustomerByPhoneAsync(It.IsAny<string>())).ReturnsAsync((Customer?)null);
+            _repo.Setup(r => r.GetCustomerByPrimaryContactAsync(It.IsAny<string>())).ReturnsAsync((Customer?)null);
 
-            var result = await _customerService.GetCustomerByPhoneAsync("0000");
+            var result = await _customerService.GetCustomerByPrimaryContactAsync("0000");
 
             Assert.Null(result);
         }
@@ -124,6 +125,43 @@ namespace EStoreAPI.Tests.ServiceTests
             _repo.Verify(r => r.AddCustomerAsync(It.IsAny<Customer>()), Times.Once);
         }
 
+        // the primary contact is stored verbatim (it may be an email, telegram id, etc.),
+        // while the optional phone number is still normalised to digits only
+        [Fact]
+        public async Task CreateCustomer_PrimaryContactVerbatim_PhoneNormalised()
+        {
+            var dto = new InCustomerDTO
+            {
+                CustomerName = "Alice",
+                PrimaryContact = "alice@example.com",
+                PhoneNumber = "021 123-4567",
+            };
+            _repo.Setup(r => r.AddCustomerAsync(It.IsAny<Customer>()))
+                .ReturnsAsync((Customer c) => c);
+
+            await _customerService.CreateCustomerAsync(dto);
+
+            _repo.Verify(r => r.AddCustomerAsync(It.Is<Customer>(c =>
+                c.PrimaryContact == "alice@example.com" &&
+                c.PhoneNumber == "0211234567")), Times.Once);
+        }
+
+        // the numbers-only rule no longer applies to the primary contact,
+        // but still applies to the optional phone number
+        [Fact]
+        public async Task CreateCustomer_NonNumericPhone_ThrowsValidation()
+        {
+            var dto = new InCustomerDTO
+            {
+                CustomerName = "Alice",
+                PrimaryContact = "alice@example.com",
+                PhoneNumber = "not-a-phone",
+            };
+
+            await Assert.ThrowsAsync<ValidationException>(() => _customerService.CreateCustomerAsync(dto));
+            _repo.Verify(r => r.AddCustomerAsync(It.IsAny<Customer>()), Times.Never);
+        }
+
         // bulk create persists every customer
         [Fact]
         public async Task CreateCustomers_Bulk_PersistsAll()
@@ -144,6 +182,7 @@ namespace EStoreAPI.Tests.ServiceTests
         {
             var original = _fixture.Create<Customer>();
             var originalName = original.CustomerName;
+            var originalPrimaryContact = original.PrimaryContact;
             var originalPhone = original.PhoneNumber;
             var originalAddress = original.Address;
             _repo.Setup(r => r.GetCustomerByIdAsync(original.CustomerId)).ReturnsAsync(original);
@@ -155,9 +194,31 @@ namespace EStoreAPI.Tests.ServiceTests
 
             Assert.Equal("new@example.com", original.Email);
             Assert.Equal(originalName, original.CustomerName);
+            Assert.Equal(originalPrimaryContact, original.PrimaryContact);
             Assert.Equal(originalPhone, original.PhoneNumber);
             Assert.Equal(originalAddress, original.Address);
             _repo.Verify(r => r.ApplyUpdateAsync(), Times.Once);
+        }
+
+        // the update merge writes each DTO field into the matching entity field:
+        // primary contact stays verbatim, phone number is normalised
+        [Fact]
+        public async Task UpdateCustomer_ContactFields_MapToCorrectColumns()
+        {
+            var original = _fixture.Create<Customer>();
+            _repo.Setup(r => r.GetCustomerByIdAsync(original.CustomerId)).ReturnsAsync(original);
+
+            var dto = new UpdateCustomerDTO
+            {
+                CustomerId = original.CustomerId,
+                PrimaryContact = "tg:@alice",
+                PhoneNumber = "09 555-1234",
+            };
+
+            await _customerService.UpdateCustomerAsync(dto);
+
+            Assert.Equal("tg:@alice", original.PrimaryContact);
+            Assert.Equal("095551234", original.PhoneNumber);
         }
 
         // bulk update applies the same partial-overwrite rule to each customer independently

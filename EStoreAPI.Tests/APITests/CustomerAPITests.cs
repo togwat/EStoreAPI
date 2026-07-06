@@ -114,26 +114,26 @@ namespace EStoreAPI.Tests.APITests
         [InlineData("12345")]   // valid
         [InlineData("45678")]   // invalid
         [InlineData("123")]     // invalid
-        public async Task TestSearchCustomersPhone(string phone)
+        public async Task TestSearchCustomersPrimaryContact(string primaryContact)
         {
             // arrange
             Customer customer = _fixture.Build<Customer>()
-                                    .With(c => c.PhoneNumber, "12345")
+                                    .With(c => c.PrimaryContact, "12345")
                                     .Create();
             _service.Setup(s => s.SearchCustomersAsync("12345")).ReturnsAsync(new List<Customer> { customer });
             _service.Setup(s => s.SearchCustomersAsync(It.Is<string>(s => s != "12345"))).ReturnsAsync(new List<Customer>());
 
             // act
-            var result = await _controller.SearchCustomersAsync(phone);
+            var result = await _controller.SearchCustomersAsync(primaryContact);
 
             // assert
             var okResult = Assert.IsType<OkObjectResult>(result.Result);    // returns 200 Ok
             var customersResult = Assert.IsAssignableFrom<ICollection<OutCustomerDTO>>(okResult.Value);
 
-            if (phone == "12345")
+            if (primaryContact == "12345")
             {
                 Assert.Single(customersResult);   // returns 1 customer
-                Assert.All(customersResult, c => Assert.Equal("12345", c.PhoneNumber));
+                Assert.All(customersResult, c => Assert.Equal("12345", c.PrimaryContact));
             }
             else
             {
@@ -190,22 +190,23 @@ namespace EStoreAPI.Tests.APITests
 
         // POST: api/Customers/create
         [Theory]
-        [InlineData("a", "123")]    // valid customer
-        [InlineData(null, "123")]   // invalid name
-        [InlineData("b", null)]     // invalid phone: null
-        [InlineData("a", "abc")]    // invalid phone: no digits
-        [InlineData(null, null)]    // invalid name and phone
-        public async Task TestCreateCustomer(string name, string phone)
+        [InlineData("a", "123")]            // valid customer, numeric contact
+        [InlineData("a", "test@email")]     // valid customer, non-numeric contact
+        [InlineData(null, "123")]           // invalid name
+        [InlineData("b", null)]             // invalid contact: null
+        [InlineData(null, null)]            // invalid name and contact
+        public async Task TestCreateCustomer(string name, string primaryContact)
         {
             // arrange
-            var dto = new InCustomerDTO { CustomerName = name, PhoneNumber = phone };
+            bool valid = name != null && primaryContact != null;
+            var dto = new InCustomerDTO { CustomerName = name, PrimaryContact = primaryContact };
             Customer newCustomer = _fixture.Build<Customer>()
                                     .With(c => c.CustomerId, 1)
                                     .With(c => c.CustomerName, name)
-                                    .With(c => c.PhoneNumber, phone)
+                                    .With(c => c.PrimaryContact, primaryContact)
                                     .Create();
 
-            if (name == "a" && phone == "123")
+            if (valid)
             {
                 _service.Setup(s => s.CreateCustomerAsync(dto)).ReturnsAsync(newCustomer);
             }
@@ -218,13 +219,13 @@ namespace EStoreAPI.Tests.APITests
             var result = await _controller.CreateCustomerAsync(dto);
 
             // assert
-            if (name == "a" && phone == "123")
+            if (valid)
             {
                 var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);    // returns 201 created
                 var createdCustomer = Assert.IsAssignableFrom<OutCustomerDTO>(createdResult.Value);
 
                 Assert.Equal(newCustomer.CustomerName, createdCustomer.CustomerName);
-                Assert.Equal(newCustomer.PhoneNumber, createdCustomer.PhoneNumber);
+                Assert.Equal(newCustomer.PrimaryContact, createdCustomer.PrimaryContact);
                 Assert.Equal(newCustomer.Email, createdCustomer.Email);
             }
             else
@@ -262,6 +263,7 @@ namespace EStoreAPI.Tests.APITests
                 var newCustomers = dtos.Select((d, i) => _fixture.Build<Customer>()
                     .With(c => c.CustomerId, i + 1)
                     .With(c => c.CustomerName, d.CustomerName)
+                    .With(c => c.PrimaryContact, d.PrimaryContact)
                     .With(c => c.PhoneNumber, d.PhoneNumber)
                     .Create()).ToList();
 
@@ -296,7 +298,7 @@ namespace EStoreAPI.Tests.APITests
         // PUT: api/Customers/update/{id}
         [Theory]
         [InlineData(1, "newname", "123")]    // valid id, valid data
-        [InlineData(1, null, null)]          // valid id, invalid data: null phone
+        [InlineData(1, null, null)]          // valid id, invalid data
         [InlineData(1, "newname", "abc")]    // valid id, invalid data: non-digit phone
         [InlineData(2, "newname", "123")]    // invalid id, valid data
         [InlineData(2, null, null)]          // invalid id, invalid data

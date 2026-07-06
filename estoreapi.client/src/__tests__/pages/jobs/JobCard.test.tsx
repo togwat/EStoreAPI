@@ -23,8 +23,8 @@ const baseJob: Job = {
 const customer: Customer = {
     id: '1',
     name: 'John Smith',
-    phone: '0211234567',
-    secondPhone: '',
+    primaryContact: '0211234567',
+    phone: '',
     email: '',
     address: '',
 }
@@ -63,9 +63,14 @@ describe('JobCard', () => {
         expect(screen.getByText(/Due/)).toBeInTheDocument()
     })
 
-    it('formats the phone number in NZ mobile style', () => {
+    it('formats a phone-style primary contact in NZ mobile style', () => {
         render(<JobCard job={baseJob} customer={customer} device={device} onClick={vi.fn()} />)
         expect(screen.getByText('021 123 4567')).toBeInTheDocument()
+    })
+
+    it('shows a non-phone primary contact as-is', () => {
+        render(<JobCard job={baseJob} customer={{ ...customer, primaryContact: 'john@example.com' }} device={device} onClick={vi.fn()} />)
+        expect(screen.getByText('john@example.com')).toBeInTheDocument()
     })
 
     it('calls onClick when clicked', async () => {

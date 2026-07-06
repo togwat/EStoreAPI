@@ -130,7 +130,8 @@ describe('JobForm (submission)', () => {
         render(<JobForm />)
         await waitFor(() => expect(deviceOptions().length).toBeGreaterThan(0))
 
-        await userEvent.type(screen.getByLabelText('Phone number'), '0211234567')
+        // the primary contact is not restricted to phone numbers
+        await userEvent.type(screen.getByLabelText(/primary contact/i), 'alice@example.com')
         await userEvent.type(screen.getByLabelText(/device model/i), 'iPhone 14')
         await userEvent.type(
             document.querySelectorAll('[list="problem-datalist"]')[0] as HTMLElement,

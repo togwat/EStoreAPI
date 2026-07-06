@@ -33,16 +33,17 @@ export const customerFixtures = [
     {
         customerId: 1,
         customerName: 'John Smith',
-        phoneNumber: '0211234567',
-        phoneNumberSecondary: null,
+        primaryContact: '0211234567',
+        phoneNumber: null,
         email: 'john@example.com',
         address: '123 Main St, Auckland',
     },
     {
+        // primary contact is not necessarily a phone number (email, telegram id, etc.)
         customerId: 2,
         customerName: 'Jane Doe',
+        primaryContact: 'jane@example.com',
         phoneNumber: '0279876543',
-        phoneNumberSecondary: null,
         email: null,
         address: null,
     },
