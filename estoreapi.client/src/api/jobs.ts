@@ -65,8 +65,8 @@ export async function getJobs(): Promise<Job[]> {
 // follow job form
 type SubmitJobPayload = {
     name?: string;
-    phoneNumber: string;
-    phoneNumberSecondary?: string;
+    primaryContact: string;
+    phoneNumber?: string;
     email?: string;
     address?: string;
     deviceName?: string;

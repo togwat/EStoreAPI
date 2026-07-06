@@ -5,18 +5,18 @@ import { handleApiError } from './apiHelpers';
 export type Customer = {
     id: string
     name: string
+    primaryContact: string
     phone: string
-    secondPhone: string
     email: string
     address: string
 }
 
-function _mapCustomer(c: { customerId: string; customerName: string; phoneNumber: string; phoneNumberSecondary: string; email: string; address: string }): Customer {
+function _mapCustomer(c: { customerId: string; customerName: string; primaryContact: string; phoneNumber: string; email: string; address: string }): Customer {
     return {
         id: c.customerId,
         name: c.customerName,
+        primaryContact: c.primaryContact,
         phone: c.phoneNumber,
-        secondPhone: c.phoneNumberSecondary,
         email: c.email,
         address: c.address
     };

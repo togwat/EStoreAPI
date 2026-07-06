@@ -6,11 +6,12 @@ import { Input } from '@/components/ui/input';
 import { getJobs, updateJob, Job } from '@/api/jobs';
 import { getCustomers, Customer } from '@/api/customers';
 import { getDevices, Device } from '@/api/devices';
-import { JobCard, formatPhone, formatDate } from './components/JobCard';
+import { JobCard, formatDate } from './components/JobCard';
 import { Filter, FilterSearch, FilterSelect } from '@/components/Filter';
-import { CircleCheckIcon, Inbox, X, PencilIcon, PhoneIcon, MapPinIcon, MailIcon } from 'lucide-react';
+import { CircleCheckIcon, Inbox, X, PencilIcon, PhoneIcon, MapPinIcon, MailIcon, ContactIcon } from 'lucide-react';
 import { WorkingPagination } from '@/components/WorkingPagination';
 import { formatPrice } from '@/lib/formatPrice';
+import { formatPhone } from '@/lib/formatPhone';
 import { toLocalDatetimeInputValue } from '@/lib/toLocalDatetime';
 import { toLocalDateKey } from '@/lib/localDateKey';
 import { Textarea } from '@/components/ui/textarea';
@@ -104,9 +105,9 @@ export default function JobsPage({ title }: { title: string }) {
         const customer = customers[job.customerId];
         const device = devices[job.deviceId];
         const query = searchQuery.toLowerCase();
-        // search by customer name or phone, or by device name
+        // search by customer name or primary contact, or by device name
         return customer?.name.toLowerCase().includes(query) 
-            || customer?.phone.includes(query)
+            || customer?.primaryContact.includes(query)
             || device?.name.toLowerCase().includes(query);
     }
 
@@ -191,11 +192,11 @@ export default function JobsPage({ title }: { title: string }) {
             {/** customer section */}
             <div className={`border-b py-4 flex flex-col gap-2 ${isMobile && "px-4"}`}>
                 <span className="text-muted-foreground">CUSTOMER</span>
-                <InfoRow icon={PhoneIcon}>
-                    <span>{formatPhone(selectedCustomer?.phone)}</span>
+                <InfoRow icon={ContactIcon}>
+                    <span>{formatPhone(selectedCustomer?.primaryContact)}</span>
                 </InfoRow>
-                {selectedCustomer?.secondPhone && <InfoRow>
-                    <span>{formatPhone(selectedCustomer.secondPhone)}</span>
+                {selectedCustomer?.phone && <InfoRow icon={PhoneIcon}>
+                    <span>{formatPhone(selectedCustomer.phone)}</span>
                 </InfoRow>}
                 {selectedCustomer?.email && <InfoRow icon={MailIcon}>
                     <span>{selectedCustomer.email}</span>

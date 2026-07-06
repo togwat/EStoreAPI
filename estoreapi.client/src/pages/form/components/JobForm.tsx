@@ -84,8 +84,8 @@ export default function JobForm() {
         const formData = new FormData(event.currentTarget);
 
         const name = formData.get("name")?.toString().trim();
-        const phone = formData.get("phone")!.toString().trim();
-        const phone2 = formData.get("phone2")?.toString().trim();
+        const primaryContact = formData.get("primary-contact")!.toString().trim();
+        const phone = formData.get("phone")?.toString().trim();
         const email = formData.get("email")?.toString().trim();
         const address = formData.get("address")?.toString().trim();
         const device = formData.get("device")?.toString().trim();
@@ -103,8 +103,8 @@ export default function JobForm() {
         try {
             await submitJob({
                 name,
+                primaryContact: primaryContact,
                 phoneNumber: phone,
-                phoneNumberSecondary: phone2,
                 email,
                 address,
                 deviceName: device,
@@ -132,12 +132,12 @@ export default function JobForm() {
                     <Input id="name" name="name" />
                 </Field>
                 <Field>
-                    <FieldLabel htmlFor="phone" className="after:content-['_*'] after:text-destructive">Phone number</FieldLabel>
-                    <Input id="phone" name="phone" placeholder="required" required />
+                    <FieldLabel htmlFor="primary-contact" className="after:content-['_*'] after:text-destructive">Primary Contact</FieldLabel>
+                    <Input id="primary-contact" name="primary-contact" placeholder="required" required />
                 </Field>
                 <Field>
-                    <FieldLabel htmlFor="phone2">Secondary phone number</FieldLabel>
-                    <Input id="phone2" name="phone2" />
+                    <FieldLabel htmlFor="phone">Phone number</FieldLabel>
+                    <Input id="phone" name="phone" />
                 </Field>
                 <Field>
                     <FieldLabel htmlFor="email">Email</FieldLabel>
