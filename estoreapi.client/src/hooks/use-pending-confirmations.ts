@@ -1,4 +1,4 @@
-import { useThread, useThreadRuntime } from "@assistant-ui/react";
+import { useAui, useAuiState } from "@assistant-ui/react";
 
 type PendingConfirmation = { messageId: string; toolCallId: string };
 
@@ -13,8 +13,9 @@ type PendingConfirmation = { messageId: string; toolCallId: string };
  * decline so the run can continue.
  */
 export function usePendingConfirmations() {
-  const messages = useThread((t) => t.messages);
-  const thread = useThreadRuntime();
+  const aui = useAui();
+  const messages = useAuiState((s) => s.thread.messages);
+  const thread = aui.thread();
 
   const pending: PendingConfirmation[] = [];
   for (const message of messages) {
@@ -32,8 +33,8 @@ export function usePendingConfirmations() {
     cancelAll: (reason: string) => {
       for (const { messageId, toolCallId } of pending) {
         thread
-          .getMessageById(messageId)
-          .getMessagePartByToolCallId(toolCallId)
+          .message({ id: messageId })
+          .part({ toolCallId })
           .addToolResult(reason);
       }
     },

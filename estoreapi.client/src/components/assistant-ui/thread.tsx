@@ -37,7 +37,7 @@ import {
   SuggestionPrimitive,
   ThreadPrimitive,
   useAuiState,
-  useComposerRuntime,
+  useAui,
 } from "@assistant-ui/react";
 import {
   ArrowDownIcon,
@@ -169,7 +169,8 @@ const CANCEL_ON_SEND_REASON =
 const Composer: FC = () => {
   const { hasPending, cancelAll } = usePendingConfirmations();
   const hasError = useThreadHasError();
-  const composer = useComposerRuntime();
+  const aui = useAui();
+  const composer = aui.composer();
 
   // Sending a message while a tool awaits confirmation is an implicit "no":
   // cancel the pending tool(s) first, then let the send proceed. Gated on

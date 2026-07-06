@@ -1,11 +1,15 @@
-import { useThread } from "@assistant-ui/react";
+import { useAuiState } from "@assistant-ui/react";
 
 /**
  * True when the thread's most recent message ended in an error.
  */
 export function useThreadHasError() {
-  return useThread((t) => {
-    const status = t.messages.at(-1)?.status;
-    return status?.type === "incomplete" && status.reason === "error";
+  return useAuiState((s) => {
+    const last = s.thread.messages.at(-1);
+    return (
+      last?.role === "assistant" &&
+      last.status.type === "incomplete" &&
+      last.status.reason === "error"
+    );
   });
 }
