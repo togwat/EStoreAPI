@@ -34,7 +34,7 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       SCHEDULE: "@daily"
-      BACKUP_KEEP_DAYS: 30
+      BACKUP_KEEP_DAYS: 180
     volumes:
       - ./backups:/backups
     depends_on:
