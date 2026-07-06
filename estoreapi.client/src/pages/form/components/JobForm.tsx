@@ -132,7 +132,7 @@ export default function JobForm() {
                     <Input id="name" name="name" />
                 </Field>
                 <Field>
-                    <FieldLabel htmlFor="primary-contact" className="after:content-['_*'] after:text-destructive">Primary Contact</FieldLabel>
+                    <FieldLabel htmlFor="primary-contact" className="after:content-['_*'] after:text-destructive">Primary contact</FieldLabel>
                     <Input id="primary-contact" name="primary-contact" placeholder="required" required />
                 </Field>
                 <Field>
