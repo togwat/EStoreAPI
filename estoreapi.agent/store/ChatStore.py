@@ -180,19 +180,32 @@ class ChatStore(AbstractChatStore):
             if cur.fetchone() is None:
                 return False
 
-            cur.execute(
-                "SELECT COALESCE(MAX(seq), -1) + 1 AS next_seq FROM chat_messages WHERE session_id = %s",
-                (session_id,),
-            )
-            next_seq = cur.fetchone()["next_seq"]
-
+            # For pending confirmations: overwrite the stored message once confirmation
+            # is received.
             cur.execute(
                 """
-                INSERT INTO chat_messages (session_id, message_id, parent_message_id, seq, content)
-                VALUES (%s, %s, %s, %s, %s)
+                UPDATE chat_messages
+                SET content = %s, parent_message_id = %s
+                WHERE session_id = %s AND message_id = %s
                 """,
-                (session_id, message_id, parent_id, next_seq, Json(message)),
+                (Json(message), parent_id, session_id, message_id),
             )
+
+            # For other messages, regular insert
+            if cur.rowcount == 0:
+                cur.execute(
+                    "SELECT COALESCE(MAX(seq), -1) + 1 AS next_seq FROM chat_messages WHERE session_id = %s",
+                    (session_id,),
+                )
+                next_seq = cur.fetchone()["next_seq"]
+
+                cur.execute(
+                    """
+                    INSERT INTO chat_messages (session_id, message_id, parent_message_id, seq, content)
+                    VALUES (%s, %s, %s, %s, %s)
+                    """,
+                    (session_id, message_id, parent_id, next_seq, Json(message)),
+                )
 
             cur.execute(
                 "UPDATE chat_sessions SET head_message_id = %s, updated_at = now() WHERE id = %s",
