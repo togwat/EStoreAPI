@@ -15,7 +15,7 @@ namespace EStoreAPI.Server.DTOs
         public string? CustomerName { get; set; }
 
         [Required]
-        [Description("Primary contact detail. Required.")]
+        [Description("Primary contact detail. Can be phone number, email, or other communication app ids like WeChat or Telegram id. Required.")]
         public required string PrimaryContact { get; set; }
 
         [Description("Optional phone number.")]
