@@ -67,9 +67,9 @@ namespace EStoreAPI.Tests.ServiceTests
         public async Task GetCustomerByPrimaryContact_Exists_ReturnsCustomer()
         {
             var customer = _fixture.Create<Customer>();
-            _repo.Setup(r => r.GetCustomerByPrimaryContactAsync(customer.PrimaryContact)).ReturnsAsync(customer);
+            _repo.Setup(r => r.GetCustomerByContactAsync(customer.PrimaryContact)).ReturnsAsync(customer);
 
-            var result = await _customerService.GetCustomerByPrimaryContactAsync(customer.PrimaryContact);
+            var result = await _customerService.GetCustomerByContactAsync(customer.PrimaryContact);
 
             Assert.Equal(customer.PrimaryContact, result?.PrimaryContact);
         }
@@ -78,9 +78,9 @@ namespace EStoreAPI.Tests.ServiceTests
         [Fact]
         public async Task GetCustomerByPrimaryContact_NotFound_ReturnsNull()
         {
-            _repo.Setup(r => r.GetCustomerByPrimaryContactAsync(It.IsAny<string>())).ReturnsAsync((Customer?)null);
+            _repo.Setup(r => r.GetCustomerByContactAsync(It.IsAny<string>())).ReturnsAsync((Customer?)null);
 
-            var result = await _customerService.GetCustomerByPrimaryContactAsync("0000");
+            var result = await _customerService.GetCustomerByContactAsync("0000");
 
             Assert.Null(result);
         }

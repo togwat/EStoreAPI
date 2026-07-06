@@ -23,9 +23,9 @@ namespace EStoreAPI.Server.Services
             return _repo.GetCustomerByIdAsync(id);
         }
         
-        public Task<Customer?> GetCustomerByPhoneAsync(string phone)
+        public Task<Customer?> GetCustomerByContactAsync(string contact)
         {
-            return _repo.GetCustomerByPhoneAsync(phone);
+            return _repo.GetCustomerByContactAsync(contact);
         }
 
         // get all customers if empty query
@@ -80,8 +80,8 @@ namespace EStoreAPI.Server.Services
 
             // merge
             existing.CustomerName = dto.CustomerName ?? existing.CustomerName;
+            existing.PrimaryContact = dto.PrimaryContact ?? existing.PrimaryContact;
             existing.PhoneNumber = dto.NormalisedPhone ?? existing.PhoneNumber;
-            existing.PhoneNumberSecondary = dto.NormalisedPhoneSecondary ?? existing.PhoneNumberSecondary;
             existing.Email = dto.Email ?? existing.Email;
             existing.Address = dto.Address ?? existing.Address;
         }

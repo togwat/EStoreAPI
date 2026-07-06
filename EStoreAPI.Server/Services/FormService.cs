@@ -37,14 +37,14 @@ namespace EStoreAPI.Server.Services
                 .ToList();
 
             // validate customer (keep as last validation)
-            // look for customer via phone, use if found
-            Customer customer = await _customerService.GetCustomerByPhoneAsync(dto.PhoneNumber)
+            // look for customer via primary contact, use if found
+            Customer customer = await _customerService.GetCustomerByContactAsync(dto.PrimaryContact)
             // create new customer if not found
             ?? await _customerService.CreateCustomerAsync(new InCustomerDTO
             {
                CustomerName = dto.Name,
+               PrimaryContact = dto.PrimaryContact,
                PhoneNumber = dto.PhoneNumber,
-               PhoneNumberSecondary = dto.PhoneNumberSecondary,
                Email = dto.Email,
                Address = dto.Address
             });

@@ -16,13 +16,13 @@ public class FormTools
     }
 
 
-    [McpServerTool, Description("Creates a repair job via form. Looks up an existing customer by phone number or creates a new one if not found. Search for the device and its problems first before filling out the form.")]
+    [McpServerTool, Description("Creates a repair job via form. Looks up an existing customer by their primary contact detail or creates a new one if not found. Search for the device and its problems first before filling out the form.")]
     public async Task<OutJobDTO> SubmitFormAsync(
-        [Description("Customer's first phone number.")] string phoneNumber,
+        [Description("Customer's primary contact detail.")] string primaryContact,
         [Description("Name of the device model being repaired.")] string deviceName,
         [Description("List the names of problems the device is being repaired for. At least one problem is required.")]List<string> problems,
         [Description("Name of the customer.")] string? name = null,
-        [Description("Customer's second phone number.")] string? phoneNumberSecondary = null,
+        [Description("Customer's optional phone number.")] string? phoneNumber = null,
         [Description("Customer's email address")] string? email = null,
         [Description("Customer's street address")] string? address = null,
         [Description("Estimated total repair price.")] decimal? estimatedPrice = null,
@@ -33,8 +33,8 @@ public class FormTools
         InFormDTO dto = new()
         {
             Name = name,
+            PrimaryContact = primaryContact,
             PhoneNumber = phoneNumber,
-            PhoneNumberSecondary = phoneNumberSecondary,
             Email = email,
             Address = address,
             DeviceName = deviceName,

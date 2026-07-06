@@ -15,13 +15,12 @@ namespace EStoreAPI.Server.DTOs
         public string? CustomerName { get; set; }
 
         [Required]
-        [Description("Primary phone number. Required.")]
-        [RegularExpression(@".*[0-9].*", ErrorMessage = "Phone number must contain only numbers.")]
-        public required string PhoneNumber { get; set; }
+        [Description("Primary contact detail. Required.")]
+        public required string PrimaryContact { get; set; }
 
-        [Description("Secondary phone number.")]
+        [Description("Optional phone number.")]
         [RegularExpression(@".*[0-9].*", ErrorMessage = "Phone number must contain only numbers.")]
-        public string? PhoneNumberSecondary { get; set; }
+        public string? PhoneNumber { get; set; }
 
         [Description("Email address.")]
         public string? Email { get; set; }
@@ -32,8 +31,8 @@ namespace EStoreAPI.Server.DTOs
         public Customer ToModel() => new()
         {
             CustomerName = CustomerName,
-            PhoneNumber = NonDigits().Replace(PhoneNumber, ""),
-            PhoneNumberSecondary = PhoneNumberSecondary is null ? null : NonDigits().Replace(PhoneNumberSecondary, ""),
+            PrimaryContact = PrimaryContact,
+            PhoneNumber = PhoneNumber is null ? null : NonDigits().Replace(PhoneNumber, ""),
             Email = Email,
             Address = Address,
         };

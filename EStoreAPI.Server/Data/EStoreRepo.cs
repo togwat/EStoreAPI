@@ -23,11 +23,9 @@ namespace EStoreAPI.Server.Data
             return customer;
         }
 
-        public async Task<Customer?> GetCustomerByPhoneAsync(string phone)
+        public async Task<Customer?> GetCustomerByContactAsync(string contact)
         {
-            // strip all spaces from phone
-            string digits = Regex.Replace(phone, @"\D", "");
-            return await _dbContext.Customers.FirstOrDefaultAsync(c => c.PhoneNumber == digits);
+            return await _dbContext.Customers.FirstOrDefaultAsync(c => c.PrimaryContact == contact);
         }
 
         public async Task<ICollection<Customer>> GetCustomersAsync()
@@ -36,13 +34,13 @@ namespace EStoreAPI.Server.Data
             return customers;
         }
 
-        // query by name, phone, or email
+        // query by name, primary contact, or email
         public async Task<ICollection<Customer>> GetCustomersByQueryAsync(string query)
         {
             query = query.ToLower();
 
             ICollection<Customer> customers = await _dbContext.Customers.Where(
-                    c => c.CustomerName.ToLower().Contains(query) || c.PhoneNumber.Contains(query) || c.Email.ToLower().Contains(query)
+                    c => c.CustomerName.ToLower().Contains(query) || c.PrimaryContact.ToLower().Contains(query) || c.Email.ToLower().Contains(query)
                 ).ToListAsync();
 
             return customers;
@@ -50,7 +48,7 @@ namespace EStoreAPI.Server.Data
 
         public async Task<Customer> AddCustomerAsync(Customer customer)
         {
-            if (customer.CustomerName != null && customer.PhoneNumber != null)
+            if (customer.CustomerName != null && customer.PrimaryContact != null)
             {
                 EntityEntry<Customer> e = await _dbContext.Customers.AddAsync(customer);
                 Customer c = e.Entity;
@@ -75,9 +73,9 @@ namespace EStoreAPI.Server.Data
                 {
                     throw new ValidationException($"Customer at index {i} is missing a name.");
                 }
-                if (customer.PhoneNumber == null)
+                if (customer.PrimaryContact == null)
                 {
-                    throw new ValidationException($"Customer at index {i} is missing a phone number.");
+                    throw new ValidationException($"Customer at index {i} is missing a primary contact.");
                 }
             }
 

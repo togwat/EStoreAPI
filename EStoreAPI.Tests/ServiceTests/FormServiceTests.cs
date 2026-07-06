@@ -52,7 +52,7 @@ namespace EStoreAPI.Tests.ServiceTests
                 .ReturnsAsync([device]);
             _problemService.Setup(s => s.GetDeviceProblemsAsync(device.DeviceId))
                 .ReturnsAsync([problem]);
-            _customerService.Setup(s => s.GetCustomerByPrimaryContactAsync(existingCustomer.PrimaryContact))
+            _customerService.Setup(s => s.GetCustomerByContactAsync(existingCustomer.PrimaryContact))
                 .ReturnsAsync(existingCustomer);
             _jobService.Setup(s => s.CreateJobAsync(It.IsAny<InJobDTO>()))
                 .ReturnsAsync(job);
@@ -84,7 +84,7 @@ namespace EStoreAPI.Tests.ServiceTests
                 .ReturnsAsync([device]);
             _problemService.Setup(s => s.GetDeviceProblemsAsync(device.DeviceId))
                 .ReturnsAsync([problem]);
-            _customerService.Setup(s => s.GetCustomerByPrimaryContactAsync(dto.PrimaryContact))
+            _customerService.Setup(s => s.GetCustomerByContactAsync(dto.PrimaryContact))
                 .ReturnsAsync((Customer?)null);
             _customerService.Setup(s => s.CreateCustomerAsync(It.IsAny<InCustomerDTO>()))
                 .ReturnsAsync(newCustomer);
@@ -123,7 +123,7 @@ namespace EStoreAPI.Tests.ServiceTests
                 .ReturnsAsync([device]);
             _problemService.Setup(s => s.GetDeviceProblemsAsync(device.DeviceId))
                 .ReturnsAsync([problem]);
-            _customerService.Setup(s => s.GetCustomerByPrimaryContactAsync(customer.PrimaryContact))
+            _customerService.Setup(s => s.GetCustomerByContactAsync(customer.PrimaryContact))
                 .ReturnsAsync(customer);
             _jobService.Setup(s => s.CreateJobAsync(It.IsAny<InJobDTO>()))
                 .ReturnsAsync(job);
@@ -153,7 +153,7 @@ namespace EStoreAPI.Tests.ServiceTests
                 .ReturnsAsync([device]);
             _problemService.Setup(s => s.GetDeviceProblemsAsync(device.DeviceId))
                 .ReturnsAsync([problem1, problem2]);
-            _customerService.Setup(s => s.GetCustomerByPrimaryContactAsync(customer.PrimaryContact))
+            _customerService.Setup(s => s.GetCustomerByContactAsync(customer.PrimaryContact))
                 .ReturnsAsync(customer);
             _jobService.Setup(s => s.CreateJobAsync(It.IsAny<InJobDTO>()))
                 .ReturnsAsync(job);
@@ -203,7 +203,7 @@ namespace EStoreAPI.Tests.ServiceTests
             // the device's catalogue does not contain the named problem
             _problemService.Setup(s => s.GetDeviceProblemsAsync(device.DeviceId))
                 .ReturnsAsync([catalogueProblem]);
-            _customerService.Setup(s => s.GetCustomerByPrimaryContactAsync(customer.PrimaryContact))
+            _customerService.Setup(s => s.GetCustomerByContactAsync(customer.PrimaryContact))
                 .ReturnsAsync(customer);
 
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _formService.SubmitFormAsync(dto));

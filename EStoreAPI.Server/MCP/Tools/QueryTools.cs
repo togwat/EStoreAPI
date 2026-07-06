@@ -19,7 +19,7 @@ public class QueryTools
         At most 100 rows are returned, so if the result says truncated, then the returned data is incomplete; refine the query instead of assuming you saw all rows.
 
         Schema (identifiers are PascalCase and MUST be double-quoted, e.g. SELECT "JobId" FROM "Jobs"):
-        - "Customers": "CustomerId" int PK, "CustomerName" text NULL, "PhoneNumber" text, "PhoneNumberSecondary" text NULL, "Email" text NULL, "Address" text NULL
+        - "Customers": "CustomerId" int PK, "CustomerName" text NULL, "PrimaryContact" text, "PhoneNumber" text NULL, "Email" text NULL, "Address" text NULL
         - "Devices": "DeviceId" int PK, "DeviceName" text, "ModelNumber" text NULL, "DeviceType" text
         - "Problems": "ProblemId" int PK, "ProblemName" text, "DeviceId" int FK -> Devices, "Price" numeric, "PartsPrice" numeric, "LabourPrice" numeric, "RiskCost" numeric
         - "Jobs": "JobId" int PK, "CustomerId" int FK -> Customers, "DeviceId" int FK -> Devices, "ReceiveTime" timestamptz, "PickupTime" timestamptz NULL, "EstimatedPickupTime" timestamptz NULL, "Note" text NULL, "EstimatedPrice" numeric NULL, "CollectedPrice" numeric NULL, "IsFinished" boolean, "WarrantyOfJobId" int FK -> Jobs

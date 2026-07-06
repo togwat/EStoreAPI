@@ -6,8 +6,8 @@ namespace EStoreAPI.Server.DTOs
     {
         public int CustomerId { get; set; }
         public string? CustomerName { get; set; }
-        public required string PhoneNumber { get; set; }
-        public string? PhoneNumberSecondary { get; set; }
+        public required string PrimaryContact { get; set; }
+        public string? PhoneNumber { get; set; }
         public string? Email { get; set; }
         public string? Address { get; set; }
 
@@ -15,8 +15,8 @@ namespace EStoreAPI.Server.DTOs
         {
             CustomerId = c.CustomerId,
             CustomerName = c.CustomerName,
+            PrimaryContact = c.PrimaryContact,
             PhoneNumber = c.PhoneNumber,
-            PhoneNumberSecondary = c.PhoneNumberSecondary,
             Email = c.Email,
             Address = c.Address,
         };

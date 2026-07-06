@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Server.Models
 {
-    [Index(nameof(PhoneNumber), IsUnique = true)]
+    [Index(nameof(PrimaryContact), IsUnique = true)]
     public class Customer
     {
         [Key]
@@ -12,9 +12,9 @@ namespace EStoreAPI.Server.Models
         public string? CustomerName { get; set; }
 
         [Required]
-        public string PhoneNumber { get; set; }
+        public string PrimaryContact { get; set; }
 
-        public string? PhoneNumberSecondary { get; set; }
+        public string? PhoneNumber { get; set; }
 
         public string? Email { get; set; }
 
