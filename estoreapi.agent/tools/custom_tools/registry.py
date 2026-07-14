@@ -22,14 +22,15 @@ class Registry:
     Owns the definitions (schemas + default descriptions) for all custom tools.
     """
 
-    def __init__(self, desc_service: AbstractDescriptionService):
+    def __init__(self, desc_service: AbstractDescriptionService, memory_enabled: bool = False):
         self._service = desc_service
         self._tools: dict[str, CustomTool] = {}
         self._register_get_time()
         self._register_update_description()
         self._register_web_search()
         self._register_web_fetch()
-        self._register_memory_search()
+        if memory_enabled:
+            self._register_memory_search()
         self._register_get_skill()
         self._register_create_skill()
         self._register_update_skill()

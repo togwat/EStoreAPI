@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI):
 
     desc_service = JsonDescriptionService()
     # custom tools definition reg
-    registry = Registry(desc_service=desc_service)
+    registry = Registry(desc_service=desc_service, memory_enabled=memory is not None)
 
     # Mutable reference populated after clients are built so the lazy callable
     # captures the full client list without a circular dependency at construction time.

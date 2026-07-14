@@ -34,13 +34,15 @@ class CustomToolClient(AbstractToolClient):
             "update_description": make_update_description_handler(desc_service, get_all_tools),
             "web_search": web_search,
             "web_fetch": web_fetch,
-            "memory_search": make_memory_search_handler(memory),
             # Skill CRUD tools can use the provider directly
             "get_skill": skills.get_skill,
             "create_skill": skills.create_skill,
             "update_skill": skills.update_skill,
             "delete_skill": skills.delete_skill,
         }
+        # Register memory tool only if memory provider exists ( memory is enabled)
+        if memory is not None:
+            self._handlers["memory_search"] = make_memory_search_handler(memory)
 
     def __contains__(self, name: str) -> bool:
         return name in self._registry
