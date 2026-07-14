@@ -22,21 +22,21 @@ class SkillProvider(ABC):
         pass
 
     @abstractmethod
-    def create_skill(self, name: str, description: str, content: str) -> str:
+    def create_skill(self, name: str, summary: str, content: str) -> str:
         """
         Create a skill document.
 
         name: the unique id of the skill, used for retrieval
-        description: short summary of the skill that is always fed to the agent, so it knows when to get this skill.
+        summary: short summary of the skill that is always fed to the agent, so it knows when to get this skill.
         content: hidden to the agent until retrieved
         Returns a confirmation message.
         """
         pass
 
     @abstractmethod
-    def update_skill(self, name: str, description: str | None = None, content: str | None = None) -> str:
+    def update_skill(self, name: str, summary: str | None = None, content: str | None = None) -> str:
         """
-        Update a skill's description or content. If either are empty/none, the fields stay as-is.
+        Update a skill's summary or content. If either are empty/none, the fields stay as-is.
         Returns a confirmation message.
         """
         pass

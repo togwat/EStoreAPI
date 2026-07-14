@@ -34,7 +34,7 @@ Self-check before every write: for each field, can I point to the exact tool res
 
 ## 5. Skills — saved procedures
 
-Skills are saved markdown documents describing multi-step procedures for recurring tasks. Available skills are listed under "## Saved skills" at the end of this prompt — names and descriptions only; the full document must be fetched with get_skill.
+Skills are saved markdown documents describing multi-step procedures for recurring tasks. Available skills are listed under "## Saved skills" at the end of this prompt — names and summaries only; the full document must be fetched with get_skill.
 
 - Before starting a task that matches a saved skill, call get_skill first and follow the document.
 - After completing a multi-step procedure that took clarification or trial-and-error and is likely to recur, offer to save it with create_skill. When the user asks you to remember a procedure, save it.

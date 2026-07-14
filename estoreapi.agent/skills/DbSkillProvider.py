@@ -98,12 +98,12 @@ class DbSkillProvider(SkillProvider):
         
         return f"# {name}\n\n{row['content']}"
 
-    def create_skill(self, name: str, description: str, content: str) -> str:
+    def create_skill(self, name: str, summary: str, content: str) -> str:
         """
         Create a skill document.
 
         name: the unique id of the skill, used for retrieval
-        description: short summary of the skill that is always fed to the agent, so it knows when to get this skill.
+        summary: short summary of the skill that is always fed to the agent, so it knows when to get this skill.
         content: hidden to the agent until retrieved
 
         Returns a confirmation message.
@@ -116,7 +116,7 @@ class DbSkillProvider(SkillProvider):
                 VALUES (%s, %s, %s)
                 ON CONFLICT (name) DO NOTHING
                 """,
-                (name, description, content),
+                (name, summary, content),
             )
             created = cur.rowcount == 1
 
@@ -125,19 +125,19 @@ class DbSkillProvider(SkillProvider):
         
         return f"Skill '{name}' created."
 
-    def update_skill(self, name: str, description: str | None = None, content: str | None = None) -> str:
+    def update_skill(self, name: str, summary: str | None = None, content: str | None = None) -> str:
         """
-        Update a skill's description or content. If either are empty/none, the fields stay as-is.
+        Update a skill's summary or content. If either are empty/none, the fields stay as-is.
 
         Returns a confirmation message.
         """
         # Normalise empty strings to None
-        description = description or None
+        summary = summary or None
         content = content or None
 
-        if description is None and content is None:
-            return "Nothing to update: provide description and/or content."
-        
+        if summary is None and content is None:
+            return "Nothing to update: provide summary and/or content."
+
         with self._cursor(commit=True) as cur:
             cur.execute(
                 """
@@ -147,7 +147,7 @@ class DbSkillProvider(SkillProvider):
                     updated_at  = now()
                 WHERE name = %s
                 """,
-                (description, content, name),
+                (summary, content, name),
             )
             updated = cur.rowcount == 1
 

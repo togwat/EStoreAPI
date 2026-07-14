@@ -208,7 +208,7 @@ class Registry:
                             ),
                         },
                     },
-                    "required": ["name", "description", "content"],
+                    "required": ["name", "summary", "content"],
                 },
             },
             default_description=default,
@@ -216,7 +216,7 @@ class Registry:
 
     def _register_update_skill(self):
         default = (
-            "Update a saved skill's description and/or content, e.g. when following it revealed the procedure is wrong or outdated. "
+            "Update a saved skill's summary and/or content, e.g. when following it revealed the procedure is wrong or outdated. "
             "Provide only the fields to change; omitted fields stay as-is."
         )
         self._tools["update_skill"] = CustomTool(
