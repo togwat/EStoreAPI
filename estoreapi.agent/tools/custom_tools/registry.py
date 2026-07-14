@@ -197,7 +197,7 @@ class Registry:
                             "type": "string",
                             "description": "Short unique snake case title identifying the skill, e.g. 'intake_new_repair_job'.",
                         },
-                        "description": {
+                        "summary": {
                             "type": "string",
                             "description": "One sentence stating what the skill does and when to use it. Shown in the skill index of every session.",
                         },
@@ -230,9 +230,9 @@ class Registry:
                             "type": "string",
                             "description": "Exact name of the skill to update, as it appears in the skill index.",
                         },
-                        "description": {
+                        "summary": {
                             "type": "string",
-                            "description": "The replacement one-sentence description. Omit to keep the current one.",
+                            "description": "The replacement one-sentence summary. Omit to keep the current one.",
                         },
                         "content": {
                             "type": "string",
