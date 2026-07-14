@@ -41,3 +41,20 @@ services:
       db:
         condition: service_healthy
     logging: *default-logging
+
+  chat-db-backup:
+    image: prodrigestivill/postgres-backup-local
+    restart: unless-stopped
+    environment:
+      POSTGRES_HOST: chat-db
+      POSTGRES_DB: ${CHAT_DB_NAME}
+      POSTGRES_USER: ${CHAT_DB_USER}
+      POSTGRES_PASSWORD: ${CHAT_DB_PASSWORD}
+      SCHEDULE: "@daily"
+      BACKUP_KEEP_DAYS: 180
+    volumes:
+      - ./backups/chat:/backups
+    depends_on:
+      chat-db:
+        condition: service_healthy
+    logging: *default-logging
