@@ -8,6 +8,7 @@ from api.store import router as store_router
 from config import MCP_URL
 from memory.factory import create_memory
 from store.factory import create_chat_store
+from skills.factory import create_skill_provider
 from providers.factory import create_provider
 from tools.descriptions.JsonDescriptionService import JsonDescriptionService
 from tools.AbstractToolClient import AbstractToolClient
@@ -27,6 +28,9 @@ async def lifespan(app: FastAPI):
     store = create_chat_store()
     # create tables on first boot
     store.init_schema()
+    # skills
+    skills = create_skill_provider()
+    skills.init_schema()
 
     desc_service = JsonDescriptionService()
     # custom tools definition reg
@@ -47,6 +51,7 @@ async def lifespan(app: FastAPI):
 
     app.state.memory = memory
     app.state.store = store
+    app.state.skills = skills
     app.state.provider = create_provider()
     app.state.clients = clients
     app.state.router = ToolRouter(clients=clients)

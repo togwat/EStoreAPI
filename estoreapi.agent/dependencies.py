@@ -2,6 +2,7 @@ from fastapi import HTTPException, Request
 
 from memory.MemoryProvider import MemoryProvider
 from providers.AbstractProvider import ChatProvider
+from skills.SkillProvider import SkillProvider
 from store.AbstractChatStore import AbstractChatStore
 from tools.AbstractToolClient import AbstractToolClient
 from tools.router import ToolRouter
@@ -25,6 +26,9 @@ def get_memory(request: Request) -> MemoryProvider | None:
 
 def get_store(request: Request) -> AbstractChatStore:
     return request.app.state.store
+
+def get_skills(request: Request) -> SkillProvider:
+    return request.app.state.skills
 
 def get_user_email(request: Request) -> str:
     """User identity from the X-User-Email header injected by nginx after auth."""
