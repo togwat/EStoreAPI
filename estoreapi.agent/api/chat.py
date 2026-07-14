@@ -8,9 +8,10 @@ from pydantic import BaseModel
 
 from config import SYSTEM_PROMPT, STREAMING
 
-from dependencies import get_all_tools, get_memory, get_provider, get_router, get_user_email
+from dependencies import get_all_tools, get_memory, get_provider, get_router, get_skills, get_user_email
 from memory.user_context import user_id_var
 from providers.AbstractProvider import ChatProvider
+from skills.SkillProvider import SkillProvider
 from tools.confirmation import requires_confirmation
 from tools.router import ToolRouter
 
@@ -105,6 +106,26 @@ def _run_agentic_loop(
             break
 
 
+def build_system_prompt(context_memory: str, relevant_memory: str, skills: SkillProvider) -> str:
+    system = SYSTEM_PROMPT
+
+    # Add memory to system prompt
+    if context_memory:
+        system += f"\n\n## Persistent context\n{context_memory}"
+    if relevant_memory:
+        system += f"\n\n## Relevant memory\n{relevant_memory}"
+
+    # Skill index: the base prompt's Skills section points here.
+    skill_index = skills.list_skills()
+    if skill_index:
+        listing = "\n".join(f"- {skill['name']}: {skill['description']}" for skill in skill_index)
+    else:
+        listing = "(none saved yet)"
+    system += f"\n\n## Saved skills\n{listing}"
+
+    return system
+
+
 # Endpoints
 
 @router.post("/agent/chat")
@@ -114,6 +135,7 @@ def chat(
     tools: list[dict] = Depends(get_all_tools),
     tool_router: ToolRouter = Depends(get_router),
     memory=Depends(get_memory),
+    skills: SkillProvider = Depends(get_skills),
     user_email: str = Depends(get_user_email),
 ):
     """
@@ -138,13 +160,7 @@ def chat(
 
     relevant_memory = memory.search(latest_msg, user_email) if memory and latest_msg else ""
 
-    # Add memory to system prompt
-    system = SYSTEM_PROMPT
-    if context_memory:
-        system += f"\n\n## Persistent context\n{context_memory}"
-    if relevant_memory:
-        system += f"\n\n## Relevant memory\n{relevant_memory}"
-
+    system = build_system_prompt(context_memory, relevant_memory, skills)
     messages = [{"role": "system", "content": system}] + req.messages
 
     if req.stream:
