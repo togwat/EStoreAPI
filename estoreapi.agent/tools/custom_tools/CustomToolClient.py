@@ -1,5 +1,6 @@
 from collections.abc import Callable
 
+from skills.SkillProvider import SkillProvider
 from tools.AbstractToolClient import AbstractToolClient
 from tools.descriptions.AbstractDescriptionService import AbstractDescriptionService
 from tools.custom_tools.registry import Registry
@@ -22,6 +23,7 @@ class CustomToolClient(AbstractToolClient):
         self,
         registry: Registry,
         desc_service: AbstractDescriptionService,
+        skills: SkillProvider,
         memory=None,
         get_all_tools: Callable[[], list[dict]] | None = None,
     ):
@@ -33,6 +35,11 @@ class CustomToolClient(AbstractToolClient):
             "web_search": web_search,
             "web_fetch": web_fetch,
             "memory_search": make_memory_search_handler(memory),
+            # Skill CRUD tools can use the provider directly
+            "get_skill": skills.get_skill,
+            "create_skill": skills.create_skill,
+            "update_skill": skills.update_skill,
+            "delete_skill": skills.delete_skill,
         }
 
     def __contains__(self, name: str) -> bool:

@@ -44,7 +44,7 @@ async def lifespan(app: FastAPI):
         return [t for c in _clients for t in c.list_tools()]
 
     clients: list[AbstractToolClient] = [
-        CustomToolClient(registry=registry, desc_service=desc_service, memory=memory, get_all_tools=get_all_tools),
+        CustomToolClient(registry=registry, desc_service=desc_service, skills=skills, memory=memory, get_all_tools=get_all_tools),
         CorrectingMcpClient(url=MCP_URL, desc_service=desc_service),
     ]
     _clients.extend(clients)
