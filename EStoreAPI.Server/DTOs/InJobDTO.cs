@@ -14,13 +14,13 @@ namespace EStoreAPI.Server.DTOs
         [Description("ID of the device being repaired. Required.")]
         public int DeviceId { get; set; }
 
-        [Description("Time the device was received. Defaults to now if omitted.")]
+        [Description("Time the device was received, in UTC. Defaults to now if omitted.")]
         public DateTime? ReceiveTime { get; set; }
 
-        [Description("Time the device was picked up by the customer.")]
+        [Description("Time the device was picked up by the customer, in UTC.")]
         public DateTime? PickupTime { get; set; }
 
-        [Description("Estimated pickup time.")]
+        [Description("Estimated pickup time, in UTC.")]
         public DateTime? EstimatedPickupTime { get; set; }
 
         [Description("Additional notes about the job.")]

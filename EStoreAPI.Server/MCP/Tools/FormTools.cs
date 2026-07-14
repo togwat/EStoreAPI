@@ -26,7 +26,7 @@ public class FormTools
         [Description("Customer's email address")] string? email = null,
         [Description("Customer's street address")] string? address = null,
         [Description("Estimated total repair price.")] decimal? estimatedPrice = null,
-        [Description("Estimated device pickup time for the customer.")] DateTime? estimatedPickupTime = null,
+        [Description("Estimated device pickup time for the customer, in UTC.")] DateTime? estimatedPickupTime = null,
         [Description("Any notes on the repair job.")] string? note = null)
     {
         // construct dto

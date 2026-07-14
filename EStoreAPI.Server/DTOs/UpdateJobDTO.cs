@@ -9,10 +9,10 @@ namespace EStoreAPI.Server.DTOs
         [Description("The ID of the job to update.")]
         public int JobId { get; set; }
 
-        [Description("Time the device was picked up by the customer.")]
+        [Description("Time the device was picked up by the customer, in UTC.")]
         public DateTime? PickupTime { get; set; }
 
-        [Description("Updated estimated pickup time.")]
+        [Description("Updated estimated pickup time, in UTC.")]
         public DateTime? EstimatedPickupTime { get; set; }
 
         [Description("Updated note.")]
