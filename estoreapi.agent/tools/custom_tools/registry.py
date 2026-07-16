@@ -26,7 +26,8 @@ class Registry:
         self._service = desc_service
         self._tools: dict[str, CustomTool] = {}
         self._register_get_time()
-        self._register_update_description()
+        # Deprecated, use skills instead
+        # self._register_update_description()
         self._register_web_search()
         self._register_web_fetch()
         if memory_enabled:
