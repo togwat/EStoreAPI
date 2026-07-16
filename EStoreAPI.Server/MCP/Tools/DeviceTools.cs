@@ -1,3 +1,4 @@
+using ModelContextProtocol;
 using ModelContextProtocol.Server;
 using EStoreAPI.Server.Services;
 using System.ComponentModel;
@@ -42,7 +43,7 @@ public class DeviceTools
         }
         catch (ValidationException ex)
         {
-            throw new Exception($"Validation failed: {ex.Message}");
+            throw new McpException($"Validation failed: {ex.Message}");
         }
     }
 
@@ -56,11 +57,11 @@ public class DeviceTools
         }
         catch (KeyNotFoundException ex)
         {
-            throw new Exception($"Not found: {ex.Message}");
+            throw new McpException($"Not found: {ex.Message}");
         }
         catch (ValidationException ex)
         {
-            throw new Exception($"Validation failed: {ex.Message}");
+            throw new McpException($"Validation failed: {ex.Message}");
         }
 
         // return the updated records
@@ -68,7 +69,7 @@ public class DeviceTools
         foreach (UpdateDeviceDTO dto in dtos)
         {
             Device device = await _service.GetDeviceAsync(dto.DeviceId)
-                ?? throw new Exception($"Failed to retrieve updated device {dto.DeviceId}.");
+                ?? throw new McpException($"Failed to retrieve updated device {dto.DeviceId}.");
             updated.Add(OutDeviceDTO.FromModel(device));
         }
         return updated;

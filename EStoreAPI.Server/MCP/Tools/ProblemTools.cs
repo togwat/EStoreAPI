@@ -1,3 +1,4 @@
+using ModelContextProtocol;
 using ModelContextProtocol.Server;
 using EStoreAPI.Server.Services;
 using System.ComponentModel;
@@ -27,7 +28,7 @@ public class ProblemTools
         }
         catch (KeyNotFoundException ex)
         {
-            throw new Exception($"Device not found: {ex.Message}");
+            throw new McpException($"Device not found: {ex.Message}");
         }
     }
 
@@ -42,7 +43,7 @@ public class ProblemTools
         }
         catch (ValidationException ex)
         {
-            throw new Exception($"Validation failed: {ex.Message}");
+            throw new McpException($"Validation failed: {ex.Message}");
         }
     }
 
@@ -56,11 +57,11 @@ public class ProblemTools
         }
         catch (KeyNotFoundException ex)
         {
-            throw new Exception($"Not found: {ex.Message}");
+            throw new McpException($"Not found: {ex.Message}");
         }
         catch (ValidationException ex)
         {
-            throw new Exception($"Validation failed: {ex.Message}");
+            throw new McpException($"Validation failed: {ex.Message}");
         }
 
         // return the updated records
@@ -68,7 +69,7 @@ public class ProblemTools
         foreach (UpdateProblemDTO dto in dtos)
         {
             Problem problem = await _service.GetProblemAsync(dto.ProblemId)
-                ?? throw new Exception($"Failed to retrieve updated problem {dto.ProblemId}.");
+                ?? throw new McpException($"Failed to retrieve updated problem {dto.ProblemId}.");
             updated.Add(OutProblemDTO.FromModel(problem));
         }
         return updated;

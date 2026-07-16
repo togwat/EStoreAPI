@@ -1,3 +1,4 @@
+using ModelContextProtocol;
 using ModelContextProtocol.Server;
 using EStoreAPI.Server.Services;
 using System.ComponentModel;
@@ -34,7 +35,7 @@ public class CustomerTools
         }
         catch (ValidationException ex)
         {
-            throw new Exception($"Validation failed: {ex.Message}");
+            throw new McpException($"Validation failed: {ex.Message}");
         }
     }
 
@@ -48,11 +49,11 @@ public class CustomerTools
         }
         catch (KeyNotFoundException ex)
         {
-            throw new Exception($"Not found: {ex.Message}");
+            throw new McpException($"Not found: {ex.Message}");
         }
         catch (ValidationException ex)
         {
-            throw new Exception($"Validation failed: {ex.Message}");
+            throw new McpException($"Validation failed: {ex.Message}");
         }
 
         // return the updated records
@@ -60,7 +61,7 @@ public class CustomerTools
         foreach (UpdateCustomerDTO dto in dtos)
         {
             Customer customer = await _service.GetCustomerAsync(dto.CustomerId)
-                ?? throw new Exception($"Failed to retrieve updated customer {dto.CustomerId}.");
+                ?? throw new McpException($"Failed to retrieve updated customer {dto.CustomerId}.");
             updated.Add(OutCustomerDTO.FromModel(customer));
         }
         return updated;

@@ -1,3 +1,4 @@
+using ModelContextProtocol;
 using ModelContextProtocol.Server;
 using EStoreAPI.Server.DTOs;
 using EStoreAPI.Server.Services;
@@ -35,7 +36,7 @@ public class QueryTools
         catch (PostgresException ex)
         {
             // surface the Postgres error so the model can correct its SQL and retry
-            throw new Exception($"Query failed: {ex.MessageText} (SQLSTATE {ex.SqlState})");
+            throw new McpException($"Query failed: {ex.MessageText} (SQLSTATE {ex.SqlState})");
         }
     }
 }

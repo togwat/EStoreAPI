@@ -1,9 +1,8 @@
+using ModelContextProtocol;
 using ModelContextProtocol.Server;
 using EStoreAPI.Server.Services;
 using System.ComponentModel;
-using EStoreAPI.Server.Models;
 using EStoreAPI.Server.DTOs;
-using System.ComponentModel.DataAnnotations;
 
 [McpServerToolType]
 public class FormTools
@@ -44,6 +43,13 @@ public class FormTools
             Note = note
         };
 
-        return await _service.SubmitFormAsync(dto);
+        try
+        {
+            return await _service.SubmitFormAsync(dto);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            throw new McpException($"Submission failed: {ex.Message}");
+        }
     }
 }

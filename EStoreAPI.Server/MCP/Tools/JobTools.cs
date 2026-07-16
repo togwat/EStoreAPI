@@ -1,3 +1,4 @@
+using ModelContextProtocol;
 using ModelContextProtocol.Server;
 using EStoreAPI.Server.Services;
 using System.ComponentModel;
@@ -27,7 +28,7 @@ public class JobTools
         }
         catch (KeyNotFoundException ex)
         {
-            throw new Exception($"Customer not found: {ex.Message}");
+            throw new McpException($"Customer not found: {ex.Message}");
         }
     }
 
@@ -50,11 +51,11 @@ public class JobTools
         }
         catch (KeyNotFoundException ex)
         {
-            throw new Exception($"Not found: {ex.Message}");
+            throw new McpException($"Not found: {ex.Message}");
         }
         catch (ValidationException ex)
         {
-            throw new Exception($"Validation failed: {ex.Message}");
+            throw new McpException($"Validation failed: {ex.Message}");
         }
     }
 
@@ -68,11 +69,11 @@ public class JobTools
         }
         catch (KeyNotFoundException ex)
         {
-            throw new Exception($"Not found: {ex.Message}");
+            throw new McpException($"Not found: {ex.Message}");
         }
         catch (ValidationException ex)
         {
-            throw new Exception($"Validation failed: {ex.Message}");
+            throw new McpException($"Validation failed: {ex.Message}");
         }
 
         // return the updated records
@@ -80,7 +81,7 @@ public class JobTools
         foreach (UpdateJobDTO dto in dtos)
         {
             Job job = await _service.GetJobAsync(dto.JobId)
-                ?? throw new Exception($"Failed to retrieve updated job {dto.JobId}.");
+                ?? throw new McpException($"Failed to retrieve updated job {dto.JobId}.");
             updated.Add(OutJobDTO.FromModel(job));
         }
         return updated;
