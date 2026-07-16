@@ -52,6 +52,7 @@ def _run_agentic_loop(
     ("reasoning",            text)                     — incremental reasoning token (provider-dependent)
     ("confirmation_required", [id])                    — the gated tool needs user approval; stream ends
     ("usage",                {inputTokens, ...})       — token counts for the latest model call (provider-dependent)
+    ("error",                message)                  — an uncaught exception, emitted by the endpoint wrapper
 
     Tools run strictly one per turn. 
     When a tool requires confirmation the loop emits ("confirmation_required", [id]) and returns without 
@@ -165,8 +166,12 @@ def chat(
 
     if req.stream:
         def serialised() -> Iterator[str]:
-            for event in _run_agentic_loop(messages, provider, tools, tool_router):
-                yield json.dumps(event) + "\n"
+            try:
+                for event in _run_agentic_loop(messages, provider, tools, tool_router):
+                    yield json.dumps(event) + "\n"
+            except Exception as e:
+                yield json.dumps(("error", str(e))) + "\n"
+                return
             # Write after the generator is exhausted so messages is fully populated.
             if memory:
                 memory.write(messages[1:], user_email)

@@ -59,7 +59,9 @@ export type StreamEvent =
     // Token counts for the latest model call; the frontend keeps the most recent.
     | ["usage", ThreadTokenUsage]
     // The listed tool calls need user approval; the backend ends the stream here.
-    | ["confirmation_required", string[]];
+    | ["confirmation_required", string[]]
+    // An uncaught backend exception, surfaced with the response body because the HTTP status is already sent.
+    | ["error", string];
 
 // --- request assembly ------------------------------------------------------
 
@@ -143,6 +145,8 @@ class TurnAccumulator {
     usage: ThreadTokenUsage | undefined;
     // Set when the backend pauses for confirmation; drives the final status.
     awaitingConfirmation = false;
+    // Set when the backend surfaces an exception, run() can throw it once the stream ends.
+    error: string | undefined;
 
     /**
      * Render the web_search source badges if web_search is confirmation-gated
@@ -192,6 +196,9 @@ class TurnAccumulator {
         } else if (type === "confirmation_required") {
             // Tool call(s) await user approval; the stream ends after this.
             this.awaitingConfirmation = true;
+        } else if (type === "error") {
+            // Capture error message; run() throws it.
+            this.error = rest[0] as string;
         }
     }
 
@@ -276,6 +283,9 @@ export const agentAdapter: ChatModelAdapter = {
             for (const event of events) turn.apply(event);
             yield { content: turn.build() as never[], ...usageMeta() };
         }
+
+        // Rethrowing the error will surface the message in the error box
+        if (turn.error) throw new Error(turn.error);
 
         // Final emit. When the backend paused for confirmation, mark the message
         // `requires-action` so the runtime stops and waits. 
