@@ -1,4 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, act } from '@testing-library/react'
+import {
+    AssistantRuntimeProvider,
+    useLocalRuntime,
+    ThreadPrimitive,
+    MessagePrimitive,
+    ErrorPrimitive,
+} from '@assistant-ui/react'
 import { agentAdapter, toOutgoingParts } from '@/components/chat/agentStream'
 import { stripAttachmentFiles, remoteThreadListAdapter } from '@/components/chat/chatPersistence'
 import { server } from '../mocks/server'
@@ -268,6 +276,52 @@ describe('agentAdapter.run — stream control', () => {
         mockAgentStream(streamResponse([line(['chunk', 'hi'])]))
         const yields = await runAdapter()
         expect(yields[yields.length - 1].status).toBeUndefined()
+    })
+
+    it("renders the backend's message in the error box when the stream ends with an error event", async () => {
+        // End-to-end proof that an in-band ("error", message) event reaches the box:
+        // drive a real local runtime with agentAdapter, then assert the ErrorPrimitive
+        // renders the exact backend message rather than a generic network failure.
+        mockAgentStream(
+            streamResponse([
+                line(['chunk', 'partial answer']),
+                line(['error', 'error, boom']),
+            ]),
+        )
+
+        // Minimal message view: assistant messages render only the error box.
+        const ErrorBox = () => (
+            <MessagePrimitive.Root>
+                <MessagePrimitive.Error>
+                    <ErrorPrimitive.Root>
+                        <ErrorPrimitive.Message />
+                    </ErrorPrimitive.Root>
+                </MessagePrimitive.Error>
+            </MessagePrimitive.Root>
+        )
+        let runtime: ReturnType<typeof useLocalRuntime> | undefined
+        const Harness = () => {
+            // Queue-enabled so the runtime swallows the run's re-thrown error internally
+            // (it still sets the errored status first), keeping the floating rejection out of the test.
+            runtime = useLocalRuntime(agentAdapter, { unstable_enableMessageQueue: true })
+            return (
+                <AssistantRuntimeProvider runtime={runtime}>
+                    <ThreadPrimitive.Root>
+                        <ThreadPrimitive.Messages
+                            components={{ UserMessage: () => null, AssistantMessage: ErrorBox }}
+                        />
+                    </ThreadPrimitive.Root>
+                </AssistantRuntimeProvider>
+            )
+        }
+
+        render(<Harness />)
+        // append enqueues the run (fire-and-forget); findByText waits for the error box to render.
+        act(() => {
+            runtime!.thread.append({ role: 'user', content: [{ type: 'text', text: 'hi' }] })
+        })
+
+        expect(await screen.findByText('error, boom')).toBeInTheDocument()
     })
 
     it('reassembles events split across read() boundaries', async () => {
