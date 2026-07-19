@@ -64,8 +64,8 @@ All roles require a user account with password authentication to access the syst
 - [x] Record receive time; set estimated and actual pickup times
 - [x] Capture an estimated price and a final collected price
 - [x] Mark a job as completed
-- [ ] Set warranty status for a completed job based on warranty policy timeframe
-- [ ] Allow new jobs to be linked to an existing job as warranty repair
+- [x] Set warranty status for a completed job based on warranty policy timeframe
+- [x] Allow new jobs to be linked to an existing job as warranty repair
 
 ### 4.5 Authentication
 
