@@ -107,16 +107,12 @@ All roles require a user account with password authentication to access the syst
 
 | Layer | Technology |
 |-------|-----------|
-| Backend API | `ASP.NET` Core 10 (C#) |
-| Database | PostgreSQL via Entity Framework Core 10 |
-| Frontend | React + Vite (TypeScript) |
-| API docs | Swagger / OpenAPI |
-| Containerisation | Docker (5-image setup: API, client, DB, agent, memory DB) |
-| AI provider | Ollama (Python API), locally hosted or with private cloud |
-| AI interface | React assistant-ui |
-| AI web search | Tavily |
-| AI memory | mem0 |
-| Authentication | Google OAuth |
+| Backend | `ASP.NET` Core, Entity Framework Core, `ASP.NET` Core MCP SDK |
+| Database | PostgreSQL |
+| Frontend | React, Tailwind CSS, assistant-ui, shadcn/ui |
+| DevOps | Docker |
+| Agent | Python, Ollama / Deepseek API, Tavily |
+| Auth | Google OAuth |
 
 ### 6.2 High-Level Architecture
 ![architecture diagram](assets/architecture2.png)
@@ -131,19 +127,21 @@ The Problem entity represents the generic problems a device model may have.
 
 ## 7. API Summary
 
-
-| Resource   | Base path          |
-|------------|--------------------|
-| Customers  | `/api/customers`   |
-| Devices    | `/api/devices`     |
-| Jobs       | `/api/jobs`        |
-| Problems   | `/api/problems`    |
-| Form       | `/api/form`        |
-| AI Agent   | `/api/agent`       |
-| Authentication | `/api/auth`    |
+| Resource       | Base path        | Service   |
+|----------------|------------------|-----------|
+| Customers      | `/api/customers` | `ASP.NET` |
+| Devices        | `/api/devices`   | `ASP.NET` |
+| Jobs           | `/api/jobs`      | `ASP.NET` |
+| Problems       | `/api/problems`  | `ASP.NET` |
+| Form           | `/api/form`      | `ASP.NET` |
+| Authentication | `/api/auth`      | `ASP.NET` |
+| MCP tools      | `/mcp`          | `ASP.NET`  |
+| Agent chat     | `/agent/chat`    | Python    |
+| Agent tools    | `/agent/tool`    | Python    |
+| Chat metadata  | `/agent/metadata` | Python   |
+| Chat history   | `/agent/store`   | Python    |
 
 ---
 
 ## 8. Future Work
 - Tracking of external partners (jobs handed off to partner repair shops/technicians)
-- Tracking inventory stock of parts

@@ -27,6 +27,17 @@ E-Store Management Console is a web application that facilitates the data manage
 - **Web search** capable
 - **Persistent chat history**
 
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Backend | `ASP.NET` Core, Entity Framework Core, `ASP.NET` Core MCP SDK |
+| Database | PostgreSQL |
+| Frontend | React, Tailwind CSS, assistant-ui, shadcn/ui |
+| DevOps | Docker |
+| Agent | Python, Ollama / Deepseek API, Tavily |
+| Auth | Google OAuth |
+
 ## Deploying the application
 **Requirements:**
 - Docker engine
