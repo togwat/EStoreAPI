@@ -296,6 +296,34 @@ namespace EStoreAPI.Tests.ServiceTests
             _repo.Verify(r => r.ApplyUpdateAsync(), Times.AtLeastOnce);
         }
 
+        // Giving a status value not part of the enum should fail
+        [Fact]
+        public async Task CreateJob_StatusNotInEnum_ThrowsAndPersistsNothing()
+        {
+            var problems = _fixture.CreateMany<Problem>(2).ToList();
+            var dto = _fixture.Build<InJobDTO>()
+                .With(d => d.ProblemIds, problems.Select(p => p.ProblemId).ToList())
+                .With(d => d.Status, (JobStatus)99)
+                .Create();
+            _repo.Setup(r => r.GetProblemsByIdsAsync(It.IsAny<ICollection<int>>())).ReturnsAsync(problems);
+
+            await Assert.ThrowsAsync<ValidationException>(() => _jobService.CreateJobAsync(dto));
+
+            _repo.Verify(r => r.AddJobAsync(It.IsAny<Job>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task UpdateJob_StatusNotInEnum_ThrowsAndPersistsNothing()
+        {
+            var existing = _fixture.Build<Job>().With(j => j.JobId, 5).Create();
+            _repo.Setup(r => r.GetJobByIdAsync(5)).ReturnsAsync(existing);
+            var dto = new UpdateJobDTO { JobId = 5, Status = (JobStatus)99 };
+
+            await Assert.ThrowsAsync<ValidationException>(() => _jobService.UpdateJobAsync(dto));
+
+            _repo.Verify(r => r.ApplyUpdateAsync(), Times.Never);
+        }
+
         // --- Warranty linking ---
 
         // creating a warranty job validates the parent exists and carries the link onto the saved job
