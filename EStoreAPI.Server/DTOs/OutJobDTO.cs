@@ -14,7 +14,7 @@ namespace EStoreAPI.Server.DTOs
         public ICollection<OutProblemDTO> Problems { get; set; } = [];
         public decimal? EstimatedPrice { get; set; }
         public decimal? CollectedPrice { get; set; }
-        public bool IsFinished { get; set; }
+        public JobStatus Status { get; set; }
         public int? WarrantyOfJobId { get; set; }
 
         public static OutJobDTO FromModel(Job j) => new()
@@ -29,7 +29,7 @@ namespace EStoreAPI.Server.DTOs
             Problems = j.Problems?.Select(OutProblemDTO.FromModel).ToList() ?? [],
             EstimatedPrice = j.EstimatedPrice,
             CollectedPrice = j.CollectedPrice,
-            IsFinished = j.IsFinished,
+            Status = j.Status,
             WarrantyOfJobId = j.WarrantyOfJobId
         };
     }
