@@ -253,7 +253,7 @@ namespace EStoreAPI.Tests.ServiceTests
             var original = _fixture.Create<Job>();
             var originalPickup = original.PickupTime;
             var originalEstimatedPrice = original.EstimatedPrice;
-            var originalIsFinished = original.IsFinished;
+            var originalStatus = original.Status;
             _repo.Setup(r => r.GetJobByIdAsync(original.JobId)).ReturnsAsync(original);
 
             // only the note is supplied; problem ids left null so the problem set is untouched
@@ -264,7 +264,7 @@ namespace EStoreAPI.Tests.ServiceTests
             Assert.Equal("updated note", original.Note);
             Assert.Equal(originalPickup, original.PickupTime);
             Assert.Equal(originalEstimatedPrice, original.EstimatedPrice);
-            Assert.Equal(originalIsFinished, original.IsFinished);
+            Assert.Equal(originalStatus, original.Status);
             _repo.Verify(r => r.ApplyUpdateAsync(), Times.Once);
         }
 
@@ -275,24 +275,24 @@ namespace EStoreAPI.Tests.ServiceTests
             var first = _fixture.Create<Job>();
             var second = _fixture.Create<Job>();
             var firstOriginalNote = first.Note;
-            var secondOriginalFinished = second.IsFinished;
+            var secondOriginalStatus = second.Status;
             _repo.Setup(r => r.GetJobByIdAsync(first.JobId)).ReturnsAsync(first);
             _repo.Setup(r => r.GetJobByIdAsync(second.JobId)).ReturnsAsync(second);
 
             var dtos = new List<UpdateJobDTO>
             {
-                new() { JobId = first.JobId, IsFinished = true },
+                new() { JobId = first.JobId, Status = JobStatus.Finished },
                 new() { JobId = second.JobId, Note = "second note" },
             };
 
             await _jobService.UpdateJobsAsync(dtos);
 
-            // first: only the finished flag changed
-            Assert.True(first.IsFinished);
+            // first: only the status changed
+            Assert.Equal(JobStatus.Finished, first.Status);
             Assert.Equal(firstOriginalNote, first.Note);
             // second: only the note changed
             Assert.Equal("second note", second.Note);
-            Assert.Equal(secondOriginalFinished, second.IsFinished);
+            Assert.Equal(secondOriginalStatus, second.Status);
             _repo.Verify(r => r.ApplyUpdateAsync(), Times.AtLeastOnce);
         }
 
