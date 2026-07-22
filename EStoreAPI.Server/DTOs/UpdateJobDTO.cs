@@ -28,6 +28,7 @@ namespace EStoreAPI.Server.DTOs
         [Description("Updated collected price.")]
         public decimal? CollectedPrice { get; set; }
 
+        [EnumDataType(typeof(JobStatus))]
         [Description("The status of the job.")]
         public JobStatus? Status { get; set; }
 

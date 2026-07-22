@@ -36,6 +36,7 @@ namespace EStoreAPI.Server.DTOs
         [Description("Price collected from the customer.")]
         public decimal? CollectedPrice { get; set; }
 
+        [EnumDataType(typeof(JobStatus))]
         [Description("The status of the job. Defaults to InProgress.")]
         public JobStatus Status { get; set; } = JobStatus.InProgress;
 
