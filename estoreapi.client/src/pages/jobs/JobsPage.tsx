@@ -336,7 +336,7 @@ export default function JobsPage({ title }: { title: string }) {
                 ? <div className="flex flex-col gap-2">
                     <Filter className="pb-4 flex flex-col gap-2">
                         <FilterSearch placeholder={"Search jobs..."} onChange={setSearchQuery} />
-                        <FilterSelect label="Has status" options={Object.keys(statusStrings)} value={selectedStatus} onChange={setSelectedStatus} />
+                        <FilterSelect label="Status" options={Object.keys(statusStrings)} value={selectedStatus} onChange={setSelectedStatus} />
                     </Filter>
                     {cards}
                     {pagination}
@@ -346,7 +346,7 @@ export default function JobsPage({ title }: { title: string }) {
                     <h1>{title}</h1>
                     <Filter className="py-4 flex flex-row justify-start gap-2">
                         <FilterSearch placeholder={"Search jobs..."} onChange={setSearchQuery} />
-                        <FilterSelect label="Has status" options={Object.keys(statusStrings)} value={selectedStatus} onChange={setSelectedStatus} />
+                        <FilterSelect label="Status" options={Object.keys(statusStrings)} value={selectedStatus} onChange={setSelectedStatus} />
                     </Filter>
                     <div className="mb-4">{cards}</div>
                     {pagination}
