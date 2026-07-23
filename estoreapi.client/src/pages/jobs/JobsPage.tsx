@@ -157,13 +157,13 @@ export default function JobsPage({ title }: { title: string }) {
     );
 
     const inProgressCards = pagedJobs.filter(j => j.status !== JobStatus.Finished).map(toCard);
-    const finishedCards   = pagedJobs.filter(j =>  j.status === JobStatus.Finished).map(toCard);
+    const finishedCards = pagedJobs.filter(j => j.status === JobStatus.Finished).map(toCard);
 
     const pagination = <WorkingPagination className="mb-4" page={page} totalItems={filteredJobs.length} itemsPerPage={itemsPerPage} onPageChange={setPage} />
 
     const cards = (
         <div className="flex flex-col gap-4 max-w-4xl">
-            {(selectedStatus === 'all' || selectedStatus === 'In progress') && inProgressCards.length > 0 && (
+            {inProgressCards.length > 0 && (
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-row items-center gap-2">
                         <Inbox className="text-primary" size={16} />
@@ -174,7 +174,7 @@ export default function JobsPage({ title }: { title: string }) {
                     {inProgressCards}
                 </div>
             )}
-            {(selectedStatus === 'all' || selectedStatus === 'Finished') && finishedCards.length > 0 && (
+            {finishedCards.length > 0 && (
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-row items-center gap-2">
                         <CircleCheckIcon className="text-foreground" size={16} />
