@@ -17,6 +17,7 @@ import { toLocalDateKey } from '@/lib/localDateKey';
 import { Textarea } from '@/components/ui/textarea';
 import { InfoItem, InfoRow } from './components/InfoItem';
 import AddWarrantyPanel from './components/AddWarrantyPanel';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function JobsPage({ title }: { title: string }) {
     const isMobile = useIsMobile();
@@ -132,8 +133,10 @@ export default function JobsPage({ title }: { title: string }) {
         .filter(j => matchesSearch(j))  // match search query (if any) first so search still works
         .filter(j => matchesStatus(j))  // match status filter
         .sort((a, b) => {   // compare two jobs:
-            if (a.status !== b.status) {    // split into in progress & finished sections
-                return a.status === JobStatus.Finished ? 1 : -1;   // move finished section below in progress section
+            const aInProgress = a.status === JobStatus.InProgress;
+            const bInProgress = b.status === JobStatus.InProgress;
+            if (aInProgress !== bInProgress) {    // split into in progress & finished sections
+                return aInProgress ? -1 : 1;   // move finished section below in progress section
             } else {
                 return parseInt(a.jobId) - parseInt(b.jobId);  // sort by id within each section
             }
@@ -156,8 +159,9 @@ export default function JobsPage({ title }: { title: string }) {
         />
     );
 
-    const inProgressCards = pagedJobs.filter(j => j.status !== JobStatus.Finished).map(toCard);
-    const finishedCards = pagedJobs.filter(j => j.status === JobStatus.Finished).map(toCard);
+    // cancelled and refunded are variations of finished, so they group under the finished section
+    const inProgressCards = pagedJobs.filter(j => j.status === JobStatus.InProgress).map(toCard);
+    const finishedCards = pagedJobs.filter(j => j.status !== JobStatus.InProgress).map(toCard);
 
     const pagination = <WorkingPagination className="mb-4" page={page} totalItems={filteredJobs.length} itemsPerPage={itemsPerPage} onPageChange={setPage} />
 
@@ -271,12 +275,23 @@ export default function JobsPage({ title }: { title: string }) {
                     }}><PencilIcon /></Button>}
                 </div>
                 <InfoItem title={"STATUS"}>
-                    {isEditing ? 
-                    <div className="w-fit rounded-full border border-border bg-input">
+                    {/* <div className="w-fit rounded-full border border-border bg-input">
                         <Button className="rounded-full" variant={editedStatus === JobStatus.InProgress ? "default" : "ghost"} onClick={() => setEditedStatus(JobStatus.InProgress)}>In progress</Button>
                         <Button className="rounded-full" variant={editedStatus === JobStatus.Finished ? "default" : "ghost"} onClick={() => setEditedStatus(JobStatus.Finished)}>Finished</Button>
-                    </div>
-                    : <span>{selectedJob.status === JobStatus.Finished ? "Finished" : "In progress"}</span>
+                    </div> */}
+                    {isEditing ?
+                    // the item value is the enum value so it round-trips, the label is only for display
+                    <Select value={editedStatus ?? undefined} onValueChange={value => setEditedStatus(value as JobStatus)}>
+                        <SelectTrigger>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent position="popper">
+                            {Object.values(JobStatus).map(status => (
+                                <SelectItem key={status} value={status}>{statusLabel(status)}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    : <span>{statusLabel(selectedJob.status)}</span>
                     }
                 </InfoItem>
                 <InfoItem title={"PICKUP TIME"}>
