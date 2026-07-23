@@ -26,9 +26,9 @@ namespace EStoreAPI.Server.Models
 
         public virtual ICollection<Problem>? Problems { get; set; }
 
-        public Decimal? EstimatedPrice { get; set; }
+        public decimal? EstimatedPrice { get; set; }
 
-        public Decimal? CollectedPrice { get; set; }
+        public decimal? CollectedPrice { get; set; }
 
         public JobStatus Status { get; set; } = JobStatus.InProgress;
 
