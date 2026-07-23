@@ -25,7 +25,7 @@ export default function JobsPage({ title }: { title: string }) {
     const [customers, setCustomers] = useState<Record<string, Customer>>({});
     const [devices, setDevices] = useState<Record<string, Device>>({});
     // filters
-    const [selectedFinish, setSelectedFinish] = useState('all');
+    const [selectedStatus, setSelectedStatus] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     // pagination
     const [page, setPage] = useState(1);
@@ -95,6 +95,7 @@ export default function JobsPage({ title }: { title: string }) {
     // reset to page 1 whenever the filter or layout changes
     useEffect(() => { setPage(1); }, [isMobile]);
     useEffect(() => { setPage(1); }, [searchQuery]);
+    useEffect(() => { setPage(1); }, [selectedStatus])
     const itemsPerPage = 8;
 
     // check if the job's customer or device matches the search query
@@ -111,10 +112,25 @@ export default function JobsPage({ title }: { title: string }) {
             || device?.name.toLowerCase().includes(query);
     }
 
+    // map string to status enum values
+    const statusStrings: Record<string, JobStatus> = {
+        'In progress': JobStatus.InProgress,
+        'Finished': JobStatus.Finished,
+    }
+
+    // check if the job's status matches the status dropdown filter
+    function matchesStatus(job: Job) {
+        // skip filter with all statuses
+        if (selectedStatus === 'all') return true;
+        // return true if job's status matches selected filter status
+        return job.status === statusStrings[selectedStatus];
+    }
+
     // sort the jobs by putting finished jobs after unfinished jobs, 
     // but still retain id asc sort for each section
     const filteredJobs = jobs
         .filter(j => matchesSearch(j))  // match search query (if any) first so search still works
+        .filter(j => matchesStatus(j))  // match status filter
         .sort((a, b) => {   // compare two jobs:
             if (a.status !== b.status) {    // split into in progress & finished sections
                 return a.status === JobStatus.Finished ? 1 : -1;   // move finished section below in progress section
@@ -147,7 +163,7 @@ export default function JobsPage({ title }: { title: string }) {
 
     const cards = (
         <div className="flex flex-col gap-4 max-w-4xl">
-            {(selectedFinish === 'all' || selectedFinish === 'In progress') && inProgressCards.length > 0 && (
+            {(selectedStatus === 'all' || selectedStatus === 'In progress') && inProgressCards.length > 0 && (
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-row items-center gap-2">
                         <Inbox className="text-primary" size={16} />
@@ -158,7 +174,7 @@ export default function JobsPage({ title }: { title: string }) {
                     {inProgressCards}
                 </div>
             )}
-            {(selectedFinish === 'all' || selectedFinish === 'Finished') && finishedCards.length > 0 && (
+            {(selectedStatus === 'all' || selectedStatus === 'Finished') && finishedCards.length > 0 && (
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-row items-center gap-2">
                         <CircleCheckIcon className="text-foreground" size={16} />
@@ -320,7 +336,7 @@ export default function JobsPage({ title }: { title: string }) {
                 ? <div className="flex flex-col gap-2">
                     <Filter className="pb-4 flex flex-col gap-2">
                         <FilterSearch placeholder={"Search jobs..."} onChange={setSearchQuery} />
-                        <FilterSelect label="Is finished" options={["In progress", "Finished"]} value={selectedFinish} onChange={setSelectedFinish} />
+                        <FilterSelect label="Has status" options={Object.keys(statusStrings)} value={selectedStatus} onChange={setSelectedStatus} />
                     </Filter>
                     {cards}
                     {pagination}
@@ -330,7 +346,7 @@ export default function JobsPage({ title }: { title: string }) {
                     <h1>{title}</h1>
                     <Filter className="py-4 flex flex-row justify-start gap-2">
                         <FilterSearch placeholder={"Search jobs..."} onChange={setSearchQuery} />
-                        <FilterSelect label="Is finished" options={["In progress", "Finished"]} value={selectedFinish} onChange={setSelectedFinish} />
+                        <FilterSelect label="Has status" options={Object.keys(statusStrings)} value={selectedStatus} onChange={setSelectedStatus} />
                     </Filter>
                     <div className="mb-4">{cards}</div>
                     {pagination}
