@@ -12,7 +12,7 @@ export const jobFixtures = [
         problems: [{ problemId: 1, problemName: 'Screen Replacement', deviceId: 1, price: 250 }],
         estimatedPrice: 250,
         collectedPrice: null,
-        isFinished: false,
+        status: 'InProgress',
     },
     {
         jobId: 2,
@@ -25,7 +25,7 @@ export const jobFixtures = [
         problems: [{ problemId: 3, problemName: 'Battery Replacement', deviceId: 2, price: 80 }],
         estimatedPrice: 80,
         collectedPrice: 80,
-        isFinished: true,
+        status: 'Finished',
     },
 ]
 

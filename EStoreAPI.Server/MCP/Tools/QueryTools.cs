@@ -23,7 +23,7 @@ public class QueryTools
         - "Customers": "CustomerId" int PK, "CustomerName" text NULL, "PrimaryContact" text, "PhoneNumber" text NULL, "Email" text NULL, "Address" text NULL
         - "Devices": "DeviceId" int PK, "DeviceName" text, "ModelNumber" text NULL, "DeviceType" text
         - "Problems": "ProblemId" int PK, "ProblemName" text, "DeviceId" int FK -> Devices, "Price" numeric, "PartsPrice" numeric, "LabourPrice" numeric, "RiskCost" numeric
-        - "Jobs": "JobId" int PK, "CustomerId" int FK -> Customers, "DeviceId" int FK -> Devices, "ReceiveTime" timestamptz, "PickupTime" timestamptz NULL, "EstimatedPickupTime" timestamptz NULL, "Note" text NULL, "EstimatedPrice" numeric NULL, "CollectedPrice" numeric NULL, "IsFinished" boolean, "WarrantyOfJobId" int FK -> Jobs
+        - "Jobs": "JobId" int PK, "CustomerId" int FK -> Customers, "DeviceId" int FK -> Devices, "ReceiveTime" timestamptz, "PickupTime" timestamptz NULL, "EstimatedPickupTime" timestamptz NULL, "Note" text NULL, "EstimatedPrice" numeric NULL, "CollectedPrice" numeric NULL, "Status" text, "WarrantyOfJobId" int FK -> Jobs
         - "JobProblems": join table, "JobId" int FK -> Jobs, "ProblemId" int FK -> Problems
         """)]
     public async Task<OutQueryResultDTO> QueryDatabaseAsync(

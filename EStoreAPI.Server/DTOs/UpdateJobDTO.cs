@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using EStoreAPI.Server.Models;
 
 namespace EStoreAPI.Server.DTOs
 {
@@ -27,8 +28,9 @@ namespace EStoreAPI.Server.DTOs
         [Description("Updated collected price.")]
         public decimal? CollectedPrice { get; set; }
 
-        [Description("Whether the job is finished.")]
-        public bool? IsFinished { get; set; }
+        [EnumDataType(typeof(JobStatus))]
+        [Description("The status of the job.")]
+        public JobStatus? Status { get; set; }
 
         [Description("ID of the prior job this one is a warranty for. Set to link this job as a warranty follow-up. Search the customer's jobs to find the ID.")]
         public int? WarrantyOfJobId { get; set; }

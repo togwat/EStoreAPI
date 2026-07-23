@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertTriangleIcon, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Job, addJob } from '@/api/jobs';
+import { Job, JobStatus, addJob } from '@/api/jobs';
 import { InfoItem } from './InfoItem';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { formatDate } from './JobCard';
@@ -48,7 +48,7 @@ export default function AddWarrantyPanel({ original, onClose, onCancel, onConfir
             problems: [],
             estimatedPrice: null,
             collectedPrice: null,
-            isFinished: false,
+            status: JobStatus.InProgress,
             warrantyOfJobId: original.jobId,
         });
         onConfirm();

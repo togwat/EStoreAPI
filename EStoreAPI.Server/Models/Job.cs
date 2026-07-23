@@ -30,8 +30,14 @@ namespace EStoreAPI.Server.Models
 
         public Decimal? CollectedPrice { get; set; }
 
-        public bool IsFinished { get; set; } = false;
+        public JobStatus Status { get; set; } = JobStatus.InProgress;
 
         public int? WarrantyOfJobId { get; set; }
+    }
+
+    public enum JobStatus
+    {
+        InProgress,
+        Finished
     }
 }

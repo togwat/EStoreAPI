@@ -36,7 +36,9 @@ namespace EStoreAPI.Server.Data
                     r => r.HasOne<Problem>().WithMany().HasForeignKey("ProblemId").OnDelete(DeleteBehavior.Cascade),
                     l => l.HasOne<Job>().WithMany().HasForeignKey("JobId").OnDelete(DeleteBehavior.Cascade),
                     j => j.HasKey("JobId", "ProblemId")
-                );
+                )
+                // string representation of enums instead of int
+                .Property(j => j.Status).HasConversion<string>();
         }
     }
 }

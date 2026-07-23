@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi } from 'vitest'
 import { JobCard } from '@/pages/jobs/components/JobCard'
-import type { Job } from '@/api/jobs'
+import { JobStatus, type Job } from '@/api/jobs'
 import type { Customer } from '@/api/customers'
 import type { Device } from '@/api/devices'
 
@@ -17,7 +17,7 @@ const baseJob: Job = {
     problems: [],
     estimatedPrice: null,
     collectedPrice: null,
-    isFinished: false,
+    status: JobStatus.InProgress,
 }
 
 const customer: Customer = {

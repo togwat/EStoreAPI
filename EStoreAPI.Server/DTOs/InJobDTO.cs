@@ -36,8 +36,9 @@ namespace EStoreAPI.Server.DTOs
         [Description("Price collected from the customer.")]
         public decimal? CollectedPrice { get; set; }
 
-        [Description("Whether the job is finished. Defaults to false.")]
-        public bool IsFinished { get; set; } = false;
+        [EnumDataType(typeof(JobStatus))]
+        [Description("The status of the job. Defaults to InProgress.")]
+        public JobStatus Status { get; set; } = JobStatus.InProgress;
 
         [Description("ID of the prior job this one is a warranty for. Set only when the repair is a warranty follow-up to an earlier job, omit for normal jobs. Search that customer's jobs to find the ID.")]
         public int? WarrantyOfJobId { get; set; }
@@ -54,7 +55,7 @@ namespace EStoreAPI.Server.DTOs
             Problems = problems,
             EstimatedPrice = EstimatedPrice ?? problems.Sum(p => p.Price),
             CollectedPrice = CollectedPrice,
-            IsFinished = IsFinished,
+            Status = Status,
             WarrantyOfJobId = WarrantyOfJobId
         };
     }

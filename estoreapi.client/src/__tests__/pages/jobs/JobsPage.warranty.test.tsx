@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import JobsPage from '@/pages/jobs/JobsPage'
+import { JobStatus } from '@/api/jobs'
 import { server } from '../../mocks/server'
 
 // Backend (pre-mapping) job shape, mirroring the OutJobDTO the API returns.
@@ -19,7 +20,7 @@ type RawJob = {
     problems: { problemId: number; problemName: string; deviceId: number; price: number; labourPrice: number; riskCost: number; partsPrice: number }[]
     estimatedPrice: number | null
     collectedPrice: number | null
-    isFinished: boolean
+    status: JobStatus
     warrantyOfJobId: number | null
 }
 
@@ -35,7 +36,7 @@ function makeJob(overrides: Partial<RawJob> = {}): RawJob {
         problems: [],
         estimatedPrice: null,
         collectedPrice: null,
-        isFinished: false,
+        status: JobStatus.InProgress,
         warrantyOfJobId: null,
         ...overrides,
     }
@@ -108,7 +109,7 @@ describe('JobsPage — warranty job display', () => {
 describe('JobsPage — Create warranty job button', () => {
     // Button shows only if the job is finished and the panel is not in editing mode
     it('shows the button for a finished job in view mode, and hides it once editing starts', async () => {
-        await renderWithJobs([makeJob({ jobId: 10, isFinished: true, pickupTime: '2024-02-01T10:00:00Z' })])
+        await renderWithJobs([makeJob({ jobId: 10, status: JobStatus.Finished, pickupTime: '2024-02-01T10:00:00Z' })])
         await openPanel()
 
         // finished + view mode -> visible
@@ -120,7 +121,7 @@ describe('JobsPage — Create warranty job button', () => {
     })
 
     it('hides the button for an in-progress job', async () => {
-        await renderWithJobs([makeJob({ jobId: 10, isFinished: false })])
+        await renderWithJobs([makeJob({ jobId: 10, status: JobStatus.InProgress })])
         await openPanel()
 
         expect(screen.queryByRole('button', { name: /create warranty job/i })).not.toBeInTheDocument()
@@ -130,7 +131,7 @@ describe('JobsPage — Create warranty job button', () => {
 describe('JobsPage — AddWarrantyPanel', () => {
     // helper: open a finished job's panel and switch to the AddWarrantyPanel
     async function openAddWarranty(pickupTime = '2024-02-01T10:00:00Z') {
-        await renderWithJobs([makeJob({ jobId: 10, isFinished: true, pickupTime })])
+        await renderWithJobs([makeJob({ jobId: 10, status: JobStatus.Finished, pickupTime })])
         await openPanel()
         await userEvent.click(screen.getByRole('button', { name: /create warranty job/i }))
         await screen.findByText(/add warranty for/i)

@@ -156,7 +156,7 @@ namespace EStoreAPI.Server.Services
             existing.Note = dto.Note ?? existing.Note;
             existing.EstimatedPrice = dto.EstimatedPrice ?? existing.EstimatedPrice;
             existing.CollectedPrice = dto.CollectedPrice ?? existing.CollectedPrice;
-            existing.IsFinished = dto.IsFinished ?? existing.IsFinished;
+            existing.Status = dto.Status ?? existing.Status;
             existing.WarrantyOfJobId = dto.WarrantyOfJobId ?? existing.WarrantyOfJobId;
         }
 

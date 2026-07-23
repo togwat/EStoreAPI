@@ -15,8 +15,14 @@ export type Job = {
     problems: Problem[]
     estimatedPrice?: number | null
     collectedPrice?: number | null
-    isFinished: boolean
+    status: JobStatus
     warrantyOfJobId?: string | null
+}
+
+// follow JobStatus enum
+export enum JobStatus {
+    InProgress = 'InProgress',
+    Finished = 'Finished',
 }
 
 function _mapJob(j: {
@@ -30,7 +36,7 @@ function _mapJob(j: {
     problems: { problemId: number; problemName: string; deviceId: number; price: number; partsPrice: number; labourPrice: number; riskCost: number }[];
     estimatedPrice: number;
     collectedPrice: number;
-    isFinished: boolean;
+    status: JobStatus;
     warrantyOfJobId: number;
 }): Job {
     return {
@@ -51,7 +57,7 @@ function _mapJob(j: {
         })),
         estimatedPrice: j.estimatedPrice ?? null,
         collectedPrice: j.collectedPrice ?? null,
-        isFinished: j.isFinished,
+        status: j.status,
         warrantyOfJobId: j.warrantyOfJobId != null ? String(j.warrantyOfJobId) : null,
     };
 }
@@ -87,7 +93,7 @@ type CreateJobPayload = {
     problemIds: number[];
     estimatedPrice?: number | null;
     collectedPrice?: number | null;
-    isFinished: boolean;
+    status: JobStatus;
     warrantyOfJobId?: number | null;
 };
 
@@ -99,7 +105,7 @@ type UpdateJobPayload = {
     problemIds: number[];
     estimatedPrice?: number | null;
     collectedPrice?: number | null;
-    isFinished: boolean;
+    status?: JobStatus;
     warrantyOfJobId?: number | null;
 };
 
@@ -114,7 +120,7 @@ export async function addJob(job: Job): Promise<Job> {
         problemIds: job.problems.map(p => parseInt(p.id)),
         estimatedPrice: job.estimatedPrice ?? null,
         collectedPrice: job.collectedPrice ?? null,
-        isFinished: job.isFinished,
+        status: job.status,
         warrantyOfJobId: job.warrantyOfJobId ? parseInt(job.warrantyOfJobId) : null,
     };
 
@@ -138,7 +144,7 @@ export async function updateJob(jobId: string, job: Job): Promise<void> {
         problemIds: job.problems.map(p => parseInt(p.id)),
         estimatedPrice: job.estimatedPrice ?? null,
         collectedPrice: job.collectedPrice ?? null,
-        isFinished: job.isFinished,
+        status: job.status,
         warrantyOfJobId: job.warrantyOfJobId ? parseInt(job.warrantyOfJobId) : null,
     };
 

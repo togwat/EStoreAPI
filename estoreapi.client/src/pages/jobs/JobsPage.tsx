@@ -3,7 +3,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { PanelDrawer } from '@/components/PanelDrawer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { getJobs, updateJob, Job } from '@/api/jobs';
+import { getJobs, updateJob, Job, JobStatus } from '@/api/jobs';
 import { getCustomers, Customer } from '@/api/customers';
 import { getDevices, Device } from '@/api/devices';
 import { JobCard, formatDate } from './components/JobCard';
@@ -25,13 +25,13 @@ export default function JobsPage({ title }: { title: string }) {
     const [customers, setCustomers] = useState<Record<string, Customer>>({});
     const [devices, setDevices] = useState<Record<string, Device>>({});
     // filters
-    const [selectedFinish, setSelectedFinish] = useState('all');
+    const [selectedStatus, setSelectedStatus] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     // pagination
     const [page, setPage] = useState(1);
     // editing/updates
     const [isEditing, setIsEditing] = useState(false);
-    const [editedIsFinished, setEditedIsFinished] = useState<boolean | null>(null);
+    const [editedStatus, setEditedStatus] = useState<JobStatus | null>(null);
     const [editedPickupTime, setEditedPickupTime] = useState('');
     const [editedCollectedPrice, setEditedCollectedPrice] = useState('');
     const [editedNote, setEditedNote] = useState('');
@@ -64,7 +64,7 @@ export default function JobsPage({ title }: { title: string }) {
 
         // only 4 fields should be updated
         const updatedJob: Job = {...selectedJob!,
-            isFinished: editedIsFinished ?? selectedJob!.isFinished,
+            status: editedStatus ?? selectedJob!.status,
             pickupTime: newPickupTime || selectedJob!.pickupTime,
             collectedPrice: editedCollectedPrice ? parseFloat(editedCollectedPrice) : selectedJob!.collectedPrice,
             note: editedNote || selectedJob!.note
@@ -77,7 +77,7 @@ export default function JobsPage({ title }: { title: string }) {
 
     function handleCancel() {
         setIsEditing(false);
-        setEditedIsFinished(null);
+        setEditedStatus(null);
         setEditedPickupTime('');
         setEditedCollectedPrice('');
         setEditedNote('');
@@ -95,6 +95,7 @@ export default function JobsPage({ title }: { title: string }) {
     // reset to page 1 whenever the filter or layout changes
     useEffect(() => { setPage(1); }, [isMobile]);
     useEffect(() => { setPage(1); }, [searchQuery]);
+    useEffect(() => { setPage(1); }, [selectedStatus])
     const itemsPerPage = 8;
 
     // check if the job's customer or device matches the search query
@@ -111,13 +112,28 @@ export default function JobsPage({ title }: { title: string }) {
             || device?.name.toLowerCase().includes(query);
     }
 
+    // map string to status enum values
+    const statusStrings: Record<string, JobStatus> = {
+        'In progress': JobStatus.InProgress,
+        'Finished': JobStatus.Finished,
+    }
+
+    // check if the job's status matches the status dropdown filter
+    function matchesStatus(job: Job) {
+        // skip filter with all statuses
+        if (selectedStatus === 'all') return true;
+        // return true if job's status matches selected filter status
+        return job.status === statusStrings[selectedStatus];
+    }
+
     // sort the jobs by putting finished jobs after unfinished jobs, 
     // but still retain id asc sort for each section
     const filteredJobs = jobs
         .filter(j => matchesSearch(j))  // match search query (if any) first so search still works
+        .filter(j => matchesStatus(j))  // match status filter
         .sort((a, b) => {   // compare two jobs:
-            if (a.isFinished !== b.isFinished) {    // split into in progress & finished sections
-                return a.isFinished ? 1 : -1;   // move finished section below in progress section
+            if (a.status !== b.status) {    // split into in progress & finished sections
+                return a.status === JobStatus.Finished ? 1 : -1;   // move finished section below in progress section
             } else {
                 return parseInt(a.jobId) - parseInt(b.jobId);  // sort by id within each section
             }
@@ -140,14 +156,14 @@ export default function JobsPage({ title }: { title: string }) {
         />
     );
 
-    const inProgressCards = pagedJobs.filter(j => !j.isFinished).map(toCard);
-    const finishedCards   = pagedJobs.filter(j =>  j.isFinished).map(toCard);
+    const inProgressCards = pagedJobs.filter(j => j.status !== JobStatus.Finished).map(toCard);
+    const finishedCards   = pagedJobs.filter(j =>  j.status === JobStatus.Finished).map(toCard);
 
     const pagination = <WorkingPagination className="mb-4" page={page} totalItems={filteredJobs.length} itemsPerPage={itemsPerPage} onPageChange={setPage} />
 
     const cards = (
         <div className="flex flex-col gap-4 max-w-4xl">
-            {(selectedFinish === 'all' || selectedFinish === 'In progress') && inProgressCards.length > 0 && (
+            {(selectedStatus === 'all' || selectedStatus === 'In progress') && inProgressCards.length > 0 && (
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-row items-center gap-2">
                         <Inbox className="text-primary" size={16} />
@@ -158,7 +174,7 @@ export default function JobsPage({ title }: { title: string }) {
                     {inProgressCards}
                 </div>
             )}
-            {(selectedFinish === 'all' || selectedFinish === 'Finished') && finishedCards.length > 0 && (
+            {(selectedStatus === 'all' || selectedStatus === 'Finished') && finishedCards.length > 0 && (
                 <div className="flex flex-col gap-2">
                     <div className="flex flex-row items-center gap-2">
                         <CircleCheckIcon className="text-foreground" size={16} />
@@ -248,7 +264,7 @@ export default function JobsPage({ title }: { title: string }) {
                     <span className={isEditing ? "text-primary" : "text-foreground"}>UPDATE</span>
                     {!isEditing && <Button variant="ghost" size="icon" onClick={() => {
                         setIsEditing(true);
-                        setEditedIsFinished(selectedJob.isFinished);
+                        setEditedStatus(selectedJob.status);
                         setEditedPickupTime(selectedJob.pickupTime ? toLocalDatetimeInputValue(selectedJob.pickupTime) : '');
                         setEditedCollectedPrice(selectedJob.collectedPrice != null ? String(selectedJob.collectedPrice) : '');
                         setEditedNote(selectedJob.note ?? '');
@@ -257,10 +273,10 @@ export default function JobsPage({ title }: { title: string }) {
                 <InfoItem title={"STATUS"}>
                     {isEditing ? 
                     <div className="w-fit rounded-full border border-border bg-input">
-                        <Button className="rounded-full" variant={!editedIsFinished ? "default" : "ghost"} onClick={() => setEditedIsFinished(false)}>In progress</Button>
-                        <Button className="rounded-full" variant={editedIsFinished ? "default" : "ghost"} onClick={() => setEditedIsFinished(true)}>Finished</Button>
+                        <Button className="rounded-full" variant={editedStatus === JobStatus.InProgress ? "default" : "ghost"} onClick={() => setEditedStatus(JobStatus.InProgress)}>In progress</Button>
+                        <Button className="rounded-full" variant={editedStatus === JobStatus.Finished ? "default" : "ghost"} onClick={() => setEditedStatus(JobStatus.Finished)}>Finished</Button>
                     </div>
-                    : <span>{selectedJob.isFinished ? "Finished" : "In progress"}</span>
+                    : <span>{selectedJob.status === JobStatus.Finished ? "Finished" : "In progress"}</span>
                     }
                 </InfoItem>
                 <InfoItem title={"PICKUP TIME"}>
@@ -294,7 +310,7 @@ export default function JobsPage({ title }: { title: string }) {
              * Shows up on finished jobs only
              * Hidden when in edit mode to not overcrowd
              * */}
-            {selectedJob.isFinished && !isEditing &&
+            {selectedJob.status === JobStatus.Finished && !isEditing &&
                 <div className="flex justify-end p-4">
                     <Button onClick={() => {setIsAddingWarranty(true)}}>Create warranty job</Button>
                 </div>
@@ -320,7 +336,7 @@ export default function JobsPage({ title }: { title: string }) {
                 ? <div className="flex flex-col gap-2">
                     <Filter className="pb-4 flex flex-col gap-2">
                         <FilterSearch placeholder={"Search jobs..."} onChange={setSearchQuery} />
-                        <FilterSelect label="Is finished" options={["In progress", "Finished"]} value={selectedFinish} onChange={setSelectedFinish} />
+                        <FilterSelect label="Status" options={Object.keys(statusStrings)} value={selectedStatus} onChange={setSelectedStatus} />
                     </Filter>
                     {cards}
                     {pagination}
@@ -330,7 +346,7 @@ export default function JobsPage({ title }: { title: string }) {
                     <h1>{title}</h1>
                     <Filter className="py-4 flex flex-row justify-start gap-2">
                         <FilterSearch placeholder={"Search jobs..."} onChange={setSearchQuery} />
-                        <FilterSelect label="Is finished" options={["In progress", "Finished"]} value={selectedFinish} onChange={setSelectedFinish} />
+                        <FilterSelect label="Status" options={Object.keys(statusStrings)} value={selectedStatus} onChange={setSelectedStatus} />
                     </Filter>
                     <div className="mb-4">{cards}</div>
                     {pagination}
