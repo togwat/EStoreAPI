@@ -23,6 +23,8 @@ export type Job = {
 export enum JobStatus {
     InProgress = 'InProgress',
     Finished = 'Finished',
+    Cancelled = 'Cancelled',
+    Refunded = 'Refunded',
 }
 
 function _mapJob(j: {

@@ -38,6 +38,8 @@ namespace EStoreAPI.Server.Models
     public enum JobStatus
     {
         InProgress,
-        Finished
+        Finished,
+        Cancelled,
+        Refunded
     }
 }

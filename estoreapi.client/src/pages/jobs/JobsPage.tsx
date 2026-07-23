@@ -112,18 +112,18 @@ export default function JobsPage({ title }: { title: string }) {
             || device?.name.toLowerCase().includes(query);
     }
 
-    // map string to status enum values
-    const statusStrings: Record<string, JobStatus> = {
-        'In progress': JobStatus.InProgress,
-        'Finished': JobStatus.Finished,
+    // map enum key to string if there is a different string representation
+    const statusLabels: Partial<Record<JobStatus, string>> = {
+        [JobStatus.InProgress]: 'In progress',
     }
+    const statusLabel = (status: JobStatus) => statusLabels[status] ?? status;
 
     // check if the job's status matches the status dropdown filter
     function matchesStatus(job: Job) {
         // skip filter with all statuses
         if (selectedStatus === 'all') return true;
         // return true if job's status matches selected filter status
-        return job.status === statusStrings[selectedStatus];
+        return statusLabel(job.status) === selectedStatus;
     }
 
     // sort the jobs by putting finished jobs after unfinished jobs, 
@@ -336,7 +336,7 @@ export default function JobsPage({ title }: { title: string }) {
                 ? <div className="flex flex-col gap-2">
                     <Filter className="pb-4 flex flex-col gap-2">
                         <FilterSearch placeholder={"Search jobs..."} onChange={setSearchQuery} />
-                        <FilterSelect label="Status" options={Object.keys(statusStrings)} value={selectedStatus} onChange={setSelectedStatus} />
+                        <FilterSelect label="Status" options={Object.values(JobStatus).map(statusLabel)} value={selectedStatus} onChange={setSelectedStatus} />
                     </Filter>
                     {cards}
                     {pagination}
@@ -346,7 +346,7 @@ export default function JobsPage({ title }: { title: string }) {
                     <h1>{title}</h1>
                     <Filter className="py-4 flex flex-row justify-start gap-2">
                         <FilterSearch placeholder={"Search jobs..."} onChange={setSearchQuery} />
-                        <FilterSelect label="Status" options={Object.keys(statusStrings)} value={selectedStatus} onChange={setSelectedStatus} />
+                        <FilterSelect label="Status" options={Object.values(JobStatus).map(statusLabel)} value={selectedStatus} onChange={setSelectedStatus} />
                     </Filter>
                     <div className="mb-4">{cards}</div>
                     {pagination}
