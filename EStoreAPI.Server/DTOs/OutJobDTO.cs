@@ -16,6 +16,7 @@ namespace EStoreAPI.Server.DTOs
         public decimal? CollectedPrice { get; init; }
         public JobStatus Status { get; init; }
         public int? WarrantyOfJobId { get; init; }
+        public ICollection<OutJobLogDTO> Logs { get; init; } = [];
 
         public static OutJobDTO FromModel(Job j) => new()
         {
@@ -30,7 +31,8 @@ namespace EStoreAPI.Server.DTOs
             EstimatedPrice = j.EstimatedPrice,
             CollectedPrice = j.CollectedPrice,
             Status = j.Status,
-            WarrantyOfJobId = j.WarrantyOfJobId
+            WarrantyOfJobId = j.WarrantyOfJobId,
+            Logs = j.Logs?.Select(OutJobLogDTO.FromModel).ToList() ?? []
         };
     }
 }

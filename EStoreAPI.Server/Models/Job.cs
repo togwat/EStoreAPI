@@ -33,6 +33,8 @@ namespace EStoreAPI.Server.Models
         public JobStatus Status { get; set; } = JobStatus.InProgress;
 
         public int? WarrantyOfJobId { get; set; }
+
+        public virtual ICollection<JobLog>? Logs { get; set; }
     }
 
     public enum JobStatus
