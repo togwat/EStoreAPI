@@ -40,7 +40,7 @@ public class JobTools
         return jobs.Select(OutJobDTO.FromModel).ToList();
     }
 
-    [McpServerTool, Description("Create one or more new repair jobs and add them to the database. Each job links a customer and their device to problems selected from that device's problem catalogue.")]
+/*     [McpServerTool, Description("Create one or more new repair jobs and add them to the database. Each job links a customer and their device to problems selected from that device's problem catalogue.")]
     public async Task<ICollection<OutJobDTO>> CreateJobsAsync(
         [Description("Jobs to create. Search the customer by name for CustomerId, search the device by name for DeviceId, then use that DeviceId to retrieve the problem catalogue and get the relevant ProblemIds. Do not write in fields the user did not specify.")] ICollection<InJobDTO> dtos)
     {
@@ -57,7 +57,7 @@ public class JobTools
         {
             throw new McpException($"Validation failed: {ex.Message}");
         }
-    }
+    } */
 
     [McpServerTool, Description("Update one or more existing repair jobs. Only provide the fields that need to change. Omitted fields keep their current values. Providing problemIds completely replaces that job's set of problems.")]
     public async Task<ICollection<OutJobDTO>> UpdateJobsAsync(
