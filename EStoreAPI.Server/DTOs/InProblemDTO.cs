@@ -4,32 +4,32 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Server.DTOs
 {
-    public class InProblemDTO
+    public record InProblemDTO
     {
         // id for UpdateDeviceProblemsAsync
         [Description("Problem ID. Only required when updating an existing problem.")]
-        public int? ProblemId { get; set; }
+        public int? ProblemId { get; init; }
 
         [Required]
         [Description("Name of the problem (e.g. screen replacement). Required.")]
-        public required string ProblemName { get; set; }
+        public required string ProblemName { get; init; }
 
         [Required]
         [Description("ID of the device this problem belongs to. Required.")]
-        public int DeviceId { get; set; }
+        public int DeviceId { get; init; }
 
         [Required]
         [Description("Overall price for this problem. Required.")]
-        public decimal Price { get; set; }
+        public decimal Price { get; init; }
 
         [Description("Parts price for this problem.")]
-        public decimal PartsPrice { get; set; }
+        public decimal PartsPrice { get; init; }
 
         [Description("Labour cost for this problem.")]
-        public decimal LabourPrice { get; set; }
+        public decimal LabourPrice { get; init; }
 
         [Description("Risk cost for this problem.")]
-        public decimal RiskCost { get; set; }
+        public decimal RiskCost { get; init; }
 
         public Problem ToModel() => new()
         {

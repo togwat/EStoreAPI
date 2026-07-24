@@ -2,12 +2,12 @@ using EStoreAPI.Server.Models;
 
 namespace EStoreAPI.Server.DTOs
 {
-    public class OutDeviceDTO
+    public record OutDeviceDTO
     {
-        public int DeviceId { get; set; }
-        public required string DeviceName { get; set; }
-        public string? ModelNumber { get; set; }
-        public required string DeviceType { get; set; }
+        public int DeviceId { get; init; }
+        public required string DeviceName { get; init; }
+        public string? ModelNumber { get; init; }
+        public required string DeviceType { get; init; }
 
         public static OutDeviceDTO FromModel(Device d) => new()
         {

@@ -2,20 +2,20 @@ using EStoreAPI.Server.Models;
 
 namespace EStoreAPI.Server.DTOs
 {
-    public class OutJobDTO
+    public record OutJobDTO
     {
-        public int JobId { get; set; }
-        public int CustomerId { get; set; }
-        public int DeviceId { get; set; }
-        public DateTime ReceiveTime { get; set; }
-        public DateTime? PickupTime { get; set; }
-        public DateTime? EstimatedPickupTime { get; set; }
-        public string? Note { get; set; }
-        public ICollection<OutProblemDTO> Problems { get; set; } = [];
-        public decimal? EstimatedPrice { get; set; }
-        public decimal? CollectedPrice { get; set; }
-        public JobStatus Status { get; set; }
-        public int? WarrantyOfJobId { get; set; }
+        public int JobId { get; init; }
+        public int CustomerId { get; init; }
+        public int DeviceId { get; init; }
+        public DateTime ReceiveTime { get; init; }
+        public DateTime? PickupTime { get; init; }
+        public DateTime? EstimatedPickupTime { get; init; }
+        public string? Note { get; init; }
+        public ICollection<OutProblemDTO> Problems { get; init; } = [];
+        public decimal? EstimatedPrice { get; init; }
+        public decimal? CollectedPrice { get; init; }
+        public JobStatus Status { get; init; }
+        public int? WarrantyOfJobId { get; init; }
 
         public static OutJobDTO FromModel(Job j) => new()
         {

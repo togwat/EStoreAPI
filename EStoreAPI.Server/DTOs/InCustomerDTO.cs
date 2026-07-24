@@ -5,28 +5,28 @@ using System.Text.RegularExpressions;
 
 namespace EStoreAPI.Server.DTOs
 {
-    public partial class InCustomerDTO
+    public partial record InCustomerDTO
     {
         // regex pattern ensures phone numbers are just a string of digits
         [GeneratedRegex(@"\D")]
         private static partial Regex NonDigits();
 
         [Description("Customer name.")]
-        public string? CustomerName { get; set; }
+        public string? CustomerName { get; init; }
 
         [Required]
         [Description("Primary contact detail. Can be phone number, email, or other communication app ids like WeChat or Telegram id. Required.")]
-        public required string PrimaryContact { get; set; }
+        public required string PrimaryContact { get; init; }
 
         [Description("Optional phone number.")]
         [RegularExpression(@".*[0-9].*", ErrorMessage = "Phone number must contain only numbers.")]
-        public string? PhoneNumber { get; set; }
+        public string? PhoneNumber { get; init; }
 
         [Description("Email address.")]
-        public string? Email { get; set; }
+        public string? Email { get; init; }
 
         [Description("Street address.")]
-        public string? Address { get; set; }
+        public string? Address { get; init; }
 
         public Customer ToModel() => new()
         {

@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace EStoreAPI.Server.DTOs
 {
-    public partial class UpdateCustomerDTO
+    public partial record UpdateCustomerDTO
     {   
         [GeneratedRegex(@"\D")]
         private static partial Regex NonDigits();
@@ -14,21 +14,21 @@ namespace EStoreAPI.Server.DTOs
         public int CustomerId { get; set; }
 
         [Description("New customer name.")]
-        public string? CustomerName { get; set; }
+        public string? CustomerName { get; init; }
 
         [Description("New primary contact detail.")]
-        public string? PrimaryContact { get; set; }
+        public string? PrimaryContact { get; init; }
 
         [Description("New optional phone number.")]
         [RegularExpression(@".*[0-9].*", ErrorMessage = "Phone number must contain only numbers.")]
-        public string? PhoneNumber { get; set; }
+        public string? PhoneNumber { get; init; }
         public string? NormalisedPhone =>
             PhoneNumber is null ? null : NonDigits().Replace(PhoneNumber, "");
 
         [Description("New email address.")]
-        public string? Email { get; set; }
+        public string? Email { get; init; }
 
         [Description("New street address.")]
-        public string? Address { get; set; }
+        public string? Address { get; init; }
     }
 }

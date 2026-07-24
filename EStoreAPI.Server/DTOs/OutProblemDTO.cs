@@ -2,15 +2,15 @@ using EStoreAPI.Server.Models;
 
 namespace EStoreAPI.Server.DTOs
 {
-    public class OutProblemDTO
+    public record OutProblemDTO
     {
-        public int ProblemId { get; set; }
-        public required string ProblemName { get; set; }
-        public int DeviceId { get; set; }
-        public decimal Price { get; set; }
-        public decimal PartsPrice { get; set; }
-        public decimal LabourPrice { get; set; }
-        public decimal RiskCost { get; set; }
+        public int ProblemId { get; init; }
+        public required string ProblemName { get; init; }
+        public int DeviceId { get; init; }
+        public decimal Price { get; init; }
+        public decimal PartsPrice { get; init; }
+        public decimal LabourPrice { get; init; }
+        public decimal RiskCost { get; init; }
 
         public static OutProblemDTO FromModel(Problem p) => new()
         {
