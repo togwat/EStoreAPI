@@ -11,20 +11,20 @@ export type Problem = {
     riskCost: number
 }
 
-function _mapProblem(d: { problemId: string; problemName: string; price: string; partsPrice: string; labourPrice: string; riskCost: string }): Problem {
+export function mapProblem(d: { problemId: number; problemName: string; price: number; partsPrice: number; labourPrice: number; riskCost: number }): Problem {
     return {
         id: String(d.problemId),
         name: d.problemName,
-        price: parseFloat(d.price),
-        partsPrice: parseFloat(d.partsPrice),
-        labourPrice: parseFloat(d.labourPrice),
-        riskCost: parseFloat(d.riskCost)
+        price: d.price,
+        partsPrice: d.partsPrice,
+        labourPrice: d.labourPrice,
+        riskCost: d.riskCost
     };
 }
 
 export async function getProblems(deviceId: string): Promise<Problem[]> {
     const response = await api.get(`/api/problems/device/${deviceId}`);
-    return response.data.map(_mapProblem);
+    return response.data.map(mapProblem);
 }
 
 // follow InProblemDTO

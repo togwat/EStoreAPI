@@ -1,5 +1,5 @@
 import { toast } from '@/components/CustomToast';
-import { Problem } from "./problems";
+import { Problem, mapProblem } from "./problems";
 import { api } from './client';
 import { handleApiError } from './apiHelpers';
 
@@ -49,14 +49,7 @@ function _mapJob(j: {
         pickupTime: j.pickupTime,
         estimatedPickupTime: j.estimatedPickupTime,
         note: j.note,
-        problems: j.problems.map(p => ({
-            id: String(p.problemId),
-            name: p.problemName,
-            price: p.price,
-            partsPrice: p.partsPrice,
-            labourPrice: p.labourPrice,
-            riskCost: p.riskCost
-        })),
+        problems: j.problems.map(mapProblem),
         estimatedPrice: j.estimatedPrice ?? null,
         collectedPrice: j.collectedPrice ?? null,
         status: j.status,
