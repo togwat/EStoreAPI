@@ -76,6 +76,7 @@ namespace EStoreAPI.Server.Services
             }
 
             Job job = dto.ToModel(problems);
+            job.Logs = [CreateLog(job)];
 
             return await _repo.AddJobAsync(job);
         }
@@ -99,7 +100,9 @@ namespace EStoreAPI.Server.Services
                     await ValidateWarrantyLink(dto.WarrantyOfJobId.Value, null);
                 }
 
-                jobs.Add(dto.ToModel(problems));
+                Job job = dto.ToModel(problems);
+                job.Logs = [CreateLog(job)];
+                jobs.Add(job);
             }
 
             return await _repo.AddJobsAsync(jobs);
@@ -175,5 +178,13 @@ namespace EStoreAPI.Server.Services
                 throw new KeyNotFoundException($"Job {parentId} not found when linking for warranty.");
             }
         }
+
+        // making new log objects
+        private static JobLog CreateLog(Job job) => new()
+        {
+            Timestamp = DateTime.UtcNow,
+            Status = job.Status,
+            Note = job.Note
+        };
     }
 }
