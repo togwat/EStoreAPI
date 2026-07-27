@@ -126,36 +126,6 @@ namespace EStoreAPI.Server.Migrations
                     b.ToTable("Jobs");
                 });
 
-            modelBuilder.Entity("EStoreAPI.Server.Models.JobLog", b =>
-                {
-                    b.Property<int>("JobLogId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("JobLogId"));
-
-                    b.Property<int>("JobId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal?>("MoneyChange")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("Note")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("JobLogId");
-
-                    b.HasIndex("JobId");
-
-                    b.ToTable("JobLog");
-                });
-
             modelBuilder.Entity("EStoreAPI.Server.Models.Problem", b =>
                 {
                     b.Property<int>("ProblemId")
@@ -244,17 +214,6 @@ namespace EStoreAPI.Server.Migrations
                     b.Navigation("Device");
                 });
 
-            modelBuilder.Entity("EStoreAPI.Server.Models.JobLog", b =>
-                {
-                    b.HasOne("EStoreAPI.Server.Models.Job", "Job")
-                        .WithMany("Logs")
-                        .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Job");
-                });
-
             modelBuilder.Entity("EStoreAPI.Server.Models.Problem", b =>
                 {
                     b.HasOne("EStoreAPI.Server.Models.Device", "Device")
@@ -289,11 +248,6 @@ namespace EStoreAPI.Server.Migrations
             modelBuilder.Entity("EStoreAPI.Server.Models.Device", b =>
                 {
                     b.Navigation("Problems");
-                });
-
-            modelBuilder.Entity("EStoreAPI.Server.Models.Job", b =>
-                {
-                    b.Navigation("Logs");
                 });
 #pragma warning restore 612, 618
         }
