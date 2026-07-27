@@ -3,7 +3,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { PanelDrawer } from '@/components/PanelDrawer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { getJobs, updateJob, Job, JobStatus } from '@/api/jobs';
+import { getJobs, updateJob, Job, JobStatus, statusLabel } from '@/api/jobs';
 import { getCustomers, Customer } from '@/api/customers';
 import { getDevices, Device } from '@/api/devices';
 import { JobCard, formatDate } from './components/JobCard';
@@ -117,12 +117,6 @@ export default function JobsPage({ title }: { title: string }) {
             || customer?.primaryContact.includes(query)
             || device?.name.toLowerCase().includes(query);
     }
-
-    // map enum key to string if there is a different string representation
-    const statusLabels: Partial<Record<JobStatus, string>> = {
-        [JobStatus.InProgress]: 'In progress',
-    }
-    const statusLabel = (status: JobStatus) => statusLabels[status] ?? status;
 
     // check if the job's status matches the status dropdown filter
     function matchesStatus(job: Job) {

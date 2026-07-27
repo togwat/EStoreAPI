@@ -1,11 +1,20 @@
-import { Job, JobLog } from "@/api/jobs";
+import { Job, JobLog, statusLabel } from "@/api/jobs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
+import { formatDate } from "./JobCard";
+import { formatPrice } from "@/lib/formatPrice";
 
 function LogEntry({log}: {log: JobLog}) {
     return (
-        <span>{log.timestamp}</span>
+        <div className="border-b py-2">
+            <span className="text-muted-foreground">{formatDate(log.timestamp, { time: true })}</span>
+            <ul>
+                {log.status && <li><span className="font-semibold">Status change:</span> {statusLabel(log.status)}</li>}
+                {log.note && <li><span className="font-semibold">Note change:</span> {log.note}</li>}
+                {log.moneyChange && <li><span className="font-semibold">Money change:</span> {formatPrice(log.moneyChange)}</li>}
+            </ul>
+        </div>
     )
 }
 
@@ -16,12 +25,16 @@ interface JobLogPanelProps {
 
 export default function JobLogPanel({ job, onBack }: JobLogPanelProps) {
     const isMobile = useIsMobile();
-    const logs: JobLog[] = job.logs ?? [];
+    // sort by earliest job first
+    // copy a list so it doesn't mutate the original job
+    const logs: JobLog[] = [...(job.logs ?? [])].sort(
+        (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    );
 
     return (
         <div>
             {/** Header */}
-            <div className={`flex flex-col gap-2 ${isMobile ? "p-4" : "pb-4"} border-b`}>
+            <div className={`flex flex-col ${isMobile ? "p-4" : "pb-4"} border-b`}>
                 <div className="flex items-center justify-between">
                     <span className="text-lg text-foreground font-bold">
                         Log of <span className="text-lg text-primary font-mono font-normal">#{job.jobId}</span>
@@ -30,7 +43,7 @@ export default function JobLogPanel({ job, onBack }: JobLogPanelProps) {
                 </div>
             </div>
             {/** Log list */}
-            <div>
+            <div className={`flex flex-col ${isMobile && "px-4"}`}>
                 {logs.map(l => (
                     <LogEntry log={l} />
                 ))}

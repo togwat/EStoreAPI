@@ -28,6 +28,12 @@ export enum JobStatus {
     Refunded = 'Refunded',
 }
 
+// map enum key to string if there is a different string representation
+const statusLabels: Partial<Record<JobStatus, string>> = {
+    [JobStatus.InProgress]: 'In progress',
+}
+export const statusLabel = (status: JobStatus) => statusLabels[status] ?? status;
+
 // transaction logging
 // follow OutJobLogDTO
 export type JobLog = {
