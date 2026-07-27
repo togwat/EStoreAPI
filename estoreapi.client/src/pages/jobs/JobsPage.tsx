@@ -192,7 +192,7 @@ export default function JobsPage({ title }: { title: string }) {
     );
 
     const editJobPanel = (selectedJob: Job) => (
-        <div className="w-full h-full overflow-auto">
+        <div className="w-full">
             {/** header */}
             <div className={`flex flex-col gap-2 ${isMobile ? "p-4" : "pb-4"} border-b`}>
                 <div className="flex items-center justify-between">

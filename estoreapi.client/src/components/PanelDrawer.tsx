@@ -30,13 +30,13 @@ export function PanelDrawer({ open, drawerContent, children }: PanelDrawerProps)
 
     // desktop: flex row push layout
     return (
-        <div className="flex flex-1">
+        <div className="flex h-full">
             {/** everything else */}
-            <div className={cn("flex-1 min-w-0 transition-all")}>
+            <div className={cn("flex-1 min-w-0 h-full overflow-y-auto transition-all")}>
                 {children}
             </div>
-            {/** drawer - sticky on the outer wrapper so it follows scroll; overflow-hidden clips the width transition */}
-            <div className={cn("w-0 overflow-hidden transition-all sticky top-0 h-screen bg-background", open && "w-[min(30rem,55%)] p-8 border-l border-border")}>
+            {/** drawer */}
+            <div className={cn("w-0 h-full overflow-x-hidden overflow-y-auto transition-all bg-background", open && "w-[min(30rem,55%)] p-8 border-l border-border")}>
                 {drawerContent}
             </div>
         </div>

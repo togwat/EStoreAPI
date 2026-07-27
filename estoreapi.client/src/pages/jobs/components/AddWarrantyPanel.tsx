@@ -55,7 +55,7 @@ export default function AddWarrantyPanel({ original, onClose, onCancel, onConfir
     }
 
     return (
-        <form onSubmit={handleSubmit} className="w-full h-full overflow-auto">
+        <form onSubmit={handleSubmit} className="w-full">
             {/** header */}
             <div className={`flex items-center justify-between ${isMobile ? "p-4" : "pb-4"} border-b`}>
                 <span className="text-lg text-foreground font-bold">
