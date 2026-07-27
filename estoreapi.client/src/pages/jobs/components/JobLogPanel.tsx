@@ -45,7 +45,7 @@ export default function JobLogPanel({ job, onBack }: JobLogPanelProps) {
             {/** Log list */}
             <div className={`flex flex-col divide-y ${isMobile && "px-4 pb-4"}`}>
                 {logs.map(l => (
-                    <LogEntry log={l} />
+                    <LogEntry key={l.jobLogId} log={l} />
                 ))}
             </div>
         </div>

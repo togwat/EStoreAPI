@@ -37,14 +37,16 @@ export const statusLabel = (status: JobStatus) => statusLabels[status] ?? status
 // transaction logging
 // follow OutJobLogDTO
 export type JobLog = {
+    jobLogId: string
     timestamp: string,
     status: JobStatus,
     note: string,
     moneyChange: number,
 }
 
-function _mapJobLog(l: { timestamp: string, status: string, note: string, moneyChange: number }): JobLog {
+function _mapJobLog(l: { jobLogId: number, timestamp: string, status: string, note: string, moneyChange: number }): JobLog {
     return {
+        jobLogId: String(l.jobLogId),
         timestamp: l.timestamp,
         status: l.status as JobStatus,
         note: l.note,
@@ -65,7 +67,7 @@ function _mapJob(j: {
     collectedPrice: number;
     status: JobStatus;
     warrantyOfJobId: number;
-    logs: { timestamp: string, status: string, note: string, moneyChange: number }[];
+    logs?: { jobLogId: number, timestamp: string, status: string, note: string, moneyChange: number }[];
 }): Job {
     return {
         jobId: String(j.jobId),
@@ -80,7 +82,7 @@ function _mapJob(j: {
         collectedPrice: j.collectedPrice ?? null,
         status: j.status,
         warrantyOfJobId: j.warrantyOfJobId != null ? String(j.warrantyOfJobId) : null,
-        logs: j.logs.map(_mapJobLog),
+        logs: j.logs?.map(_mapJobLog) ?? [],
     };
 }
 
