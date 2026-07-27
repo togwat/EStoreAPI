@@ -154,8 +154,11 @@ namespace EStoreAPI.Server.Services
                 await ValidateWarrantyLink(dto.WarrantyOfJobId.Value, dto.JobId);
             }
             
-            // for logging
-            decimal? moneyChange = dto.CollectedPrice - existing.CollectedPrice;
+            // record old values for logging
+            // treat null as 0 money
+            JobStatus oldStatus = existing.Status;
+            string? oldNote = existing.Note;
+            decimal oldCollected = existing.CollectedPrice ?? 0m;
 
             existing.PickupTime = dto.PickupTime ?? existing.PickupTime;
             existing.EstimatedPickupTime = dto.EstimatedPickupTime ?? existing.EstimatedPickupTime;
@@ -166,7 +169,21 @@ namespace EStoreAPI.Server.Services
             existing.WarrantyOfJobId = dto.WarrantyOfJobId ?? existing.WarrantyOfJobId;
 
             // update/transction logging
-            existing.Logs.Add(UpdateLog(dto.Status, dto.Note, moneyChange));
+            JobStatus? statusChange = existing.Status != oldStatus ? existing.Status : null;
+            string? noteChange = existing.Note != oldNote ? existing.Note : null;
+            // 0 change in money is set to null
+            decimal? moneyChange = (existing.CollectedPrice ?? 0m) - oldCollected;
+            moneyChange = moneyChange == 0m ? null : moneyChange;
+
+            // guard against no change updates
+            if (statusChange != null || noteChange != null || moneyChange != null)
+            {
+                // guard against old jobs not having a logging system
+                // models already does this, this stops tests from complaining
+                // because the fixture can't initialise virtual list
+                existing.Logs ??= new List<JobLog>();
+                existing.Logs.Add(UpdateLog(statusChange, noteChange, moneyChange));
+            }
         }
 
         // check if warranty exists, and check if a job isn't linking itself
