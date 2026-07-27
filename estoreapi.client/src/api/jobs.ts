@@ -17,7 +17,7 @@ export type Job = {
     collectedPrice?: number | null
     status: JobStatus
     warrantyOfJobId?: string | null
-    logs: JobLog[]
+    logs?: JobLog[]
 }
 
 // follow JobStatus enum
