@@ -34,7 +34,7 @@ namespace EStoreAPI.Server.Models
 
         public int? WarrantyOfJobId { get; set; }
 
-        public virtual ICollection<JobLog>? Logs { get; set; }
+        public virtual ICollection<JobLog> Logs { get; set; } = [];
     }
 
     public enum JobStatus

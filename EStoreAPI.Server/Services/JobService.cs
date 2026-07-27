@@ -154,6 +154,9 @@ namespace EStoreAPI.Server.Services
                 await ValidateWarrantyLink(dto.WarrantyOfJobId.Value, dto.JobId);
             }
             
+            // for logging
+            decimal? moneyChange = dto.CollectedPrice - existing.CollectedPrice;
+
             existing.PickupTime = dto.PickupTime ?? existing.PickupTime;
             existing.EstimatedPickupTime = dto.EstimatedPickupTime ?? existing.EstimatedPickupTime;
             existing.Note = dto.Note ?? existing.Note;
@@ -161,6 +164,9 @@ namespace EStoreAPI.Server.Services
             existing.CollectedPrice = dto.CollectedPrice ?? existing.CollectedPrice;
             existing.Status = dto.Status ?? existing.Status;
             existing.WarrantyOfJobId = dto.WarrantyOfJobId ?? existing.WarrantyOfJobId;
+
+            // update/transction logging
+            existing.Logs.Add(UpdateLog(dto.Status, dto.Note, moneyChange));
         }
 
         // check if warranty exists, and check if a job isn't linking itself
@@ -185,6 +191,14 @@ namespace EStoreAPI.Server.Services
             Timestamp = DateTime.UtcNow,
             Status = job.Status,
             Note = job.Note
+        };
+
+        private static JobLog UpdateLog(JobStatus? status, string? note, decimal? moneyChange) => new()
+        {
+            Timestamp = DateTime.UtcNow,
+            Status = status,
+            Note = note,
+            MoneyChange = moneyChange
         };
     }
 }
