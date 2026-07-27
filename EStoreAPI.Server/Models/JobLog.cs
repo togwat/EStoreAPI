@@ -9,6 +9,7 @@ namespace EStoreAPI.Server.Models
         public int JobLogId { get; set; }
 
         // UTC
+        [Required]
         public DateTime Timestamp { get; set; }
 
         [Required]
