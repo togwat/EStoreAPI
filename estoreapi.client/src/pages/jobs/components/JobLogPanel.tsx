@@ -12,7 +12,7 @@ function LogEntry({log}: {log: JobLog}) {
             <ul>
                 {log.status && <li><span className="font-semibold">Status change:</span> {statusLabel(log.status)}</li>}
                 {log.note && <li><span className="font-semibold">Note change:</span> {log.note}</li>}
-                {log.moneyChange && <li><span className="font-semibold">Money change:</span> {formatPrice(log.moneyChange)}</li>}
+                {log.moneyChange && <li><span className="font-semibold">Money change:</span> <span className={log.moneyChange > 0 ? "text-green-600" : "text-destructive"}>{formatPrice(log.moneyChange)}</span></li>}
             </ul>
         </div>
     )
