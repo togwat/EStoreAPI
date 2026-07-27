@@ -7,7 +7,7 @@ import { formatPrice } from "@/lib/formatPrice";
 
 function LogEntry({log}: {log: JobLog}) {
     return (
-        <div className="border-b py-2">
+        <div className="py-2">
             <span className="text-muted-foreground">{formatDate(log.timestamp, { time: true })}</span>
             <ul>
                 {log.status && <li><span className="font-semibold">Status change:</span> {statusLabel(log.status)}</li>}
@@ -43,7 +43,7 @@ export default function JobLogPanel({ job, onBack }: JobLogPanelProps) {
                 </div>
             </div>
             {/** Log list */}
-            <div className={`flex flex-col ${isMobile && "px-4"}`}>
+            <div className={`flex flex-col divide-y ${isMobile && "px-4 pb-4"}`}>
                 {logs.map(l => (
                     <LogEntry log={l} />
                 ))}
