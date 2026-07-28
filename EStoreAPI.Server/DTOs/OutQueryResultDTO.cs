@@ -1,13 +1,13 @@
 namespace EStoreAPI.Server.DTOs
 {
-    public class OutQueryResultDTO
+    public record OutQueryResultDTO
     {
-        public List<Dictionary<string, object?>> Rows { get; set; } = new();
+        public List<Dictionary<string, object?>> Rows { get; init; } = new();
 
-        public int RowCount { get; set; }
+        public int RowCount { get; init; }
 
         // true when the query matched more rows than the cap
         // signals the model to narrow the query instead of assuming it saw everything
-        public bool Truncated { get; set; }
+        public bool Truncated { get; init; }
     }
 }

@@ -1,5 +1,5 @@
 import { toast } from '@/components/CustomToast';
-import { Problem } from "./problems";
+import { Problem, mapProblem } from "./problems";
 import { api } from './client';
 import { handleApiError } from './apiHelpers';
 
@@ -17,6 +17,7 @@ export type Job = {
     collectedPrice?: number | null
     status: JobStatus
     warrantyOfJobId?: string | null
+    logs?: JobLog[]
 }
 
 // follow JobStatus enum
@@ -25,6 +26,32 @@ export enum JobStatus {
     Finished = 'Finished',
     Cancelled = 'Cancelled',
     Refunded = 'Refunded',
+}
+
+// map enum key to string if there is a different string representation
+const statusLabels: Partial<Record<JobStatus, string>> = {
+    [JobStatus.InProgress]: 'In progress',
+}
+export const statusLabel = (status: JobStatus) => statusLabels[status] ?? status;
+
+// transaction logging
+// follow OutJobLogDTO
+export type JobLog = {
+    jobLogId: string
+    timestamp: string,
+    status: JobStatus,
+    note: string,
+    moneyChange: number,
+}
+
+function _mapJobLog(l: { jobLogId: number, timestamp: string, status: string, note: string, moneyChange: number }): JobLog {
+    return {
+        jobLogId: String(l.jobLogId),
+        timestamp: l.timestamp,
+        status: l.status as JobStatus,
+        note: l.note,
+        moneyChange: l.moneyChange,
+    };
 }
 
 function _mapJob(j: {
@@ -40,6 +67,7 @@ function _mapJob(j: {
     collectedPrice: number;
     status: JobStatus;
     warrantyOfJobId: number;
+    logs?: { jobLogId: number, timestamp: string, status: string, note: string, moneyChange: number }[];
 }): Job {
     return {
         jobId: String(j.jobId),
@@ -49,18 +77,12 @@ function _mapJob(j: {
         pickupTime: j.pickupTime,
         estimatedPickupTime: j.estimatedPickupTime,
         note: j.note,
-        problems: j.problems.map(p => ({
-            id: String(p.problemId),
-            name: p.problemName,
-            price: p.price,
-            partsPrice: p.partsPrice,
-            labourPrice: p.labourPrice,
-            riskCost: p.riskCost
-        })),
+        problems: j.problems.map(mapProblem),
         estimatedPrice: j.estimatedPrice ?? null,
         collectedPrice: j.collectedPrice ?? null,
         status: j.status,
         warrantyOfJobId: j.warrantyOfJobId != null ? String(j.warrantyOfJobId) : null,
+        logs: j.logs?.map(_mapJobLog) ?? [],
     };
 }
 

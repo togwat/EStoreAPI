@@ -3,28 +3,28 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Server.DTOs
 {
-    public class UpdateProblemDTO
+    public record UpdateProblemDTO
     {
         [Required]
         [Description("The ID of the problem to update.")]
         public int ProblemId { get; set; }
 
         [Description("New problem name.")]
-        public string? ProblemName { get; set; }
+        public string? ProblemName { get; init; }
 
         [Description("New device id.")]
-        public int? DeviceId { get; set; }
+        public int? DeviceId { get; init; }
 
         [Description("New overall price.")]
-        public decimal? Price { get; set; }
+        public decimal? Price { get; init; }
         
         [Description("New parts price.")]
-        public decimal? PartsPrice { get; set; }
+        public decimal? PartsPrice { get; init; }
 
         [Description("New labour cost.")]
-        public decimal? LabourPrice { get; set; }
+        public decimal? LabourPrice { get; init; }
 
         [Description("New risk cost.")]
-        public decimal? RiskCost { get; set; }
+        public decimal? RiskCost { get; init; }
     }
 }

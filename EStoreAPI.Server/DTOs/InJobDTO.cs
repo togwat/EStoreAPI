@@ -4,44 +4,44 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Server.DTOs
 {
-    public class InJobDTO
+    public record InJobDTO
     {
         [Required]
         [Description("ID of the customer being serviced. Required.")]
-        public int CustomerId { get; set; }
+        public int CustomerId { get; init; }
 
         [Required]
         [Description("ID of the device being repaired. Required.")]
-        public int DeviceId { get; set; }
+        public int DeviceId { get; init; }
 
         [Description("Time the device was received, in UTC. Defaults to now if omitted.")]
-        public DateTime? ReceiveTime { get; set; }
+        public DateTime? ReceiveTime { get; init; }
 
         [Description("Time the device was picked up by the customer, in UTC.")]
-        public DateTime? PickupTime { get; set; }
+        public DateTime? PickupTime { get; init; }
 
         [Description("Estimated pickup time, in UTC.")]
-        public DateTime? EstimatedPickupTime { get; set; }
+        public DateTime? EstimatedPickupTime { get; init; }
 
         [Description("Additional notes about the job.")]
-        public string? Note { get; set; }
+        public string? Note { get; init; }
 
         [Required]
         [Description("List of problem IDs to fix. Retrieve problem IDs from the device's problem catalogue.")]
-        public List<int> ProblemIds { get; set; } = new();
+        public List<int> ProblemIds { get; init; } = new();
 
         [Description("Estimated price. Defaults to the sum of the selected problems' prices if omitted.")]
-        public decimal? EstimatedPrice { get; set; }
+        public decimal? EstimatedPrice { get; init; }
 
         [Description("Price collected from the customer.")]
-        public decimal? CollectedPrice { get; set; }
+        public decimal? CollectedPrice { get; init; }
 
         [EnumDataType(typeof(JobStatus))]
         [Description("The status of the job. Defaults to InProgress.")]
-        public JobStatus Status { get; set; } = JobStatus.InProgress;
+        public JobStatus Status { get; init; } = JobStatus.InProgress;
 
         [Description("ID of the prior job this one is a warranty for. Set only when the repair is a warranty follow-up to an earlier job, omit for normal jobs. Search that customer's jobs to find the ID.")]
-        public int? WarrantyOfJobId { get; set; }
+        public int? WarrantyOfJobId { get; init; }
 
         // problems must be resolved from ProblemIds by the service before calling this
         public Job ToModel(ICollection<Problem> problems) => new()

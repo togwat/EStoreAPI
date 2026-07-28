@@ -123,7 +123,7 @@ export default function DevicesPage({ title }: { title: string }) {
         <PanelDrawer
             open={selectedDevice !== null}
             drawerContent={selectedDevice && (
-                <div className="w-full h-full overflow-auto">
+                <div className="w-full">
                     {/** header */}
                     <div className={`flex items-center justify-between ${isMobile ? "p-4" : "pb-4"} border-b`}>
                         <div className="flex items-center justify-start gap-2">

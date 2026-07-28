@@ -262,13 +262,13 @@ namespace EStoreAPI.Server.Data
         // job operations
         public async Task<Job?> GetJobByIdAsync(int id)
         {
-            Job? job = await _dbContext.Jobs.Include(j => j.Problems).FirstOrDefaultAsync(j => j.JobId == id);
+            Job? job = await _dbContext.Jobs.Include(j => j.Problems).Include(j => j.Logs).FirstOrDefaultAsync(j => j.JobId == id);
             return job;
         }
 
         public async Task<ICollection<Job>> GetJobsAsync()
         {
-            ICollection<Job> jobs = await _dbContext.Jobs.Include(j => j.Problems).ToListAsync();
+            ICollection<Job> jobs = await _dbContext.Jobs.Include(j => j.Problems).Include(j => j.Logs).ToListAsync();
             return jobs;
         }
 

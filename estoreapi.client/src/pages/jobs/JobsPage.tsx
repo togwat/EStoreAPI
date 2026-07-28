@@ -3,12 +3,12 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { PanelDrawer } from '@/components/PanelDrawer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { getJobs, updateJob, Job, JobStatus } from '@/api/jobs';
+import { getJobs, updateJob, Job, JobStatus, statusLabel } from '@/api/jobs';
 import { getCustomers, Customer } from '@/api/customers';
 import { getDevices, Device } from '@/api/devices';
 import { JobCard, formatDate } from './components/JobCard';
 import { Filter, FilterSearch, FilterSelect } from '@/components/Filter';
-import { CircleCheckIcon, Inbox, X, PencilIcon, PhoneIcon, MapPinIcon, MailIcon, ContactIcon } from 'lucide-react';
+import { CircleCheckIcon, Inbox, X, PencilIcon, PhoneIcon, MapPinIcon, MailIcon, ContactIcon, ClipboardClock } from 'lucide-react';
 import { WorkingPagination } from '@/components/WorkingPagination';
 import { formatPrice } from '@/lib/formatPrice';
 import { formatPhone } from '@/lib/formatPhone';
@@ -18,6 +18,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { InfoItem, InfoRow } from './components/InfoItem';
 import AddWarrantyPanel from './components/AddWarrantyPanel';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import JobLogPanel from './components/JobLogPanel';
 
 export default function JobsPage({ title }: { title: string }) {
     const isMobile = useIsMobile();
@@ -36,8 +37,12 @@ export default function JobsPage({ title }: { title: string }) {
     const [editedPickupTime, setEditedPickupTime] = useState('');
     const [editedCollectedPrice, setEditedCollectedPrice] = useState('');
     const [editedNote, setEditedNote] = useState('');
-    // warranty
-    const [isAddingWarranty, setIsAddingWarranty] = useState(false);
+    // panel switching
+    type Panels = 
+        | 'edit'
+        | 'warranty'
+        | 'logs'
+    const [currentPanel, setCurrentPanel] = useState<Panels>('edit');
 
     // async makes sure all 3 fetches happen together, so no issues like jobs proceeding before customers are fetched
     useEffect(() => {
@@ -82,7 +87,7 @@ export default function JobsPage({ title }: { title: string }) {
         setEditedPickupTime('');
         setEditedCollectedPrice('');
         setEditedNote('');
-        setIsAddingWarranty(false);
+        setCurrentPanel('edit');
     }
 
     // get latest data to refresh
@@ -112,12 +117,6 @@ export default function JobsPage({ title }: { title: string }) {
             || customer?.primaryContact.includes(query)
             || device?.name.toLowerCase().includes(query);
     }
-
-    // map enum key to string if there is a different string representation
-    const statusLabels: Partial<Record<JobStatus, string>> = {
-        [JobStatus.InProgress]: 'In progress',
-    }
-    const statusLabel = (status: JobStatus) => statusLabels[status] ?? status;
 
     // check if the job's status matches the status dropdown filter
     function matchesStatus(job: Job) {
@@ -193,7 +192,7 @@ export default function JobsPage({ title }: { title: string }) {
     );
 
     const editJobPanel = (selectedJob: Job) => (
-        <div className="w-full h-full overflow-auto">
+        <div className="w-full">
             {/** header */}
             <div className={`flex flex-col gap-2 ${isMobile ? "p-4" : "pb-4"} border-b`}>
                 <div className="flex items-center justify-between">
@@ -201,7 +200,10 @@ export default function JobsPage({ title }: { title: string }) {
                         <span className="text-lg text-primary font-mono">#{selectedJob.jobId}</span>
                         <span className="text-lg text-foreground font-bold">{selectedCustomer?.name}</span>
                     </div>
-                    <Button variant="outline" size="icon" onClick={() => setSelectedJob(null)}><X /></Button>
+                    <div className="flex items-center justify-start gap-2">
+                        <Button size="icon" onClick={() => setCurrentPanel('logs')}><ClipboardClock /></Button>
+                        <Button variant="outline" size="icon" onClick={() => setSelectedJob(null)}><X /></Button>
+                    </div>
                 </div>
                 {selectedJob.warrantyOfJobId &&
                     <span>
@@ -327,7 +329,7 @@ export default function JobsPage({ title }: { title: string }) {
              * */}
             {selectedJob.status === JobStatus.Finished && !isEditing &&
                 <div className="flex justify-end p-4">
-                    <Button onClick={() => {setIsAddingWarranty(true)}}>Create warranty job</Button>
+                    <Button onClick={() => {setCurrentPanel('warranty')}}>Create warranty job</Button>
                 </div>
             }
         </div>
@@ -336,13 +338,14 @@ export default function JobsPage({ title }: { title: string }) {
     return (
         <PanelDrawer
             open={selectedJob !== null}
-            drawerContent={selectedJob && (isAddingWarranty
-                ? <AddWarrantyPanel
+            drawerContent={selectedJob && (
+                currentPanel === 'warranty' ? <AddWarrantyPanel
                     original={selectedJob}
                     onClose={() => setSelectedJob(null)}
                     onCancel={handleCancel}
                     onConfirm={async () => { await refreshJobs(); handleCancel(); }}
                   />
+                : currentPanel === 'logs' ? <JobLogPanel job={selectedJob} onBack={() => setCurrentPanel('edit')} />
                 : editJobPanel(selectedJob))}
         >
             {/** main body */}

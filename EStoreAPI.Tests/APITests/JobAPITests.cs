@@ -320,5 +320,78 @@ namespace EStoreAPI.Tests.APITests
 
             Assert.IsType<BadRequestResult>(result);    // 400 (ValidationException -> BadRequest, no body)
         }
+
+        // GET: api/Jobs/{id} — a job's log history is mapped into the response, nulls preserved
+        [Fact]
+        public async Task TestGetJobById_ResponseIncludesLogs()
+        {
+            Job job = _fixture.Build<Job>().With(j => j.JobId, 1).Create();
+            // Logs is virtual so the fixture leaves it null; set it explicitly
+            job.Logs = new List<JobLog>
+            {
+                new() { Timestamp = DateTime.UtcNow, Status = JobStatus.InProgress, Note = "this is a note", MoneyChange = null },
+                new() { Timestamp = DateTime.UtcNow, Status = JobStatus.Finished, Note = null, MoneyChange = 150m },
+            };
+            _service.Setup(s => s.GetJobAsync(1)).ReturnsAsync(job);
+
+            var result = await _controller.GetJobAsync(1);
+
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var dto = Assert.IsAssignableFrom<OutJobDTO>(okResult.Value);
+            Assert.Equal(2, dto.Logs.Count);    // both log entries surfaced
+            var logs = dto.Logs.ToList();
+            Assert.Equal(150m, logs[1].MoneyChange);
+            Assert.Null(logs[1].Note);          // null preserved through the DTO mapping
+        }
+
+        // POST: api/Jobs/create — the created job's log is returned in the 201 response body
+        [Fact]
+        public async Task TestCreateJob_ResponseIncludesLog()
+        {
+            var dto = _fixture.Build<InJobDTO>()
+                                .With(j => j.CustomerId, 1)
+                                .With(j => j.DeviceId, 1)
+                                .With(j => j.ProblemIds, new List<int> { 1 })
+                                .Create();
+            Job newJob = _fixture.Build<Job>().With(j => j.JobId, 1).Create();
+            newJob.Logs = new List<JobLog>
+            {
+                new() { Timestamp = DateTime.UtcNow, Status = JobStatus.InProgress, Note = "this is a note" }
+            };
+            _service.Setup(s => s.CreateJobAsync(dto)).ReturnsAsync(newJob);
+
+            var result = await _controller.CreateJobAsync(dto);
+
+            var created = Assert.IsType<CreatedAtActionResult>(result.Result);
+            var createdDto = Assert.IsAssignableFrom<OutJobDTO>(created.Value);
+            OutJobLogDTO log = Assert.Single(createdDto.Logs);
+            Assert.Equal(JobStatus.InProgress, log.Status);
+            Assert.Equal("this is a note", log.Note);
+        }
+
+        // GET: api/Jobs — logs are surfaced per job in a collection response
+        [Fact]
+        public async Task TestGetJobs_ResponseIncludesLogsPerJob()
+        {
+            var jobs = _fixture.CreateMany<Job>(2).ToList();
+            jobs[0].Logs = new List<JobLog>
+            {
+                new() { Timestamp = DateTime.UtcNow, Status = JobStatus.InProgress },
+            };
+            jobs[1].Logs = new List<JobLog>
+            {
+                new() { Timestamp = DateTime.UtcNow, Status = JobStatus.InProgress },
+                new() { Timestamp = DateTime.UtcNow, Status = JobStatus.Refunded, MoneyChange = -80m },
+            };
+            _service.Setup(s => s.GetAllJobsAsync()).ReturnsAsync(jobs);
+
+            var result = await _controller.GetAllJobsAsync();
+
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var dtos = Assert.IsAssignableFrom<ICollection<OutJobDTO>>(okResult.Value).ToList();
+            Assert.Single(dtos[0].Logs);
+            Assert.Equal(2, dtos[1].Logs.Count);
+            Assert.Equal(-80m, dtos[1].Logs.ToList()[1].MoneyChange);    // refund delta surfaced
+        }
     }
 }

@@ -472,5 +472,323 @@ namespace EStoreAPI.Tests.ServiceTests
             // nothing should look up a warranty parent when none was supplied
             _repo.Verify(r => r.GetJobByIdAsync(7), Times.Never);
         }
+
+        // Job transaction logging
+
+        // a created job carries exactly one log mirroring the status and note it was created with
+        [Fact]
+        public async Task CreateJob_AttachesLogMirroringJob()
+        {
+            var problems = _fixture.CreateMany<Problem>(2).ToList();
+            var dto = _fixture.Build<InJobDTO>()
+                .With(d => d.ProblemIds, problems.Select(p => p.ProblemId).ToList())
+                .With(d => d.Status, JobStatus.Finished)
+                .With(d => d.Note, "screen cracked")
+                .Create();
+            _repo.Setup(r => r.GetProblemsByIdsAsync(It.IsAny<ICollection<int>>())).ReturnsAsync(problems);
+
+            // capture the job handed to the repo so we can inspect the log built onto its graph
+            Job? saved = null;
+            _repo.Setup(r => r.AddJobAsync(It.IsAny<Job>()))
+                .Callback<Job>(j => saved = j)
+                .ReturnsAsync(_fixture.Create<Job>());
+
+            await _jobService.CreateJobAsync(dto);
+
+            JobLog log = Assert.Single(saved!.Logs!);
+            Assert.Equal(JobStatus.Finished, log.Status);
+            Assert.Equal("screen cracked", log.Note);
+            // booking in records no money movement
+            Assert.Null(log.MoneyChange);
+            // stamped at creation time
+            Assert.True((DateTime.UtcNow - log.Timestamp).TotalMinutes < 1);
+        }
+
+        // a field left null on the job (note) stay null on the log
+        [Fact]
+        public async Task CreateJob_NullNote_LeavesLogNoteNull()
+        {
+            var problems = _fixture.CreateMany<Problem>(2).ToList();
+            var dto = _fixture.Build<InJobDTO>()
+                .With(d => d.ProblemIds, problems.Select(p => p.ProblemId).ToList())
+                .With(d => d.Note, (string?)null)
+                .Create();
+            _repo.Setup(r => r.GetProblemsByIdsAsync(It.IsAny<ICollection<int>>())).ReturnsAsync(problems);
+
+            Job? saved = null;
+            _repo.Setup(r => r.AddJobAsync(It.IsAny<Job>()))
+                .Callback<Job>(j => saved = j)
+                .ReturnsAsync(_fixture.Create<Job>());
+
+            await _jobService.CreateJobAsync(dto);
+
+            JobLog log = Assert.Single(saved!.Logs!);
+            Assert.Null(log.Note);
+            Assert.Null(log.MoneyChange);
+        }
+
+        // bulk create attaches a log to every job, each mirroring its own job's fields
+        [Fact]
+        public async Task CreateJobs_Bulk_AttachesLogToEachJob()
+        {
+            var problems = _fixture.CreateMany<Problem>(2).ToList();
+            var problemIds = problems.Select(p => p.ProblemId).ToList();
+            var dtos = new List<InJobDTO>
+            {
+                _fixture.Build<InJobDTO>()
+                    .With(d => d.ProblemIds, problemIds.ToList())
+                    .With(d => d.Status, JobStatus.InProgress)
+                    .With(d => d.Note, "first")
+                    .Create(),
+                // second job has a null note to prove per-job null preservation survives the batch
+                _fixture.Build<InJobDTO>()
+                    .With(d => d.ProblemIds, problemIds.ToList())
+                    .With(d => d.Status, JobStatus.Finished)
+                    .With(d => d.Note, (string?)null)
+                    .Create(),
+            };
+            _repo.Setup(r => r.GetProblemsByIdsAsync(It.IsAny<ICollection<int>>())).ReturnsAsync(problems);
+
+            ICollection<Job>? saved = null;
+            _repo.Setup(r => r.AddJobsAsync(It.IsAny<ICollection<Job>>()))
+                .Callback<ICollection<Job>>(j => saved = j)
+                .ReturnsAsync(_fixture.CreateMany<Job>(2).ToList());
+
+            await _jobService.CreateJobsAsync(dtos);
+
+            var savedList = saved!.ToList();
+            // every job gets exactly one log
+            Assert.All(savedList, j => Assert.Single(j.Logs!));
+
+            JobLog firstLog = savedList[0].Logs!.Single();
+            Assert.Equal(JobStatus.InProgress, firstLog.Status);
+            Assert.Equal("first", firstLog.Note);
+
+            JobLog secondLog = savedList[1].Logs!.Single();
+            Assert.Equal(JobStatus.Finished, secondLog.Status);
+            Assert.Null(secondLog.Note);
+        }
+
+        // an update that changes the status records one log carrying the resulting status
+        [Fact]
+        public async Task UpdateJob_StatusChange_WritesLogWithResultingState()
+        {
+            var existing = _fixture.Build<Job>()
+                .With(j => j.JobId, 5)
+                .With(j => j.Status, JobStatus.InProgress)
+                .Create();
+            // the loaded job carries its (empty) log collection; the update should append to it
+            existing.Logs = new List<JobLog>();
+            _repo.Setup(r => r.GetJobByIdAsync(5)).ReturnsAsync(existing);
+
+            var dto = new UpdateJobDTO { JobId = 5, Status = JobStatus.Finished };
+
+            await _jobService.UpdateJobAsync(dto);
+
+            JobLog log = Assert.Single(existing.Logs);
+            Assert.Equal(JobStatus.Finished, log.Status);
+            Assert.True((DateTime.UtcNow - log.Timestamp).TotalMinutes < 1);
+        }
+
+        // taking a payment raises CollectedPrice, and the log records the positive delta
+        [Fact]
+        public async Task UpdateJob_CollectedPriceIncrease_LogsPositiveMoneyDelta()
+        {
+            var existing = _fixture.Build<Job>()
+                .With(j => j.JobId, 5)
+                .With(j => j.CollectedPrice, 100m)
+                .Create();
+            existing.Logs = new List<JobLog>();
+            _repo.Setup(r => r.GetJobByIdAsync(5)).ReturnsAsync(existing);
+
+            // 100 -> 250 is a 150 payment
+            var dto = new UpdateJobDTO { JobId = 5, CollectedPrice = 250m };
+
+            await _jobService.UpdateJobAsync(dto);
+
+            JobLog log = Assert.Single(existing.Logs);
+            Assert.Equal(150m, log.MoneyChange);
+        }
+
+        // a refund lowers CollectedPrice, and the log records the money going back out as a negative delta
+        [Fact]
+        public async Task UpdateJob_Refund_LogsNegativeMoneyDelta()
+        {
+            var existing = _fixture.Build<Job>()
+                .With(j => j.JobId, 5)
+                .With(j => j.CollectedPrice, 150m)
+                .Create();
+            existing.Logs = new List<JobLog>();
+            _repo.Setup(r => r.GetJobByIdAsync(5)).ReturnsAsync(existing);
+
+            // 150 -> 0 is a full refund
+            var dto = new UpdateJobDTO { JobId = 5, CollectedPrice = 0m };
+
+            await _jobService.UpdateJobAsync(dto);
+
+            JobLog log = Assert.Single(existing.Logs);
+            Assert.Equal(-150m, log.MoneyChange);
+        }
+
+        // a null note on the job stays null on the update log, same as on create
+        [Fact]
+        public async Task UpdateJob_NullNote_LeavesLogNoteNull()
+        {
+            var existing = _fixture.Build<Job>()
+                .With(j => j.JobId, 5)
+                .With(j => j.Note, (string?)null)
+                .With(j => j.Status, JobStatus.InProgress)
+                .Create();
+            existing.Logs = new List<JobLog>();
+            _repo.Setup(r => r.GetJobByIdAsync(5)).ReturnsAsync(existing);
+
+            // change the status so an update genuinely happens; the note is left untouched (null)
+            var dto = new UpdateJobDTO { JobId = 5, Status = JobStatus.Finished };
+
+            await _jobService.UpdateJobAsync(dto);
+
+            JobLog log = Assert.Single(existing.Logs);
+            Assert.Null(log.Note);
+        }
+
+        // bulk update logs each changed job independently, one log apiece
+        [Fact]
+        public async Task UpdateJobs_Bulk_EachChangedJobGetsOwnLog()
+        {
+            var first = _fixture.Build<Job>().With(j => j.JobId, 1).With(j => j.Status, JobStatus.InProgress).Create();
+            var second = _fixture.Build<Job>().With(j => j.JobId, 2).With(j => j.Status, JobStatus.InProgress).Create();
+            first.Logs = new List<JobLog>();
+            second.Logs = new List<JobLog>();
+            _repo.Setup(r => r.GetJobByIdAsync(1)).ReturnsAsync(first);
+            _repo.Setup(r => r.GetJobByIdAsync(2)).ReturnsAsync(second);
+
+            var dtos = new List<UpdateJobDTO>
+            {
+                new() { JobId = 1, Status = JobStatus.Finished },
+                new() { JobId = 2, Status = JobStatus.Cancelled },
+            };
+
+            await _jobService.UpdateJobsAsync(dtos);
+
+            JobLog firstLog = Assert.Single(first.Logs);
+            Assert.Equal(JobStatus.Finished, firstLog.Status);
+            JobLog secondLog = Assert.Single(second.Logs);
+            Assert.Equal(JobStatus.Cancelled, secondLog.Status);
+        }
+
+        // Update logging: full-object PATCH
+        
+        [Fact]
+        public async Task UpdateJob_FullDto_OnlyNoteChanged_LogsNoteOnly()
+        {
+            var existing = _fixture.Build<Job>()
+                .With(j => j.JobId, 5)
+                .With(j => j.Status, JobStatus.InProgress)
+                .With(j => j.Note, "old note")
+                .With(j => j.CollectedPrice, 100m)
+                .Create();
+            existing.Logs = new List<JobLog>();
+            _repo.Setup(r => r.GetJobByIdAsync(5)).ReturnsAsync(existing);
+
+            // whole job resent; status and price unchanged, only the note differs
+            var dto = new UpdateJobDTO
+            {
+                JobId = 5,
+                Status = JobStatus.InProgress,
+                Note = "new note",
+                CollectedPrice = 100m,
+            };
+
+            await _jobService.UpdateJobAsync(dto);
+
+            JobLog log = Assert.Single(existing.Logs);
+            Assert.Equal("new note", log.Note);
+            Assert.Null(log.Status);        // status resent unchanged: must not be logged
+            Assert.Null(log.MoneyChange);   // price unchanged: no money entry, not 0
+        }
+
+        // resending every field but changing only the status must log the status alone
+        [Fact]
+        public async Task UpdateJob_FullDto_OnlyStatusChanged_LogsStatusOnly()
+        {
+            var existing = _fixture.Build<Job>()
+                .With(j => j.JobId, 5)
+                .With(j => j.Status, JobStatus.InProgress)
+                .With(j => j.Note, "keep me")
+                .With(j => j.CollectedPrice, 100m)
+                .Create();
+            existing.Logs = new List<JobLog>();
+            _repo.Setup(r => r.GetJobByIdAsync(5)).ReturnsAsync(existing);
+
+            var dto = new UpdateJobDTO
+            {
+                JobId = 5,
+                Status = JobStatus.Finished,
+                Note = "keep me",
+                CollectedPrice = 100m,
+            };
+
+            await _jobService.UpdateJobAsync(dto);
+
+            JobLog log = Assert.Single(existing.Logs);
+            Assert.Equal(JobStatus.Finished, log.Status);
+            Assert.Null(log.Note);          // note resent unchanged: must not be logged
+            Assert.Null(log.MoneyChange);
+        }
+
+        // first payment: CollectedPrice null -> value logs the full amount as a positive delta
+        [Fact]
+        public async Task UpdateJob_CollectedPriceFromNull_LogsPositiveDelta()
+        {
+            var existing = _fixture.Build<Job>()
+                .With(j => j.JobId, 5)
+                .With(j => j.Status, JobStatus.InProgress)
+                .With(j => j.Note, "keep me")
+                .With(j => j.CollectedPrice, (decimal?)null)
+                .Create();
+            existing.Logs = new List<JobLog>();
+            _repo.Setup(r => r.GetJobByIdAsync(5)).ReturnsAsync(existing);
+
+            var dto = new UpdateJobDTO
+            {
+                JobId = 5,
+                Status = JobStatus.InProgress,
+                Note = "keep me",
+                CollectedPrice = 150m,
+            };
+
+            await _jobService.UpdateJobAsync(dto);
+
+            JobLog log = Assert.Single(existing.Logs);
+            Assert.Equal(150m, log.MoneyChange);    // null baseline treated as 0
+            Assert.Null(log.Status);
+            Assert.Null(log.Note);
+        }
+
+        // a full-object update that changes nothing writes no log entry at all
+        [Fact]
+        public async Task UpdateJob_FullDto_NoActualChange_WritesNoLog()
+        {
+            var existing = _fixture.Build<Job>()
+                .With(j => j.JobId, 5)
+                .With(j => j.Status, JobStatus.InProgress)
+                .With(j => j.Note, "unchanged")
+                .With(j => j.CollectedPrice, 100m)
+                .Create();
+            existing.Logs = new List<JobLog>();
+            _repo.Setup(r => r.GetJobByIdAsync(5)).ReturnsAsync(existing);
+
+            var dto = new UpdateJobDTO
+            {
+                JobId = 5,
+                Status = JobStatus.InProgress,
+                Note = "unchanged",
+                CollectedPrice = 100m,
+            };
+
+            await _jobService.UpdateJobAsync(dto);
+
+            Assert.Empty(existing.Logs);
+        }
     }
 }
