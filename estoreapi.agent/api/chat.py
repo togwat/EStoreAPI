@@ -119,7 +119,7 @@ def build_system_prompt(context_memory: str, relevant_memory: str, skills: Skill
     # Skill index: the base prompt's Skills section points here.
     skill_index = skills.list_skills()
     if skill_index:
-        listing = "\n".join(f"- {skill['name']}: {skill['description']}" for skill in skill_index)
+        listing = "\n".join(f"- {skill['name']}: {skill['summary']}" for skill in skill_index)
     else:
         listing = "(none saved yet)"
     system += f"\n\n## Saved skills\n{listing}"
