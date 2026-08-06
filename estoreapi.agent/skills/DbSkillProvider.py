@@ -59,7 +59,7 @@ class DbSkillProvider(SkillProvider):
                 CREATE TABLE IF NOT EXISTS skills (
                     id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                     name         TEXT NOT NULL UNIQUE,
-                    description  TEXT NOT NULL,
+                    summary  TEXT NOT NULL,
                     content      TEXT NOT NULL,
                     use_count    INT NOT NULL DEFAULT 0,
                     last_used_at TIMESTAMPTZ,
@@ -72,10 +72,10 @@ class DbSkillProvider(SkillProvider):
     def list_skills(self) -> list[dict]:
         """
         Returns a list of all skills in the format:
-        {name, description}
+        {name, summary}
         """
         with self._cursor() as cur:
-            cur.execute("SELECT name, description FROM skills ORDER BY name")
+            cur.execute("SELECT name, summary FROM skills ORDER BY name")
             return [dict(row) for row in cur.fetchall()]
 
     def get_skill(self, name: str) -> str:
@@ -112,7 +112,7 @@ class DbSkillProvider(SkillProvider):
         with self._cursor(commit=True) as cur:
             cur.execute(
                 """
-                INSERT INTO skills (name, description, content)
+                INSERT INTO skills (name, summary, content)
                 VALUES (%s, %s, %s)
                 ON CONFLICT (name) DO NOTHING
                 """,
@@ -142,7 +142,7 @@ class DbSkillProvider(SkillProvider):
             cur.execute(
                 """
                 UPDATE skills
-                SET description = COALESCE(%s, description),
+                SET summary = COALESCE(%s, summary),
                     content     = COALESCE(%s, content),
                     updated_at  = now()
                 WHERE name = %s
