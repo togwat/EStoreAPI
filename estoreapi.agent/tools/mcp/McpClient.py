@@ -1,8 +1,7 @@
 import asyncio
 
 from tools.AbstractToolClient import AbstractToolClient
-from mcp import ClientSession
-from mcp.client.streamable_http import streamable_http_client
+from mcp import Client
 from mcp.types import TextContent
 
 
@@ -23,23 +22,19 @@ class McpClient(AbstractToolClient):
 
     # async internals 
     async def _list_tools_async(self) -> list[dict]:
-        async with streamable_http_client(self.url) as (read, write, _):
-            async with ClientSession(read, write) as session:
-                await session.initialize()
-                result = await session.list_tools()
-                return [
-                    {
-                        "name": t.name,
-                        "description": t.description or "",
-                        "input_schema": t.inputSchema,
-                    }
-                    for t in result.tools
-                ]
+        async with Client(self.url) as client:
+            result = await client.list_tools()
+            return [
+                {
+                    "name": t.name,
+                    "description": t.description or "",
+                    "input_schema": t.input_schema,
+                }
+                for t in result.tools
+            ]
 
     async def _call_tool_async(self, name: str, arguments: dict) -> str:
-        async with streamable_http_client(self.url) as (read, write, _):
-            async with ClientSession(read, write) as session:
-                await session.initialize()
-                result = await session.call_tool(name, arguments)
-                parts = [item.text for item in result.content if isinstance(item, TextContent)]
-                return "\n".join(parts) if parts else "OK"
+        async with Client(self.url) as client:
+            result = await client.call_tool(name, arguments)
+            parts = [item.text for item in result.content if isinstance(item, TextContent)]
+            return "\n".join(parts) if parts else "OK"
