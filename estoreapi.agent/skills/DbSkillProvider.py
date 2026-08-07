@@ -38,15 +38,6 @@ class DbSkillProvider(SkillProvider):
         finally:
             self._pool.putconn(conn)
 
-    def _unknown_skill(self, name: str) -> str:
-        """Miss message that lists what does exist, so the model can self-correct."""
-        names = [skill["name"] for skill in self.list_skills()]
-
-        if not names:
-            return f"Unknown skill '{name}'. No skills are saved yet."
-        
-        return f"Unknown skill '{name}'. Available skills: {', '.join(names)}"
-
     def init_schema(self) -> None:
         """
         Create the skills table if it doesn't already exist.
@@ -78,27 +69,21 @@ class DbSkillProvider(SkillProvider):
             cur.execute("SELECT name, summary FROM skills ORDER BY name")
             return [dict(row) for row in cur.fetchall()]
 
-    def get_skill(self, name: str) -> str:
-        """Retrieve the skill document with the given name"""
-        # Update use_count and last_used at in addition to retrieval
-        with self._cursor(commit=True) as cur:
-            cur.execute(
-                """
-                UPDATE skills
-                SET use_count = use_count + 1, last_used_at = now()
-                WHERE name = %s
-                RETURNING content
-                """,
-                (name,),
-            )
+    def get_skill(self, name: str) -> dict | None:
+        """
+        Retrieve the skill document with the given name in the format:
+        {name, summary, content}
+        """
+        with self._cursor() as cur:
+            cur.execute("SELECT name, summary, content FROM skills WHERE name = %s", (name,))
             row = cur.fetchone()
 
         if row is None:
-            return self._unknown_skill(name)
-        
-        return f"# {name}\n\n{row['content']}"
+            return None
 
-    def create_skill(self, name: str, summary: str, content: str) -> str:
+        return dict(row)
+
+    def create_skill(self, name: str, summary: str, content: str) -> bool:
         """
         Create a skill document.
 
@@ -106,7 +91,7 @@ class DbSkillProvider(SkillProvider):
         summary: short summary of the skill that is always fed to the agent, so it knows when to get this skill.
         content: hidden to the agent until retrieved
 
-        Returns a confirmation message.
+        Returns False if the name is already taken.
         """
         # ON CONFLICT + rowcount instead of checking existence first: race-safe under concurrent requests
         with self._cursor(commit=True) as cur:
@@ -120,23 +105,17 @@ class DbSkillProvider(SkillProvider):
             )
             created = cur.rowcount == 1
 
-        if not created:
-            return f"Skill '{name}' already exists. Use update_skill to modify it, or pick a different name."
-        
-        return f"Skill '{name}' created."
+        return created
 
-    def update_skill(self, name: str, summary: str | None = None, content: str | None = None) -> str:
+    def update_skill(self, name: str, summary: str | None = None, content: str | None = None) -> bool:
         """
         Update a skill's summary or content. If either are empty/none, the fields stay as-is.
 
-        Returns a confirmation message.
+        Returns False if no skill has that name.
         """
         # Normalise empty strings to None
         summary = summary or None
         content = content or None
-
-        if summary is None and content is None:
-            return "Nothing to update: provide summary and/or content."
 
         with self._cursor(commit=True) as cur:
             cur.execute(
@@ -151,21 +130,31 @@ class DbSkillProvider(SkillProvider):
             )
             updated = cur.rowcount == 1
 
-        if not updated:
-            return self._unknown_skill(name)
-        
-        return f"Skill '{name}' updated."
+        return updated
 
-    def delete_skill(self, name: str) -> str:
+    def delete_skill(self, name: str) -> bool:
         """
         Deletes the skill with the given name.
-        Returns a confirmation message.
+
+        Returns False if no skill has that name.
         """
         with self._cursor(commit=True) as cur:
             cur.execute("DELETE FROM skills WHERE name = %s", (name,))
             deleted = cur.rowcount == 1
 
-        if not deleted:
-            return self._unknown_skill(name)
-        
-        return f"Skill '{name}' deleted."
+        return deleted
+
+    def record_use(self, name: str) -> None:
+        """
+        Increment the skill's use count by one and set last used time to present time.
+        For use when the agent calls get_skill.
+        """
+        with self._cursor(commit=True) as cur:
+            cur.execute(
+                """
+                UPDATE skills
+                SET use_count = use_count + 1, last_used_at = now()
+                WHERE name = %s
+                """,
+                (name,),
+            )
