@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.chat import router as chat_router
+from api.skills import router as skills_router
 from api.store import router as store_router
 from config import MCP_URL
 from memory.factory import create_memory
@@ -71,4 +72,5 @@ app.add_middleware(
 )
 
 app.include_router(chat_router)
+app.include_router(skills_router)
 app.include_router(store_router)

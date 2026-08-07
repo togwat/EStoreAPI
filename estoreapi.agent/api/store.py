@@ -16,11 +16,11 @@ from store.AbstractChatStore import AbstractChatStore
 router = APIRouter(prefix="/agent/store", tags=["store"])
 
 
-class PatchRequest(BaseModel):
+class StorePatchRequest(BaseModel):
     title: str | None = None
 
 
-class AppendRequest(BaseModel):
+class StoreAppendRequest(BaseModel):
     message: dict
     parentId: str | None = None
 
@@ -60,7 +60,7 @@ def fetch_thread(
 @router.patch("/{session_id}")
 def patch_thread(
     session_id: str,
-    req: PatchRequest,
+    req: StorePatchRequest,
     user_email: str = Depends(get_user_email),
     store: AbstractChatStore = Depends(get_store),
 ):
@@ -98,7 +98,7 @@ def get_messages(
 @router.post("/{session_id}/messages")
 def append_message(
     session_id: str,
-    req: AppendRequest,
+    req: StoreAppendRequest,
     user_email: str = Depends(get_user_email),
     store: AbstractChatStore = Depends(get_store),
 ):
