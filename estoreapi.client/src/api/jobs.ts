@@ -88,8 +88,12 @@ function _mapJob(j: {
 
 
 export async function getJobs(): Promise<Job[]> {
-    const response = await api.get('/api/Jobs');
-    return response.data.map(_mapJob);
+    try {
+        const response = await api.get('/api/Jobs');
+        return response.data.map(_mapJob);
+    } catch(error) {
+        handleApiError(error, {}, "Couldn't load jobs");
+    }
 }
 
 // follow job form

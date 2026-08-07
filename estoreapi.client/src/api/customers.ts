@@ -23,8 +23,12 @@ function _mapCustomer(c: { customerId: string; customerName: string; primaryCont
 }
 
 export async function getCustomers(): Promise<Customer[]> {
-    const response = await api.get('/api/Customers');
-    return response.data.map(_mapCustomer);
+    try {
+        const response = await api.get('/api/Customers');
+        return response.data.map(_mapCustomer);
+    } catch (error) {
+        handleApiError(error, {}, "Couldn't load customers");
+    }
 }
 
 export async function getCustomer(id: string): Promise<Customer> {

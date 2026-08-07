@@ -29,18 +29,30 @@ export async function getDevice(id: string): Promise<Device> {
 }
 
 export async function getDevices(): Promise<Device[]> {
-    const response = await api.get('/api/devices');
-    return response.data.map(_mapDevice);
+    try {
+        const response = await api.get('/api/devices');
+        return response.data.map(_mapDevice);
+    } catch (error) {
+        handleApiError(error, {}, "Couldn't load devices");
+    }
 }
 
 export async function getDeviceTypes(): Promise<string[]> {
-    const response = await api.get<string[]>('/api/Devices/types');
-    return response.data;
+    try {
+        const response = await api.get<string[]>('/api/Devices/types');
+        return response.data;
+    } catch (error) {
+        handleApiError(error, {}, "Couldn't load device types");
+    }
 }
 
 export async function searchDeviceType(type: string): Promise<Device[]> {
-    const response = await api.get('/api/devices/searchType', { params: { type } })
-    return response.data.map(_mapDevice);
+    try {
+        const response = await api.get('/api/devices/searchType', { params: { type } })
+        return response.data.map(_mapDevice);
+    } catch (error) {
+        handleApiError(error, {}, "Couldn't search for devices by type");
+    }
 }
 
 // follow InDeviceDTO

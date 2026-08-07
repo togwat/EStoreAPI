@@ -23,8 +23,12 @@ export function mapProblem(d: { problemId: number; problemName: string; price: n
 }
 
 export async function getProblems(deviceId: string): Promise<Problem[]> {
-    const response = await api.get(`/api/problems/device/${deviceId}`);
-    return response.data.map(mapProblem);
+    try {
+        const response = await api.get(`/api/problems/device/${deviceId}`);
+        return response.data.map(mapProblem);
+    } catch(error) {
+        handleApiError(error, {}, "Couldn't load problems");
+    }
 }
 
 // follow InProblemDTO
