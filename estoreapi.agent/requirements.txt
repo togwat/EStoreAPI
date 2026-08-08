@@ -7,3 +7,4 @@ python-dotenv
 tavily-python
 mem0ai
 psycopg2-binary
+python-frontmatter

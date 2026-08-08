@@ -16,13 +16,11 @@ router = APIRouter(prefix="/agent/skills", tags=["skills"], dependencies=[Depend
 
 class SkillCreateRequest(BaseModel):
     name: str
-    summary: str
-    content: str
+    file: str
 
 
 class SkillUpdateRequest(BaseModel):
-    summary: str | None = None
-    content: str | None = None
+    file: str
 
 
 @router.get("")
@@ -35,11 +33,11 @@ def get_skill(
     name: str,
     provider: SkillProvider = Depends(get_skills),
 ):
-    """Return a skill in the format {name, summary, content}"""
-    skill = provider.get_skill(name)
-    if skill is None:
+    """Return a skill as {name, file}"""
+    file = provider.get_skill(name)
+    if file is None:
         raise HTTPException(status_code=404, detail="Skill not found")
-    return skill
+    return {"name": name, "file": file}
 
 @router.post("", status_code=201)
 def create_skill(
@@ -47,23 +45,29 @@ def create_skill(
     provider: SkillProvider = Depends(get_skills),
 ):
     """Create a skill. The name is the unique id, so a clash is a conflict, not an overwrite."""
-    if not provider.create_skill(req.name, req.summary, req.content):
+    try:
+        created = provider.create_skill(req.name, req.file)
+    except ValueError as error:
+        # Throw bad formatting
+        raise HTTPException(status_code=400, detail=str(error))
+    
+    if not created:
         raise HTTPException(status_code=409, detail=f"Skill '{req.name}' already exists")
     return Response(status_code=201)
 
-@router.patch("/{name}")
+@router.put("/{name}")
 def update_skill(
     name: str,
     req: SkillUpdateRequest,
     provider: SkillProvider = Depends(get_skills),
 ):
-    """
-    Update a skill's summary or content. 
-    If either are empty/none, the fields stay as-is.
-    """
-    if not req.summary and not req.content:
-        raise HTTPException(status_code=400, detail="Provide summary and/or content")
-    if not provider.update_skill(name, req.summary, req.content):
+    """Overwrite a skill with the edited or re-uploaded markdown file."""
+    try:
+        saved = provider.update_skill(name, req.file)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
+        
+    if not saved:
         raise HTTPException(status_code=404, detail="Skill not found")
     return Response(status_code=204)
 

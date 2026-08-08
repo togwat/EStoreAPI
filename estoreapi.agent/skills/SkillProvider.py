@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 
 
 # CRUD on a skill repo
+# is assumed to be handling md files
+
 class SkillProvider(ABC):
     @abstractmethod
     def init_schema(self) -> None:
@@ -17,32 +19,35 @@ class SkillProvider(ABC):
         pass
 
     @abstractmethod
-    def get_skill(self, name: str) -> dict | None:
+    def get_skill(self, name: str) -> str | None:
         """
-        Retrieve the skill document with the given name in the format:
-        {name, summary, content}
+        Retrieve the skill document with the given name.
+
+        Returns None if no skill has that name.
         """
         pass
 
     @abstractmethod
-    def create_skill(self, name: str, summary: str, content: str) -> bool:
+    def create_skill(self, name: str, file: str) -> bool:
         """
         Create a skill document.
 
-        name: the unique id of the skill, used for retrieval
-        summary: short summary of the skill that is always fed to the agent, so it knows when to get this skill.
-        content: hidden to the agent until retrieved
+        name: the unique id of the skill, used for retrieval. Doubles as the file name.
+        file: the markdown file, whose frontmatter must hold the summary.
+        Content is hidden to the agent until retrieved.
 
         Returns False if the name is already taken.
+        Raises ValueError if the document is not in the expected format.
         """
         pass
 
     @abstractmethod
-    def update_skill(self, name: str, summary: str | None = None, content: str | None = None) -> bool:
+    def update_skill(self, name: str, file: str) -> bool:
         """
-        Update a skill's summary or content. If either are empty/none, the fields stay as-is.
+        Update a skill by overwriting its document.
 
         Returns False if no skill has that name.
+        Raises ValueError if the document is not in the expected format.
         """
         pass
 
@@ -58,7 +63,7 @@ class SkillProvider(ABC):
     @abstractmethod
     def record_use(self, name: str) -> None:
         """
-        Increment the skill's usa count by one and set last used time to present time.
+        Increment the skill's use count by one and set last used time to present time.
         For use when the agent calls get_skill.
         """
         pass

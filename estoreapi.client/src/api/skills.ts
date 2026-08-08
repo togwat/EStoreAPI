@@ -11,14 +11,10 @@ export type SkillSummary = {
     summary: string
 }
 
-// Only load content when a skill is specified
-export type Skill = SkillSummary & {
-    content: string
-}
-
-export type SkillUpdate = {
-    summary?: string
-    content?: string
+// Only load the file when a skill is specified
+export type Skill = {
+    name: string
+    file: string
 }
 
 export async function listSkills(): Promise<SkillSummary[]> {
@@ -41,26 +37,27 @@ export async function getSkill(name: string): Promise<Skill> {
     }
 }
 
-export async function createSkill(skill: Skill): Promise<void> {
+export async function createSkill(name: string, file: string): Promise<void> {
     try {
-        await api.post('/agent/skills', skill);
-        toast.success("Skill created", skill.name);
+        await api.post('/agent/skills', { name, file });
+        toast.success("Skill created", name);
     } catch (error) {
         handleApiError(error, {
+            400: "The file needs a '---' frontmatter block with a 'summary:' line.",
             409: "A skill with that name already exists.",
             422: "One or more validation errors occurred.",
         }, "Couldn't create skill");
     }
 }
 
-export async function updateSkill(name: string, updates: SkillUpdate): Promise<void> {
+export async function updateSkill(name: string, file: string): Promise<void> {
     try {
-        await api.patch(`/agent/skills/${encodeURIComponent(name)}`, updates);
+        await api.put(`/agent/skills/${encodeURIComponent(name)}`, { file });
         toast.success("Skill saved", name);
     } catch (error) {
         handleApiError(error, {
+            400: "The file needs a '---' frontmatter block with a 'summary:' line.",
             404: "Skill not found.",
-            400: "Provide a summary or content to update.",
         }, "Couldn't save skill");
     }
 }

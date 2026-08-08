@@ -1,6 +1,7 @@
 from collections.abc import Callable
 
 from skills.SkillProvider import SkillProvider
+from skills.markdown_parser import from_markdown, to_markdown
 
 
 def make_skills_handler(provider: SkillProvider) -> dict[str, Callable[..., str]]:
@@ -14,17 +15,20 @@ def make_skills_handler(provider: SkillProvider) -> dict[str, Callable[..., str]
         return f"Unknown skill '{name}'. Available skills: {', '.join(names)}"
 
     def get_skill(name: str) -> str:
-        skill = provider.get_skill(name)
+        file = provider.get_skill(name)
 
-        if skill is None:
+        if file is None:
             return _unknown_skill(name)
 
         provider.record_use(name)
 
-        return f"# {name}\n\n{skill['content']}"
+        # Return content only
+        return from_markdown(name, file)["content"]
 
     def create_skill(name: str, summary: str, content: str) -> str:
-        if not provider.create_skill(name, summary, content):
+        file = to_markdown({"name": name, "summary": summary, "content": content})
+
+        if not provider.create_skill(name, file):
             return f"Skill '{name}' already exists. Use update_skill to modify it, or pick a different name."
 
         return f"Skill '{name}' created."
@@ -33,7 +37,16 @@ def make_skills_handler(provider: SkillProvider) -> dict[str, Callable[..., str]
         if not summary and not content:
             return "Nothing to update: provide summary and/or content."
 
-        if not provider.update_skill(name, summary, content):
+        current = provider.get_skill(name)
+        if current is None:
+            return _unknown_skill(name)
+
+        # SkillProvider replace the whole file, so do a merge onto the current file
+        skill = from_markdown(name, current)
+        skill["summary"] = summary or skill["summary"]
+        skill["content"] = content or skill["content"]
+
+        if not provider.update_skill(name, to_markdown(skill)):
             return _unknown_skill(name)
 
         return f"Skill '{name}' updated."

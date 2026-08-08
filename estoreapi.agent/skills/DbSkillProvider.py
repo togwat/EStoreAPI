@@ -4,6 +4,7 @@ from psycopg2.extras import RealDictCursor
 from psycopg2.pool import ThreadedConnectionPool
 
 from skills.SkillProvider import SkillProvider
+from skills.markdown_parser import from_markdown, to_markdown
 
 
 class DbSkillProvider(SkillProvider):
@@ -69,10 +70,11 @@ class DbSkillProvider(SkillProvider):
             cur.execute("SELECT name, summary FROM skills ORDER BY name")
             return [dict(row) for row in cur.fetchall()]
 
-    def get_skill(self, name: str) -> dict | None:
+    def get_skill(self, name: str) -> str | None:
         """
-        Retrieve the skill document with the given name in the format:
-        {name, summary, content}
+        Retrieve the skill document with the given name.
+
+        Returns None if no skill has that name.
         """
         with self._cursor() as cur:
             cur.execute("SELECT name, summary, content FROM skills WHERE name = %s", (name,))
@@ -81,18 +83,22 @@ class DbSkillProvider(SkillProvider):
         if row is None:
             return None
 
-        return dict(row)
+        return to_markdown(dict(row))
 
-    def create_skill(self, name: str, summary: str, content: str) -> bool:
+    def create_skill(self, name: str, file: str) -> bool:
         """
         Create a skill document.
 
         name: the unique id of the skill, used for retrieval
         summary: short summary of the skill that is always fed to the agent, so it knows when to get this skill.
+        Held in frontmatter as 'summary'.
         content: hidden to the agent until retrieved
 
         Returns False if the name is already taken.
+        Raises ValueError if the document is not in the expected format.
         """
+        skill = from_markdown(name, file)
+
         # ON CONFLICT + rowcount instead of checking existence first: race-safe under concurrent requests
         with self._cursor(commit=True) as cur:
             cur.execute(
@@ -101,32 +107,31 @@ class DbSkillProvider(SkillProvider):
                 VALUES (%s, %s, %s)
                 ON CONFLICT (name) DO NOTHING
                 """,
-                (name, summary, content),
+                (skill["name"], skill["summary"], skill["content"]),
             )
             created = cur.rowcount == 1
 
         return created
 
-    def update_skill(self, name: str, summary: str | None = None, content: str | None = None) -> bool:
+    def update_skill(self, name: str, file: str) -> bool:
         """
-        Update a skill's summary or content. If either are empty/none, the fields stay as-is.
-
+        Update a skill by overwriting its document.
+]
         Returns False if no skill has that name.
+        Raises ValueError if the document is not in the expected format.
         """
-        # Normalise empty strings to None
-        summary = summary or None
-        content = content or None
+        skill = from_markdown(name, file)
 
         with self._cursor(commit=True) as cur:
             cur.execute(
                 """
                 UPDATE skills
-                SET summary = COALESCE(%s, summary),
-                    content     = COALESCE(%s, content),
-                    updated_at  = now()
+                SET summary = %s,
+                    content = %s,
+                    updated_at = now()
                 WHERE name = %s
                 """,
-                (summary, content, name),
+                (skill["summary"], skill["content"], name),
             )
             updated = cur.rowcount == 1
 
