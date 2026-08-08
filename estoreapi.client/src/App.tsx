@@ -11,12 +11,14 @@ import { ToastContainer } from 'react-toastify';
 import LoginPage from './pages/login/LoginPage';
 import RouteGuard from './components/RouteGuard';
 import SettingsPage from './pages/settings/SettingsPage';
+import SkillsPage from './pages/skills/SkillsPage';
 
 const pageTitles: Record<string, string> = {
     '/': '',
     '/form': 'E-Store Repair Job Form',
     '/jobs': 'Jobs',
     '/devices': 'Devices',
+    '/skills': 'Agent Skills',
     '/settings': 'Settings',
 };
 
@@ -49,6 +51,7 @@ function AppContent() {
                     <Route path="/form" element={<FormPage title={title} />} />
                     <Route path="/jobs" element={<JobsPage title={title} />} />
                     <Route path="/devices" element={<DevicesPage title={title} />} />
+                    <Route path="/skills" element={<SkillsPage title={title} />} />
                     <Route path="/settings" element={<SettingsPage title={title} />} />
                     <Route path="*" element={<NotFoundPage />} />
                 </Route>
