@@ -21,10 +21,13 @@ export default function SkillsPage({ title }: { title: string }) {
 
     return (
         <div>
-            <div className={isMobile ? "px-8" : "p-8"}>
+            <div className={isMobile ? "" : "p-8"}>
                 { !isMobile && <h1 className="pb-4">{title}</h1> }
                 
-                <div className="py-4 grid grid-cols-[repeat(auto-fill,_16rem)] gap-4">
+                {/** desktop grid, mobile rows */}
+                <div className={isMobile
+                    ? "py-4 flex flex-col gap-2"
+                    : "py-4 grid grid-cols-[repeat(auto-fill,_16rem)] gap-4"}>
                     {skillSummaries.map(toCard)}
                 </div>
             </div>
