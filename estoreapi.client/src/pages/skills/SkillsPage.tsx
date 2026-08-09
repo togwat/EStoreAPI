@@ -23,7 +23,8 @@ export default function SkillsPage({ title }: { title: string }) {
         <div>
             <div className={isMobile ? "px-8" : "p-8"}>
                 { !isMobile && <h1 className="pb-4">{title}</h1> }
-                <div>
+                
+                <div className="py-4 grid grid-cols-[repeat(auto-fill,_16rem)] gap-4">
                     {skillSummaries.map(toCard)}
                 </div>
             </div>

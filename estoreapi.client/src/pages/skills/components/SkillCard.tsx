@@ -1,5 +1,6 @@
 import { SkillSummary } from "@/api/skills";
-import { Card } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FileText } from "lucide-react";
 
 interface SkillCardProps {
     skillSummary: SkillSummary;
@@ -9,11 +10,17 @@ interface SkillCardProps {
 export default function SkillCard({ skillSummary, onClick }: SkillCardProps) {
     return (
         <Card
-            className="border bg-muted transition-opacity hover:opacity-75"
+            className="border border-border cursor-pointer hover:border-foreground/50 transition-all w-full aspect-square"
             onClick={onClick}
             role={"button"}
         >
-            <p>{skillSummary.name}</p>
+            <div className="mx-4 flex size-10 items-center justify-center rounded-lg bg-accent">
+                <FileText className="size-5 text-accent-foreground" />
+            </div>
+            <CardHeader className="gap-2 overflow-hidden">
+                <CardTitle className="font-semibold wrap-anywhere">{skillSummary.name}</CardTitle>
+                <CardDescription className="wrap-anywhere">{skillSummary.summary}</CardDescription>
+            </CardHeader>
         </Card>
     )
 }
