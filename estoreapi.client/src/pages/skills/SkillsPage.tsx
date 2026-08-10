@@ -8,39 +8,52 @@ import { ArrowLeft, PencilIcon } from "lucide-react";
 export default function SkillsPage({ title }: { title: string }) {
     const isMobile = useIsMobile();
     const [summaries, setSummaries] = useState<SkillSummary[]>([]);
+    const [selectedName, setSelectedName] = useState<string | null>(null);
     const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
 
     useEffect(() => {
         listSkills().then(setSummaries);
     }, []);
 
+    // use selectedName to switch to viewing/editing mode immediately,
+    // and wait for content fetching there
+    useEffect(() => {
+        if (!selectedName) return;
+
+        setSelectedSkill(null);
+
+        getSkill(selectedName)
+            .then((skill) => { setSelectedSkill(skill); })
+            .catch(() => { setSelectedName(null); });
+    }, [selectedName]);
+
     const toCard = (skillSummary: SkillSummary) => (
         <SkillCard
             key={skillSummary.name}
             skillSummary={skillSummary}
-            onClick={async () => setSelectedSkill(await getSkill(skillSummary.name))}
+            onClick={() => setSelectedName(skillSummary.name)}
         />
     );
 
     return (
         <div>
-            {selectedSkill ? (
+            {selectedName ? (
                 <div className={isMobile ? "" : "p-8"}>
                     {/** skill viewing/editing page */}
                     {/** header */}
                     { isMobile ? <div className="flex items-center justify-between">
-                        <Button variant="outline" size="icon" onClick={() => setSelectedSkill(null)}><ArrowLeft /></Button>
+                        <Button variant="outline" size="icon" onClick={() => setSelectedName(null)}><ArrowLeft /></Button>
                         <Button size="icon" onClick={() => {}}><PencilIcon /></Button>
                     </div>
                     : <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Button variant="outline" size="icon" onClick={() => setSelectedSkill(null)}><ArrowLeft /></Button>
-                            <h2>{selectedSkill.name}</h2>
+                            <Button variant="outline" size="icon" onClick={() => setSelectedName(null)}><ArrowLeft /></Button>
+                            <h2>{selectedName}</h2>
                         </div>
                         <Button size="lg" onClick={() => {}}><PencilIcon />Edit Skill</Button>
                     </div>}
                     {/** markdown renderer/text editor */}
-                    {selectedSkill.file}
+                    {selectedSkill && selectedSkill.file}
                 </div>
             ) : (
                 <div className={isMobile ? "" : "p-8"}>
