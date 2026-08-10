@@ -1,8 +1,11 @@
 import { useIsMobile } from "@/hooks/use-mobile";
-import { getSkill, listSkills, Skill, SkillSummary } from "@/api/skills";
+import { createSkill, getSkill, listSkills, Skill, SkillSummary, updateSkill } from "@/api/skills";
 import SkillCard from "./components/SkillCard";
+import NewSkillCard from "./components/NewSkillCard";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, DownloadIcon, PencilIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Markdown from "react-markdown";
@@ -10,11 +13,33 @@ import remarkGfm from "remark-gfm";
 import remarkFrontmatter from "remark-frontmatter";
 import { downloadTextFile } from "@/lib/downloadTextFile";
 
+// shared styles between markdown doc view and edit mode
+const containerStyle = "border bg-input rounded-xl p-4 w-full my-2 min-h-[60vh]";
+const markdownStyle = "[&_h1]:mb-2 [&_h1]:text-2xl [&_h1]:font-semibold [&_h2]:mt-6 [&_h2]:mb-2 [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:mt-4 [&_h3]:mb-1 [&_h3]:text-lg [&_h3]:font-medium [&_p]:my-3 [&_ul]:my-3 [&_ul]:ml-6 [&_ul]:list-disc [&_ol]:my-3 [&_ol]:ml-6 [&_ol]:list-decimal [&_li]:my-1 [&_a]:text-primary [&_a]:underline [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-sm [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-muted [&_pre]:p-3 [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_blockquote]:text-muted-foreground";
+
+const newSkillTemplate = `---
+summary: One sentence on what this skill does and when to use it.
+---
+
+Content here...
+`;
+
 export default function SkillsPage({ title }: { title: string }) {
     const isMobile = useIsMobile();
     const [summaries, setSummaries] = useState<SkillSummary[]>([]);
     const [selectedSummary, setSelectedSummary] = useState<SkillSummary | null>(null);
     const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
+    // mode switching
+    type Modes =
+        | 'view'
+        | 'edit'
+        | 'create'
+    const [currentMode, setCurrentMode] = useState<Modes>('view');
+    // unsaved edits, kept apart from selectedSkill so cancelling restores the saved file
+    const [editedName, setEditedName] = useState("");
+    const [editedFile, setEditedFile] = useState("");
+
+    const isEditing = currentMode !== 'view';
 
     useEffect(() => {
         listSkills().then(setSummaries);
@@ -40,42 +65,129 @@ export default function SkillsPage({ title }: { title: string }) {
         />
     );
 
+    function handleBack() {
+        handleCancel();
+        setSelectedSummary(null);
+    }
+
+    function handleCreate() {
+        setSelectedSummary(null);
+        setSelectedSkill(null);
+        setEditedName("");
+        setEditedFile(newSkillTemplate);
+        setCurrentMode('create');
+    }
+
+    function handleEdit() {
+        if (!selectedSkill) return;
+
+        setEditedFile(selectedSkill.file);
+        setCurrentMode('edit');
+    }
+
+    function handleCancel() {
+        setCurrentMode('view');
+    }
+
+    // save handles both edit and create
+    async function handleSave() {
+        const name = currentMode === 'create' ? editedName.trim() : selectedSummary!.name;
+
+        try {
+            if (currentMode === 'create') {
+                await createSkill(name, editedFile);
+            } else {
+                await updateSkill(name, editedFile);
+            }
+        } catch {
+            // stay in edit mode so the draft survives
+            return;
+        }
+
+        // Refresh via refetch
+        const refreshed = await listSkills();
+        setSummaries(refreshed);
+        setSelectedSummary(refreshed.find((summary) => summary.name === name) ?? null);
+        setCurrentMode('view');
+    }
+
     return (
         <div>
-            {selectedSummary ? (
+            {(selectedSummary || currentMode === 'create') ? (
                 <div className={cn("flex flex-col gap-4", isMobile ? "" : "p-8")}>
                     {/** skill viewing/editing page */}
                     {/** header */}
                     <div className={cn("flex items-center justify-between", !isMobile && "pt-4")}>
                         <div className="flex items-center gap-2">
-                            <Button variant="outline" size="icon" onClick={() => setSelectedSummary(null)}><ArrowLeft /></Button>
-                            <h2 className="text-xl font-semibold">{selectedSummary.name}</h2>
+                            <Button variant="outline" size="icon" 
+                                onClick={handleBack}
+                            ><ArrowLeft /></Button>
+                            <h2 className="text-xl font-semibold">{currentMode === 'create' ? "New Skill": selectedSummary!.name}</h2>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            <Button
-                                size={isMobile ? "icon" : "lg"}
-                                variant="outline"
-                                disabled={!selectedSkill}
-                                onClick={() => selectedSkill && downloadTextFile(`${selectedSkill.name}.md`, selectedSkill.file, "text/markdown")}
-                            ><DownloadIcon />{!isMobile && "Download"}</Button>
-                            <Button size={isMobile ? "icon" : "lg"} onClick={() => {}}><PencilIcon />{!isMobile && "Edit"}</Button>
-                        </div>
+                        {! isEditing &&
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    size={isMobile ? "icon" : "lg"}
+                                    variant="outline"
+                                    disabled={!selectedSkill}
+                                    onClick={() => selectedSkill && downloadTextFile(`${selectedSkill.name}.md`, selectedSkill.file, "text/markdown")}
+                                ><DownloadIcon />{!isMobile && "Download"}</Button>
+                                <Button
+                                    size={isMobile ? "icon" : "lg"}
+                                    disabled={!selectedSkill}
+                                    onClick={handleEdit}
+                                ><PencilIcon />{!isMobile && "Edit"}</Button>
+                            </div>
+                        }
                     </div>
-                    {/** markdown renderer/text editor */}
-                    <p className="px-1">{selectedSummary.summary}</p>
-                    {/** first part is heading & list styles, 2nd part is container style */}
-                    {selectedSkill && (
-                        <div className="
-                        [&_h1]:mb-2 [&_h1]:text-2xl [&_h1]:font-semibold [&_h2]:mt-6 [&_h2]:mb-2 [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:mt-4 [&_h3]:mb-1 [&_h3]:text-lg [&_h3]:font-medium [&_p]:my-3 [&_ul]:my-3 [&_ul]:ml-6 [&_ul]:list-disc [&_ol]:my-3 [&_ol]:ml-6 [&_ol]:list-decimal [&_li]:my-1 [&_a]:text-primary [&_a]:underline [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-sm [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-muted [&_pre]:p-3 [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_blockquote]:text-muted-foreground
+                    
+                    {/** view mode only summary */}
+                    {!isEditing && <p className="px-1">{selectedSummary!.summary}</p>}
 
-                        border bg-input rounded-xl p-4 max-w-3xl mx-auto my-2
-                        ">
-                            <Markdown remarkPlugins={[remarkGfm, remarkFrontmatter]}>
-                                {selectedSkill.file}
-                            </Markdown>
-                        </div>
-                    )}
+                    <div className="flex flex-col gap-4 max-w-3xl w-full mx-auto">
+                        {/** create mode only name input */}
+                        {currentMode === 'create' &&
+                            <div className="flex items-center gap-1">
+                                <Input
+                                    value={editedName}
+                                    onChange={(event) => setEditedName(event.target.value)}
+                                    placeholder="skill_name"
+                                    className="text-xl font-semibold max-w-2xs"
+                                />
+                                <span className="text-xl font-semibold">.md</span>
+                            </div>
+                        }
+
+                        {/** markdown renderer/text editor */}
+                        {isEditing
+                            ? <Textarea
+                                value={editedFile}
+                                onChange={(event) => setEditedFile(event.target.value)}
+                                spellCheck={false}
+                                className={cn(containerStyle, "resize-none font-mono text-sm focus-visible:ring-0")}
+                            />
+                            : selectedSkill && (
+                                <div className={cn(markdownStyle, containerStyle)}>
+                                    <Markdown remarkPlugins={[remarkGfm, remarkFrontmatter]}>
+                                        {selectedSkill.file}
+                                    </Markdown>
+                                </div>
+                            )
+                        }
+
+                        {/** edit mode controls */}
+                        {isEditing &&
+                            <div className="flex justify-end items-center gap-2">
+                                <Button size="lg" variant="outline" onClick={handleCancel}>Cancel</Button>
+                                <Button
+                                    size="lg"
+                                    disabled={currentMode === 'create' && !editedName.trim()}
+                                    onClick={handleSave}
+                                >Confirm</Button>
+                            </div>
+                        }
+                    </div>
                 </div>
             ) : (
                 <div className={isMobile ? "" : "p-8"}>
@@ -88,6 +200,7 @@ export default function SkillsPage({ title }: { title: string }) {
                         ? "py-4 flex flex-col gap-2"
                         : "py-4 grid grid-cols-[repeat(auto-fill,_16rem)] gap-4"}>
                         {summaries.map(toCard)}
+                        <NewSkillCard onClick={handleCreate} />
                     </div>
                 </div>
             )}
