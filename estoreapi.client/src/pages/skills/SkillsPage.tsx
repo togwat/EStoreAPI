@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkFrontmatter from "remark-frontmatter";
+import { downloadTextFile } from "@/lib/downloadTextFile";
 
 export default function SkillsPage({ title }: { title: string }) {
     const isMobile = useIsMobile();
@@ -52,7 +53,12 @@ export default function SkillsPage({ title }: { title: string }) {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <Button size={isMobile ? "icon" : "lg"} variant="outline" onClick={() => {}}><DownloadIcon />{!isMobile && "Download"}</Button>
+                            <Button
+                                size={isMobile ? "icon" : "lg"}
+                                variant="outline"
+                                disabled={!selectedSkill}
+                                onClick={() => selectedSkill && downloadTextFile(`${selectedSkill.name}.md`, selectedSkill.file, "text/markdown")}
+                            ><DownloadIcon />{!isMobile && "Download"}</Button>
                             <Button size={isMobile ? "icon" : "lg"} onClick={() => {}}><PencilIcon />{!isMobile && "Edit"}</Button>
                         </div>
                     </div>
