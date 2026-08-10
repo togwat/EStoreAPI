@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { jobFixtures, customerFixtures, deviceFixtures, deviceTypeFixtures, problemFixtures } from './fixtures'
+import { jobFixtures, customerFixtures, deviceFixtures, deviceTypeFixtures, problemFixtures, skillSummaryFixtures, skillFileFixtures } from './fixtures'
 
 export const handlers = [
     http.get('/api/Jobs', () => HttpResponse.json(jobFixtures)),
@@ -45,5 +45,14 @@ export const handlers = [
         const customer = customerFixtures.find(c => String(c.customerId) === params.id)
         if (!customer) return new HttpResponse(null, { status: 404 })
         return HttpResponse.json(customer)
+    }),
+
+    // Agent skills — served by the Python agent, proxied under /agent
+    http.get('/agent/skills', () => HttpResponse.json(skillSummaryFixtures)),
+
+    http.get('/agent/skills/:name', ({ params }) => {
+        const file = skillFileFixtures[params.name as string]
+        if (!file) return new HttpResponse(null, { status: 404 })
+        return HttpResponse.json({ name: params.name, file })
     }),
 ]

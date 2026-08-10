@@ -128,3 +128,26 @@ export const problemFixtures: Record<string, object[]> = {
         { problemId: '5', problemName: 'SSD Replacement', price: 350, labourPrice: 120, riskCost: 70, partsPrice: 45 },
     ],
 }
+
+// Agent skills: the list endpoint returns summaries only, a single skill returns the whole markdown file
+export const skillSummaryFixtures = [
+    { name: 'intake_job', summary: 'Books a warranty repair job for an existing customer.' },
+    { name: 'order_parts', summary: 'Orders replacement parts for a diagnosed device.' },
+]
+
+export const skillFileFixtures: Record<string, string> = {
+    intake_job: `---
+summary: Books a warranty repair job for an existing customer.
+---
+
+## Goal
+Book a warranty repair.
+`,
+    order_parts: `---
+summary: Orders replacement parts for a diagnosed device.
+---
+
+## Goal
+Order the parts.
+`,
+}
