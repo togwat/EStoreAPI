@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, DownloadIcon, PencilIcon } from "lucide-react";
+import { ArrowLeft, DownloadIcon, PencilIcon, Trash2Icon, UploadIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -78,6 +78,10 @@ export default function SkillsPage({ title }: { title: string }) {
         setCurrentMode('create');
     }
 
+    function handleUpload() {
+
+    }
+
     function handleEdit() {
         if (!selectedSkill) return;
 
@@ -87,6 +91,10 @@ export default function SkillsPage({ title }: { title: string }) {
 
     function handleCancel() {
         setCurrentMode('view');
+    }
+
+    function handleDelete() {
+
     }
 
     // save handles both edit and create
@@ -111,6 +119,35 @@ export default function SkillsPage({ title }: { title: string }) {
         setCurrentMode('view');
     }
 
+    function headerButtons() {
+        switch (currentMode) {
+            case 'view':
+                return (
+                    <>
+                        <Button
+                            size={isMobile ? "icon" : "lg"}
+                            variant="outline"
+                            onClick={() => selectedSkill && downloadTextFile(`${selectedSkill.name}.md`, selectedSkill.file, "text/markdown")}
+                        ><DownloadIcon />{!isMobile && "Download"}</Button>
+                        <Button
+                            size={isMobile ? "icon" : "lg"}
+                            onClick={handleEdit}
+                        ><PencilIcon />{!isMobile && "Edit"}</Button>
+                    </>
+                );
+            case 'edit':
+                return <Button
+                            size={isMobile ? "icon" : "lg"}
+                            onClick={handleDelete}
+                        ><Trash2Icon />{!isMobile && "Delete Skill"}</Button>
+            case 'create':
+                return <Button
+                            size={isMobile ? "icon" : "lg"}
+                            onClick={handleUpload}
+                        ><UploadIcon />{!isMobile && "Upload Skill"}</Button>
+        }
+    }
+
     return (
         <div>
             {(selectedSummary || currentMode === 'create') ? (
@@ -124,22 +161,11 @@ export default function SkillsPage({ title }: { title: string }) {
                             ><ArrowLeft /></Button>
                             <h2 className="text-xl font-semibold">{currentMode === 'create' ? "New Skill": selectedSummary!.name}</h2>
                         </div>
-
-                        {! isEditing &&
-                            <div className="flex items-center gap-2">
-                                <Button
-                                    size={isMobile ? "icon" : "lg"}
-                                    variant="outline"
-                                    disabled={!selectedSkill}
-                                    onClick={() => selectedSkill && downloadTextFile(`${selectedSkill.name}.md`, selectedSkill.file, "text/markdown")}
-                                ><DownloadIcon />{!isMobile && "Download"}</Button>
-                                <Button
-                                    size={isMobile ? "icon" : "lg"}
-                                    disabled={!selectedSkill}
-                                    onClick={handleEdit}
-                                ><PencilIcon />{!isMobile && "Edit"}</Button>
-                            </div>
-                        }
+                        
+                        <div className="flex items-center gap-2">
+                            {headerButtons()}
+                        </div>
+                        
                     </div>
                     
                     {/** view mode only summary */}
