@@ -1,11 +1,12 @@
 import { useIsMobile } from "@/hooks/use-mobile";
-import { createSkill, getSkill, listSkills, Skill, SkillSummary, updateSkill } from "@/api/skills";
+import { createSkill, deleteSkill, getSkill, listSkills, Skill, SkillSummary, updateSkill } from "@/api/skills";
 import SkillCard from "./components/SkillCard";
 import NewSkillCard from "./components/NewSkillCard";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ArrowLeft, DownloadIcon, PencilIcon, Trash2Icon, UploadIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Markdown from "react-markdown";
@@ -78,8 +79,16 @@ export default function SkillsPage({ title }: { title: string }) {
         setCurrentMode('create');
     }
 
-    function handleUpload() {
+    async function handleUpload(event: ChangeEvent<HTMLInputElement>) {
+        const file = event.target.files?.[0];
+        if (!file) return;
 
+        // fill the editor from an uploaded file
+        setEditedFile(await file.text());
+        setEditedName(file.name.replace(/\.(md|markdown)$/i, ""));
+
+        // clear the input so picking the same file again still fires a change
+        event.target.value = "";
     }
 
     function handleEdit() {
@@ -93,8 +102,21 @@ export default function SkillsPage({ title }: { title: string }) {
         setCurrentMode('view');
     }
 
-    function handleDelete() {
+    async function handleDelete() {
+        if (!selectedSummary) return;
 
+        try {
+            await deleteSkill(selectedSummary.name);
+        } catch {
+            // stay in edit mode if delete fails
+            return;
+        }
+
+        // go back to the list
+        setSummaries(await listSkills());
+        setSelectedSummary(null);
+        setSelectedSkill(null);
+        setCurrentMode('view');
     }
 
     // save handles both edit and create
@@ -136,15 +158,44 @@ export default function SkillsPage({ title }: { title: string }) {
                     </>
                 );
             case 'edit':
-                return <Button
-                            size={isMobile ? "icon" : "lg"}
-                            onClick={handleDelete}
-                        ><Trash2Icon />{!isMobile && "Delete Skill"}</Button>
+                return (
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button
+                                size={isMobile ? "icon" : "lg"}
+                                variant="destructive"
+                            ><Trash2Icon />{!isMobile && "Delete Skill"}</Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Delete {selectedSummary?.name}.md?</DialogTitle>
+                            </DialogHeader>
+                            <DialogFooter>
+                                <DialogClose asChild>
+                                    <Button variant="outline">Cancel</Button>
+                                </DialogClose>
+                                <DialogClose asChild>
+                                    <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+                                </DialogClose>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                );
             case 'create':
-                return <Button
-                            size={isMobile ? "icon" : "lg"}
-                            onClick={handleUpload}
-                        ><UploadIcon />{!isMobile && "Upload Skill"}</Button>
+                // hidden label & input to let button act as file upload
+                return (
+                    <Button size={isMobile ? "icon" : "lg"} asChild>
+                        <label className="cursor-pointer">
+                            <UploadIcon />{!isMobile && "Upload Skill"}
+                            <input
+                                type="file"
+                                accept=".md,.markdown,text/markdown"
+                                onChange={handleUpload}
+                                className="hidden"
+                            />
+                        </label>
+                    </Button>
+                );
         }
     }
 
