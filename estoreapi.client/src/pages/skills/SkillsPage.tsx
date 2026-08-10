@@ -3,7 +3,8 @@ import { getSkill, listSkills, Skill, SkillSummary } from "@/api/skills";
 import SkillCard from "./components/SkillCard";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, PencilIcon } from "lucide-react";
+import { ArrowLeft, DownloadIcon, PencilIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function SkillsPage({ title }: { title: string }) {
     const isMobile = useIsMobile();
@@ -41,17 +42,17 @@ export default function SkillsPage({ title }: { title: string }) {
                 <div className={isMobile ? "" : "p-8"}>
                     {/** skill viewing/editing page */}
                     {/** header */}
-                    { isMobile ? <div className="flex items-center justify-between">
-                        <Button variant="outline" size="icon" onClick={() => setSelectedName(null)}><ArrowLeft /></Button>
-                        <Button size="icon" onClick={() => {}}><PencilIcon /></Button>
-                    </div>
-                    : <div className="flex items-center justify-between">
+                    <div className={cn("flex items-center justify-between", isMobile ? "pb-4" : "py-4")}>
                         <div className="flex items-center gap-2">
                             <Button variant="outline" size="icon" onClick={() => setSelectedName(null)}><ArrowLeft /></Button>
-                            <h2>{selectedName}</h2>
+                            <h2 className="text-xl font-semibold">{selectedName}</h2>
                         </div>
-                        <Button size="lg" onClick={() => {}}><PencilIcon />Edit Skill</Button>
-                    </div>}
+
+                        <div className="flex items-center gap-2">
+                            <Button size={isMobile ? "icon" : "lg"} variant="outline" onClick={() => {}}><DownloadIcon />{!isMobile && "Download"}</Button>
+                            <Button size={isMobile ? "icon" : "lg"} onClick={() => {}}><PencilIcon />{!isMobile && "Edit"}</Button>
+                        </div>
+                    </div>
                     {/** markdown renderer/text editor */}
                     {selectedSkill && selectedSkill.file}
                 </div>
