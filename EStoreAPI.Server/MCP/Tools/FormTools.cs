@@ -16,7 +16,7 @@ public class FormTools
 
 
     [McpServerTool, Description("Creates a repair job via form. Looks up an existing customer by their primary contact detail or creates a new one if not found. Search for the device and its problems first before filling out the form.")]
-    public async Task<OutJobDTO> SubmitFormAsync(
+    public async Task<OutJobDTO> SubmitJobFormAsync(
         [Description("Customer's primary contact detail.")] string primaryContact,
         [Description("Name of the device model being repaired.")] string deviceName,
         [Description("List the names of problems the device is being repaired for. At least one problem is required.")]List<string> problems,
