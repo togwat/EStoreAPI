@@ -167,6 +167,67 @@ namespace EStoreAPI.Tests.ServiceTests
                 j.ProblemIds.Contains(problem2.ProblemId))), Times.Once);
         }
 
+        // a receive time given on the form is carried through to the created job
+        [Fact]
+        public async Task SubmitForm_ReceiveTimeGiven_PassedToJob()
+        {
+            var customer = _fixture.Create<Customer>();
+            var device = _fixture.Create<Device>();
+            var problem = _fixture.Create<Problem>();
+            var job = _fixture.Create<Job>();
+            var receiveTime = new DateTime(2026, 1, 15, 9, 30, 0, DateTimeKind.Utc);
+
+            var dto = _fixture.Build<InFormDTO>()
+                .With(f => f.PrimaryContact, customer.PrimaryContact)
+                .With(f => f.DeviceName, device.DeviceName)
+                .With(f => f.Problems, [problem.ProblemName])
+                .With(f => f.ReceiveTime, receiveTime)
+                .Create();
+
+            _deviceService.Setup(s => s.SearchDevicesByNameAsync(device.DeviceName))
+                .ReturnsAsync([device]);
+            _problemService.Setup(s => s.GetDeviceProblemsAsync(device.DeviceId))
+                .ReturnsAsync([problem]);
+            _customerService.Setup(s => s.GetCustomerByContactAsync(customer.PrimaryContact))
+                .ReturnsAsync(customer);
+            _jobService.Setup(s => s.CreateJobAsync(It.IsAny<InJobDTO>()))
+                .ReturnsAsync(job);
+
+            await _formService.SubmitFormAsync(dto);
+
+            _jobService.Verify(s => s.CreateJobAsync(It.Is<InJobDTO>(j => j.ReceiveTime == receiveTime)), Times.Once);
+        }
+
+        // an omitted receive time is left null so the current time is used
+        [Fact]
+        public async Task SubmitForm_ReceiveTimeOmitted_PassesNullToJob()
+        {
+            var customer = _fixture.Create<Customer>();
+            var device = _fixture.Create<Device>();
+            var problem = _fixture.Create<Problem>();
+            var job = _fixture.Create<Job>();
+
+            var dto = _fixture.Build<InFormDTO>()
+                .With(f => f.PrimaryContact, customer.PrimaryContact)
+                .With(f => f.DeviceName, device.DeviceName)
+                .With(f => f.Problems, [problem.ProblemName])
+                .With(f => f.ReceiveTime, (DateTime?)null)
+                .Create();
+
+            _deviceService.Setup(s => s.SearchDevicesByNameAsync(device.DeviceName))
+                .ReturnsAsync([device]);
+            _problemService.Setup(s => s.GetDeviceProblemsAsync(device.DeviceId))
+                .ReturnsAsync([problem]);
+            _customerService.Setup(s => s.GetCustomerByContactAsync(customer.PrimaryContact))
+                .ReturnsAsync(customer);
+            _jobService.Setup(s => s.CreateJobAsync(It.IsAny<InJobDTO>()))
+                .ReturnsAsync(job);
+
+            await _formService.SubmitFormAsync(dto);
+
+            _jobService.Verify(s => s.CreateJobAsync(It.Is<InJobDTO>(j => j.ReceiveTime == null)), Times.Once);
+        }
+
         // the device name must match exactly; a near-miss without an exact match is rejected
         [Fact]
         public async Task SubmitForm_DeviceNameNoExactMatch_ThrowsKeyNotFound()

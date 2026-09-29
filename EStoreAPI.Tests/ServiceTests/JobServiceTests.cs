@@ -226,6 +226,49 @@ namespace EStoreAPI.Tests.ServiceTests
             _repo.Verify(r => r.AddJobAsync(It.IsAny<Job>()), Times.Once);
         }
 
+        // a receive time given on the dto is kept on the saved job
+        [Fact]
+        public async Task CreateJob_ReceiveTimeGiven_UsesGivenTime()
+        {
+            var problems = _fixture.CreateMany<Problem>(2).ToList();
+            var receiveTime = new DateTime(2026, 1, 15, 9, 30, 0, DateTimeKind.Utc);
+            var dto = _fixture.Build<InJobDTO>()
+                .With(d => d.ProblemIds, problems.Select(p => p.ProblemId).ToList())
+                .With(d => d.ReceiveTime, receiveTime)
+                .Create();
+            _repo.Setup(r => r.GetProblemsByIdsAsync(It.IsAny<ICollection<int>>())).ReturnsAsync(problems);
+
+            Job? saved = null;
+            _repo.Setup(r => r.AddJobAsync(It.IsAny<Job>()))
+                .Callback<Job>(j => saved = j)
+                .ReturnsAsync(_fixture.Create<Job>());
+
+            await _jobService.CreateJobAsync(dto);
+
+            Assert.Equal(receiveTime, saved!.ReceiveTime);
+        }
+
+        // an omitted receive time defaults to the time of creation
+        [Fact]
+        public async Task CreateJob_ReceiveTimeOmitted_DefaultsToNow()
+        {
+            var problems = _fixture.CreateMany<Problem>(2).ToList();
+            var dto = _fixture.Build<InJobDTO>()
+                .With(d => d.ProblemIds, problems.Select(p => p.ProblemId).ToList())
+                .With(d => d.ReceiveTime, (DateTime?)null)
+                .Create();
+            _repo.Setup(r => r.GetProblemsByIdsAsync(It.IsAny<ICollection<int>>())).ReturnsAsync(problems);
+
+            Job? saved = null;
+            _repo.Setup(r => r.AddJobAsync(It.IsAny<Job>()))
+                .Callback<Job>(j => saved = j)
+                .ReturnsAsync(_fixture.Create<Job>());
+
+            await _jobService.CreateJobAsync(dto);
+
+            Assert.True((DateTime.UtcNow - saved!.ReceiveTime).TotalMinutes < 1);
+        }
+
         // bulk create persists every job
         [Fact]
         public async Task CreateJobs_Bulk_PersistsAll()
@@ -251,6 +294,7 @@ namespace EStoreAPI.Tests.ServiceTests
         public async Task UpdateJob_PartialDto_OnlyOverwritesProvidedFields()
         {
             var original = _fixture.Create<Job>();
+            var originalReceive = original.ReceiveTime;
             var originalPickup = original.PickupTime;
             var originalEstimatedPrice = original.EstimatedPrice;
             var originalStatus = original.Status;
@@ -262,9 +306,26 @@ namespace EStoreAPI.Tests.ServiceTests
             await _jobService.UpdateJobAsync(dto);
 
             Assert.Equal("updated note", original.Note);
+            Assert.Equal(originalReceive, original.ReceiveTime);
             Assert.Equal(originalPickup, original.PickupTime);
             Assert.Equal(originalEstimatedPrice, original.EstimatedPrice);
             Assert.Equal(originalStatus, original.Status);
+            _repo.Verify(r => r.ApplyUpdateAsync(), Times.Once);
+        }
+
+        // a supplied receive time replaces the job's existing one
+        [Fact]
+        public async Task UpdateJob_ReceiveTimeGiven_OverwritesReceiveTime()
+        {
+            var original = _fixture.Create<Job>();
+            var receiveTime = new DateTime(2026, 1, 15, 9, 30, 0, DateTimeKind.Utc);
+            _repo.Setup(r => r.GetJobByIdAsync(original.JobId)).ReturnsAsync(original);
+
+            var dto = new UpdateJobDTO { JobId = original.JobId, ReceiveTime = receiveTime };
+
+            await _jobService.UpdateJobAsync(dto);
+
+            Assert.Equal(receiveTime, original.ReceiveTime);
             _repo.Verify(r => r.ApplyUpdateAsync(), Times.Once);
         }
 
