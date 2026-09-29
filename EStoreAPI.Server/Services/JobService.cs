@@ -45,18 +45,16 @@ namespace EStoreAPI.Server.Services
             if (string.IsNullOrEmpty(query)) return await _repo.GetJobsAsync();
 
             // union of jobs with matching customer or device
-            // can run these lookups in parallel
-            Task<ICollection<Customer>> customersTask = _repo.GetCustomersByQueryAsync(query);
-            Task<ICollection<Device>> devicesTask = _repo.GetDevicesByNameAsync(query);
-            await Task.WhenAll(customersTask, devicesTask);
+            ICollection<Customer> customers = await _repo.GetCustomersByQueryAsync(query);
+            ICollection<Device> devices = await _repo.GetDevicesByNameAsync(query);
 
             // get matching jobs
-            IEnumerable<Task<ICollection<Job>>> matchesCustomersTask = customersTask.Result.Select(c => _repo.GetJobsOfCustomerAsync(c.CustomerId));
-            IEnumerable<Task<ICollection<Job>>> matchesDevicesTask = devicesTask.Result.Select(d => _repo.GetJobsOfDeviceAsync(d.DeviceId));
-            ICollection<Job>[] results = await Task.WhenAll(matchesCustomersTask.Concat(matchesDevicesTask));
+            List<Job> results = new();
+            foreach (Customer c in customers) results.AddRange(await _repo.GetJobsOfCustomerAsync(c.CustomerId));
+            foreach (Device d in devices) results.AddRange(await _repo.GetJobsOfDeviceAsync(d.DeviceId));
 
             // prevent duplicate results
-            return results.SelectMany(j => j).DistinctBy(j => j.JobId).ToList();
+            return results.DistinctBy(j => j.JobId).ToList();
         }
 
         public async Task<Job> CreateJobAsync(InJobDTO dto)
