@@ -134,10 +134,8 @@ class ChatHistoryAdapter implements ThreadHistoryAdapter {
             this.pending.push(item);
             return Promise.resolve();
         }
-        const status = msg.status;
-        const errored = status?.type === "incomplete" && status.reason === "error";
-        // Drop the whole turn (user message + error reply) if the run errored
-        const batch = errored ? [] : [...this.pending, item];
+        
+        const batch = [...this.pending, item];
         this.pending = [];
         return this.commit(batch);
     }

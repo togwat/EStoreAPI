@@ -2,6 +2,7 @@ import { useAuiState } from "@assistant-ui/react";
 
 /**
  * True when the thread's most recent message ended in an error.
+ * Currently unused.
  */
 export function useThreadHasError() {
   return useAuiState((s) => {
