@@ -98,6 +98,10 @@ function formatOutgoingMessages(messages: RunOptions["messages"], current: Threa
             ...(m.role === "user"
                 ? m.attachments.flatMap(a => (a.content ?? []).flatMap(c => toOutgoingParts(c as never)))
                 : []),
+            // Format thread error messages to inform the agent that a message failed
+            ...(m.role === "assistant" && m.status.type === "incomplete" && m.status.reason === "error"
+                ? [{ type: "text" as const, text: "This response failed with an error and the request was not fulfilled." }]
+                : []),
         ],
     }));
 
