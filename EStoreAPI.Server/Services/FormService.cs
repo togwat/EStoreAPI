@@ -54,6 +54,7 @@ namespace EStoreAPI.Server.Services
             {
                 CustomerId = customer.CustomerId,
                 DeviceId = device.DeviceId,
+                ReceiveTime = dto.ReceiveTime,
                 EstimatedPickupTime = dto.EstimatedPickupTime,
                 Note = dto.Note,
                 ProblemIds = problemIds,

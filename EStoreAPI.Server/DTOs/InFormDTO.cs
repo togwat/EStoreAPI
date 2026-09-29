@@ -1,4 +1,3 @@
-using EStoreAPI.Server.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace EStoreAPI.Server.DTOs
@@ -20,5 +19,6 @@ namespace EStoreAPI.Server.DTOs
         public decimal? EstimatedPrice { get; init; }
         public DateTime? EstimatedPickupTime { get; init; }
         public string? Note { get; init; }
+        public DateTime? ReceiveTime { get; init; }
     }
 }

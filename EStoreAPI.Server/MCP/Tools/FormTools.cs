@@ -26,7 +26,9 @@ public class FormTools
         [Description("Customer's street address")] string? address = null,
         [Description("Estimated total repair price.")] decimal? estimatedPrice = null,
         [Description("Estimated device pickup time for the customer, in UTC.")] DateTime? estimatedPickupTime = null,
-        [Description("Any notes on the repair job.")] string? note = null)
+        [Description("Any notes on the repair job.")] string? note = null,
+        [Description("Time the device was received, in UTC. Defaults to now if omitted.")] DateTime? receiveTime = null)
+        
     {
         // construct dto
         InFormDTO dto = new()
@@ -40,7 +42,8 @@ public class FormTools
             Problems = problems,
             EstimatedPrice = estimatedPrice,
             EstimatedPickupTime = estimatedPickupTime,
-            Note = note
+            Note = note,
+            ReceiveTime = receiveTime,
         };
 
         try

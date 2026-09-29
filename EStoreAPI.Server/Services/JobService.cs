@@ -158,6 +158,7 @@ namespace EStoreAPI.Server.Services
             string? oldNote = existing.Note;
             decimal oldCollected = existing.CollectedPrice ?? 0m;
 
+            existing.ReceiveTime = dto.ReceiveTime ?? existing.ReceiveTime;
             existing.PickupTime = dto.PickupTime ?? existing.PickupTime;
             existing.EstimatedPickupTime = dto.EstimatedPickupTime ?? existing.EstimatedPickupTime;
             existing.Note = dto.Note ?? existing.Note;
