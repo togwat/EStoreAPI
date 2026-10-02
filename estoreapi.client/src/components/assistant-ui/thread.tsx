@@ -54,6 +54,7 @@ import {
 import type { FC } from "react";
 import { ContextDisplayBar } from "./context-display";
 import { useModelContextWindow } from "src/api/agent";
+import { useAutoOpenReasoning } from "src/lib/reasoningPreference";
 
 export const Thread: FC = () => {
   return (
@@ -269,6 +270,7 @@ const AssistantMessage: FC = () => {
   // for pt-[n] use -mb-[n + 6] & min-h-[n + 6] to preserve compensation
   const ACTION_BAR_PT = "pt-1.5";
   const ACTION_BAR_HEIGHT = `-mb-7.5 min-h-7.5 ${ACTION_BAR_PT}`;
+  const autoOpenReasoning = useAutoOpenReasoning();
 
   return (
     <MessagePrimitive.Root
@@ -298,7 +300,7 @@ const AssistantMessage: FC = () => {
               case "group-reasoning": {
                 const running = part.status.type === "running";
                 return (
-                  <ReasoningRoot defaultOpen={running}>
+                  <ReasoningRoot defaultOpen={running && autoOpenReasoning}>
                     <ReasoningTrigger active={running} />
                     <ReasoningContent aria-busy={running}>
                       <ReasoningText>{children}</ReasoningText>
