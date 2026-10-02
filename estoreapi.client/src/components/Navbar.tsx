@@ -40,12 +40,12 @@ export function Navbar({ title, children }: NavbarProps) {
                     </div>
                     <CollapsibleContent className="overflow-hidden absolute top-full left-0 right-0 z-40 border-y border-border bg-background data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
                         <nav className="flex flex-col gap-1 p-1">
-                            <NavItem to="/form" icon={<Form className="h-4 w-4" />} label="Form" horizontal onClick={close} />
-                            <NavItem to="/jobs" icon={<ScrollText className="h-4 w-4" />} label="Jobs" horizontal onClick={close} />
-                            <NavItem to="/devices" icon={<TabletSmartphone className="h-4 w-4" />} label="Devices" horizontal onClick={close} />
-                            <NavItem to="/skills" icon={<BookTextIcon className="h-4 w-4" />} label="Skills" horizontal onClick={close} />
-                            <NavItem to="/settings" icon={<SettingsIcon className="h-4 w-4" />} label="Settings" horizontal onClick={close} />
-                            <Button variant="ghost" className={"rounded-md p-2 transition-colors flex-row justify-start items-center gap-2 text-xs"} onClick={handleLogout}><LogOut className="h-4 w-4" />Log Out</Button>
+                            <NavItem to="/form" icon={<Form className="h-4.5 w-4.5" />} label="Form" horizontal onClick={close} />
+                            <NavItem to="/jobs" icon={<ScrollText className="h-4.5 w-4.5" />} label="Jobs" horizontal onClick={close} />
+                            <NavItem to="/devices" icon={<TabletSmartphone className="h-4.5 w-4.5" />} label="Devices" horizontal onClick={close} />
+                            <NavItem to="/skills" icon={<BookTextIcon className="h-4.5 w-4.5" />} label="Skills" horizontal onClick={close} />
+                            <NavItem to="/settings" icon={<SettingsIcon className="h-4.5 w-4.5" />} label="Settings" horizontal onClick={close} />
+                            <Button variant="ghost" className={"rounded-md p-2 transition-colors flex-row justify-start items-center gap-2 text-sm"} onClick={handleLogout}><LogOut className="h-4.5 w-4.5" />Log Out</Button>
                         </nav>
                     </CollapsibleContent>
                 </Collapsible>

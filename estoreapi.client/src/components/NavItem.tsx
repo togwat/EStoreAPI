@@ -29,7 +29,7 @@ export default function NavItem({ to, icon, label, horizontal, onClick }: NavIte
             }
         >
             {icon}
-            {label && <span className="text-xs font-medium">{label}</span>}
+            {label && <span className="text-sm font-medium">{label}</span>}
         </NavLink>
     );
 }
