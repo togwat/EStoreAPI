@@ -9,7 +9,7 @@ import type { ThreadTokenUsage } from "@assistant-ui/react-ai-sdk";
  *  - `toOutgoingParts` / `formatOutgoingMessages` assemble the request;
  *  - `TurnAccumulator` collects stream events into renderable content;
  *  - `readNdjsonLines` turns the response body into parsed events;
- *  - `agentAdapter` wires these together for assistant-ui's runtime.
+ *  - `createAgentAdapter` wires these together for assistant-ui's runtime.
  */
 
 // --- wire types ------------------------------------------------------------
@@ -257,50 +257,79 @@ async function* readNdjsonLines(body: ReadableStream<Uint8Array>): AsyncGenerato
 
 // --- adapter ---------------------------------------------------------------
 
-export const agentAdapter: ChatModelAdapter = {
-    async *run({ messages, abortSignal, unstable_getMessage }) {
-        const current = unstable_getMessage();
-        const formatted = formatOutgoingMessages(messages, current);
+export function createAgentAdapter(getUiContext: () => string[] = () => []): ChatModelAdapter {
+    // UI context snapshot for the user message that started the turn
+    // Since a confirmation resume reruns the same turn, we reuse the snapshot
+    let snapshot: { userMessageId: string | undefined; uiContext: string[] } | undefined;
 
-        const res = await fetch("/agent/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ messages: formatted, stream: true }),
-            signal: abortSignal,
-        });
-
-        if (!res.ok) throw new Error(`Agent error: ${res.statusText}`);
-        if (!res.body) throw new Error("No response body");
-
-        const turn = new TurnAccumulator();
-        turn.seedSources(current.content);
-
-        // Token usage rides along as message metadata under `custom.usage`, where
-        // useThreadTokenUsage() reads it to drive the context-usage indicator. It also
-        // persists with the message, so the indicator survives a reload.
-        const usageMeta = () =>
-            turn.usage ? { metadata: { custom: { usage: turn.usage } } } : {};
-
-        // Emit on every chunk that carried at least one event, so the UI streams.
-        for await (const events of readNdjsonLines(res.body)) {
-            if (events.length === 0) continue;
-            for (const event of events) turn.apply(event);
-            yield { content: turn.build() as never[], ...usageMeta() };
+    /** The id of the user message that started the current turn (the last user message in history). */
+    function lastUserMessageId(messages: RunOptions["messages"]): string | undefined {
+        for (let i = messages.length - 1; i >= 0; i--) {
+            if (messages[i].role === "user") return messages[i].id;
         }
+        return undefined;
+    }
 
-        // Rethrowing the error will surface the message in the error box
-        if (turn.error) throw new Error(turn.error);
+    return {
+        async *run({ messages, abortSignal, unstable_getMessage }) {
+            const current = unstable_getMessage();
+            const formatted = formatOutgoingMessages(messages, current);
 
-        // Final emit. When the backend paused for confirmation, mark the message
-        // `requires-action` so the runtime stops and waits. 
-        // The user's decision arrives later via addToolResult, which resumes the 
-        // run. Otherwise the message completes normally.
-        yield {
-            content: turn.build() as never[],
-            ...usageMeta(),
-            ...(turn.awaitingConfirmation
-                ? { status: { type: "requires-action", reason: "tool-calls" } as const }
-                : {}),
-        };
-    },
-};
+            const userMessageId = lastUserMessageId(messages);
+
+            // `getUiContext` reads the UI-awareness lines as `uiContext`
+            if (!snapshot || snapshot.userMessageId !== userMessageId) {
+                snapshot = { userMessageId, uiContext: getUiContext() };
+            }
+            const { uiContext } = snapshot;
+
+            const res = await fetch("/agent/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    messages: formatted,
+                    stream: true,
+                    ...(uiContext.length > 0 ? { uiContext } : {}),
+                }),
+                signal: abortSignal,
+            });
+
+            if (!res.ok) throw new Error(`Agent error: ${res.statusText}`);
+            if (!res.body) throw new Error("No response body");
+
+            const turn = new TurnAccumulator();
+            turn.seedSources(current.content);
+
+            // Token usage rides along as message metadata under `custom.usage`, where
+            // useThreadTokenUsage() reads it to drive the context-usage indicator. It also
+            // persists with the message, so the indicator survives a reload.
+            const usageMeta = () =>
+                turn.usage ? { metadata: { custom: { usage: turn.usage } } } : {};
+
+            // Emit on every chunk that carried at least one event, so the UI streams.
+            for await (const events of readNdjsonLines(res.body)) {
+                if (events.length === 0) continue;
+                for (const event of events) turn.apply(event);
+                yield { content: turn.build() as never[], ...usageMeta() };
+            }
+
+            // Rethrowing the error will surface the message in the error box
+            if (turn.error) throw new Error(turn.error);
+
+            // Final emit. When the backend paused for confirmation, mark the message
+            // `requires-action` so the runtime stops and waits.
+            // The user's decision arrives later via addToolResult, which resumes the
+            // run. Otherwise the message completes normally.
+            yield {
+                content: turn.build() as never[],
+                ...usageMeta(),
+                ...(turn.awaitingConfirmation
+                    ? { status: { type: "requires-action", reason: "tool-calls" } as const }
+                    : {}),
+            };
+        },
+    };
+}
+
+/** Adapter without UI context, for callers outside chat like tests */
+export const agentAdapter = createAgentAdapter();

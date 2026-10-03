@@ -4,7 +4,7 @@ from typing import Iterator
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from config import SYSTEM_PROMPT, STREAMING
 
@@ -26,6 +26,8 @@ _tc_counter = count(1)
 class ChatRequest(BaseModel):
     messages: list[dict]  # [{role: "user"|"assistant", content: "..."}]
     stream: bool = STREAMING
+    # UI-awareness lines providing context from visible components
+    ui_context: list[str] | None = Field(default=None, alias="uiContext")
 
 
 class ChatResponse(BaseModel):
@@ -127,6 +129,32 @@ def build_system_prompt(context_memory: str, relevant_memory: str, skills: Skill
     return system
 
 
+def with_ui_context(messages: list[dict], ui_context: list[str] | None) -> list[dict]:
+    """
+    Return a copy of messages with the UI-awareness lines prepended to the latest user message
+    as a <ui_context> block, which system.md tells the model how to use.
+    """
+    if not ui_context:
+        return messages
+
+    block = "<ui_context>\n" + "\n".join(ui_context) + "\n</ui_context>\n"
+
+    # The latest user message isn't always the last message as
+    # a confirmation resume ends with the assistant's tool call.
+    for i in range(len(messages) - 1, -1, -1):
+        msg = messages[i]
+        if msg.get("role") != "user":
+            continue
+        # Content may be a plain string or a list of typed parts (text, image_url)
+        content = msg.get("content", "")
+        parts = content if isinstance(content, list) else [{"type": "text", "text": str(content)}]
+        updated = list(messages)
+        updated[i] = {**msg, "content": [{"type": "text", "text": block}, *parts]}
+        return updated
+
+    return messages
+
+
 # Endpoints
 
 @router.post("/agent/chat")
@@ -162,7 +190,7 @@ def chat(
     relevant_memory = memory.search(latest_msg, user_email) if memory and latest_msg else ""
 
     system = build_system_prompt(context_memory, relevant_memory, skills)
-    messages = [{"role": "system", "content": system}] + req.messages
+    messages = [{"role": "system", "content": system}] + with_ui_context(req.messages, req.ui_context)
 
     if req.stream:
         def serialised() -> Iterator[str]:

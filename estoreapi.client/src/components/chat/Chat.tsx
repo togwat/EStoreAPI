@@ -5,8 +5,9 @@ import {
     useLocalRuntime,
     useRemoteThreadListRuntime,
 } from "@assistant-ui/react";
-import { agentAdapter } from "./agentStream";
+import { createAgentAdapter } from "./agentStream";
 import { attachmentAdapter, remoteThreadListAdapter } from "./chatPersistence";
+import { UiAwarenessContext, type UiAwarenessRegistry } from "./UiAwareness";
 import { AssistantSidebar } from "../assistant-ui/assistant-sidebar";
 
 // localStorage key holding the last-open thread's remoteId, so a reload or agent restart reopens the same chat.
@@ -18,6 +19,14 @@ export default function Chat({ children }: PropsWithChildren) {
     const initialThreadId = useMemo(
         () => localStorage.getItem(ACTIVE_THREAD_KEY) ?? undefined,
         [],
+    );
+
+    // UI-awareness lines reported by the pages below (see UiAwareness.tsx); the adapter
+    // snapshots them when a run starts. Both are created once so the runtime keeps a stable adapter.
+    const uiAwareness = useMemo<UiAwarenessRegistry>(() => new Map(), []);
+    const agentAdapter = useMemo(
+        () => createAgentAdapter(() => [...uiAwareness.values()]),
+        [uiAwareness],
     );
 
     const runtime = useRemoteThreadListRuntime({
@@ -43,10 +52,12 @@ export default function Chat({ children }: PropsWithChildren) {
     }, [runtime]);
 
     return (
-        <AssistantRuntimeProvider runtime={runtime}>
-            <AssistantSidebar>
-                {children}
-            </AssistantSidebar>
-        </AssistantRuntimeProvider>
+        <UiAwarenessContext.Provider value={uiAwareness}>
+            <AssistantRuntimeProvider runtime={runtime}>
+                <AssistantSidebar>
+                    {children}
+                </AssistantSidebar>
+            </AssistantRuntimeProvider>
+        </UiAwarenessContext.Provider>
     );
 }

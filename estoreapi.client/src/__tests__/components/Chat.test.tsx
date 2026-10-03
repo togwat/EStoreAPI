@@ -7,7 +7,7 @@ import {
     MessagePrimitive,
     ErrorPrimitive,
 } from '@assistant-ui/react'
-import { agentAdapter, toOutgoingParts } from '@/components/chat/agentStream'
+import { agentAdapter, createAgentAdapter, toOutgoingParts } from '@/components/chat/agentStream'
 import { stripAttachmentFiles, remoteThreadListAdapter } from '@/components/chat/chatPersistence'
 import { server } from '../mocks/server'
 import { http, HttpResponse } from 'msw'
@@ -56,7 +56,7 @@ function mockAgentStream(response: ReturnType<typeof streamResponse>) {
 type RunOptions = Parameters<typeof agentAdapter.run>[0]
 
 /** Drive the adapter generator to completion and collect every yielded value. */
-async function runAdapter(opts: Partial<RunOptions> = {}) {
+async function runAdapter(opts: Partial<RunOptions> = {}, adapter = agentAdapter) {
     const full = {
         messages: [],
         abortSignal: undefined,
@@ -64,7 +64,7 @@ async function runAdapter(opts: Partial<RunOptions> = {}) {
         ...opts,
     } as unknown as RunOptions
     const yields: Array<{ content: unknown[]; status?: { type: string; reason?: string } }> = []
-    const stream = agentAdapter.run(full) as AsyncGenerator<unknown>
+    const stream = adapter.run(full) as AsyncGenerator<unknown>
     for await (const value of stream) {
         yields.push(value as never)
     }
@@ -390,6 +390,48 @@ describe('agentAdapter.run — request assembly', () => {
             role: 'assistant',
             content: [{ type: 'tool_use', id: 't1', name: 'do_thing', input: { a: 1 }, result: 'r' }],
         })
+    })
+})
+
+// --- createAgentAdapter: UI-awareness context ------------------------------
+
+describe('createAgentAdapter — UI context', () => {
+    /** A history whose last user message has the given id. */
+    const userTurn = (id: string) => [
+        { id, role: 'user', content: [{ type: 'text', text: 'update the current job' }], attachments: [] },
+    ] as never
+
+    /** The parsed request body of the nth fetch call. */
+    const bodyOf = (fetchMock: ReturnType<typeof mockAgentStream>, n = 0) =>
+        JSON.parse(fetchMock.mock.calls[n][1].body)
+
+    it('sends the reported lines as uiContext', async () => {
+        const fetchMock = mockAgentStream(streamResponse([line(['chunk', 'ok'])]))
+        await runAdapter({ messages: userTurn('u1') }, createAgentAdapter(() => ['Open: job #6']))
+        expect(bodyOf(fetchMock).uiContext).toEqual(['Open: job #6'])
+    })
+
+    it('omits uiContext when nothing is reported', async () => {
+        const fetchMock = mockAgentStream(streamResponse([line(['chunk', 'ok'])]))
+        await runAdapter({ messages: userTurn('u1') }, createAgentAdapter(() => []))
+        expect(bodyOf(fetchMock)).not.toHaveProperty('uiContext')
+    })
+
+    it('reuses the snapshot for a resumed turn and refreshes it on a new user message', async () => {
+        const fetchMock = mockAgentStream(streamResponse([line(['chunk', 'ok'])]))
+        let lines = ['Open: job #6']
+        const adapter = createAgentAdapter(() => lines)
+
+        await runAdapter({ messages: userTurn('u1') }, adapter)
+        // the screen changes while a confirmation is pending, then the same turn resumes
+        lines = ['Open: job #9']
+        await runAdapter({ messages: userTurn('u1') }, adapter)
+        // a new user message reads the screen again
+        await runAdapter({ messages: userTurn('u2') }, adapter)
+
+        expect(bodyOf(fetchMock, 0).uiContext).toEqual(['Open: job #6'])
+        expect(bodyOf(fetchMock, 1).uiContext).toEqual(['Open: job #6'])
+        expect(bodyOf(fetchMock, 2).uiContext).toEqual(['Open: job #9'])
     })
 })
 
