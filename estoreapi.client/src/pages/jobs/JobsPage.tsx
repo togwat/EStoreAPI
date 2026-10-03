@@ -19,6 +19,7 @@ import { InfoItem, InfoRow } from './components/InfoItem';
 import AddWarrantyPanel from './components/AddWarrantyPanel';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import JobLogPanel from './components/JobLogPanel';
+import { useUiAwareness } from '@/components/chat/UiAwareness';
 
 export default function JobsPage({ title }: { title: string }) {
     const isMobile = useIsMobile();
@@ -146,6 +147,7 @@ export default function JobsPage({ title }: { title: string }) {
     // changes when selectedJob changes
     const selectedCustomer = selectedJob ? customers[selectedJob.customerId] ?? null : null;
     const selectedDevice = selectedJob ? devices[selectedJob.deviceId] ?? null : null;
+    useUiAwareness(selectedJob ? `Open: job #${selectedJob.jobId}` : null);
 
     const toCard = (job: Job) => (
         <JobCard

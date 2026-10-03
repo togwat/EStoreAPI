@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PencilIcon, PlusIcon, X } from 'lucide-react';
 import { sortByField } from '@/lib/sort';
+import { useUiAwareness } from '@/components/chat/UiAwareness';
 
 export default function DevicesPage({ title }: { title: string }) {
     const isMobile = useIsMobile();
@@ -61,6 +62,9 @@ export default function DevicesPage({ title }: { title: string }) {
     const sortedDevices = sortByField(filteredDevices, sortBy, direction, sortBy==='id');
 
     const pagedDevices = sortedDevices.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+
+    // changes when selectedDevice changes
+    useUiAwareness(selectedDevice ? `Open: device #${selectedDevice.id}` : null);
 
     const cards = pagedDevices.map(device => (
         <DeviceCard key={device.id} device={device} isSelected={selectedDevice?.id === device.id} onClick={() => setSelectedDevice(device)} />
