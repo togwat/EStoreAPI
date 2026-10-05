@@ -283,6 +283,7 @@ export function createAgentAdapter(getUiContext: () => string[] = () => []): Cha
             }
             const { uiContext } = snapshot;
 
+            // UiContext is a temporary addition. It is not a part of messages so it never gets persisted.
             const res = await fetch("/agent/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
