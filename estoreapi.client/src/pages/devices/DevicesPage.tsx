@@ -92,10 +92,7 @@ export default function DevicesPage({ title }: { title: string }) {
             // update mode
             await updateDevice(selectedDevice!.id, { id: selectedDevice!.id, name, modelNumber, type });
             await updateDeviceProblems(selectedDevice!.id, updatedProblems);
-            // get latest data to refresh
-            const refreshed = await getDevices();
-            setDevices(refreshed);
-            setSelectedDevice(refreshed.find(d => d.id === selectedDevice!.id) ?? selectedDevice!);
+            await refreshDevices();
             await problemEditRef.current!.cancel();
             setIsEditing(false);
         }
@@ -114,6 +111,14 @@ export default function DevicesPage({ title }: { title: string }) {
         setEditedModelNumber('');
         setEditedType('');
         setIsEditing(false);
+    }
+
+    async function refreshDevices() {
+        // get latest data to refresh
+        const refreshed = await getDevices();
+        setDevices(refreshed);
+        // keep open the original panel
+        setSelectedDevice(prev => prev ? refreshed.find(d => d.id === prev.id) ?? prev : null);
     }
 
     // adding a device: create a device with no name, no type, set isEditing to true
